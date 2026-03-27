@@ -122,6 +122,43 @@
   .dlg-showall{font-family:var(--mono);font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer;text-decoration:underline;letter-spacing:0.05em;padding:0;}
   .dlg-showall:hover{color:var(--text);}
 
+  /* PROJECT FOLDER PANEL */
+  .folder-tab{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--amber);color:var(--bg);border:none;cursor:pointer;z-index:8000;padding:18px 7px;border-radius:5px 0 0 5px;box-shadow:-3px 0 12px rgba(0,0,0,0.4);display:flex;flex-direction:column;align-items:center;gap:6px;transition:background 0.15s,opacity 0.4s ease;opacity:0;pointer-events:none;}
+  .folder-tab.folder-tab-visible{opacity:1;pointer-events:auto;}
+  .folder-tab:hover{background:#f8b800;}
+  .folder-tab-icon{font-size:18px;line-height:1;}
+  .folder-tab-label{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;writing-mode:vertical-rl;color:var(--bg);}
+  .folder-panel{position:fixed;right:0;top:0;bottom:0;width:320px;background:var(--surface);border-left:1px solid var(--border);z-index:7999;transform:translateX(100%);transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;box-shadow:-6px 0 28px rgba(0,0,0,0.5);}
+  .folder-panel.folder-open{transform:translateX(0);}
+  .folder-panel-header{padding:16px 18px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,var(--surface2),var(--surface));flex-shrink:0;}
+  .folder-panel-title{display:flex;align-items:center;gap:10px;}
+  .folder-panel-title-icon{font-size:20px;}
+  .folder-panel-title-text{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);}
+  .folder-panel-title-sub{font-size:10px;color:var(--text-dim);font-family:var(--sans);}
+  .folder-close{background:none;border:none;color:var(--text-dim);font-size:18px;cursor:pointer;padding:0 2px;line-height:1;}
+  .folder-close:hover{color:var(--text);}
+  .folder-body{flex:1;overflow-y:auto;padding:0 0 20px;}
+  .folder-section{padding:14px 18px 4px;}
+  .folder-section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+  .folder-doc-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.12s;}
+  .folder-doc-item:hover{background:var(--surface2);}
+  .folder-doc-icon{font-size:18px;flex-shrink:0;}
+  .folder-doc-name{font-size:12px;color:var(--text);font-family:var(--sans);line-height:1.35;}
+  .folder-doc-type{font-family:var(--mono);font-size:9px;color:var(--text-dim);letter-spacing:0.08em;}
+  .folder-note-item{margin:8px 18px;background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:0 4px 4px 0;padding:10px 12px;}
+  .folder-note-src{font-family:var(--mono);font-size:9px;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;}
+  .folder-note-text{font-family:'Kalam',cursive;font-size:12.5px;color:var(--text);line-height:1.45;}
+  .folder-empty{padding:12px 18px;font-size:12px;color:var(--text-dim);font-style:italic;font-family:var(--sans);}
+  .folder-subfolder{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,0.04);transition:background 0.12s;user-select:none;}
+  .folder-subfolder:hover{background:var(--surface2);}
+  .folder-subfolder-icon{font-size:16px;flex-shrink:0;}
+  .folder-subfolder-name{font-size:12px;color:var(--text);font-family:var(--sans);font-weight:600;flex:1;}
+  .folder-subfolder-arrow{font-family:var(--mono);font-size:12px;color:var(--text-dim);transition:transform 0.2s;}
+  .folder-subfolder.open .folder-subfolder-arrow{transform:rotate(90deg);}
+  .folder-subfolder-contents{display:none;border-left:2px solid var(--border);margin-left:18px;}
+  .folder-subfolder-contents.open{display:block;}
+  .folder-subfolder-contents .folder-doc-item{padding-left:14px;}
+
   /* STORY MODE — scene-by-scene reveal */
   .scene-block.scene-hidden{display:none;}
   .story-nav{display:flex;align-items:center;gap:14px;margin:28px 0 0;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 6px 6px;max-width:740px;}
@@ -505,7 +542,7 @@
   .xls-tbl{border-collapse:collapse;font-family:'Calibri',Arial,sans-serif;font-size:13px;white-space:nowrap;}
   .xls-tbl .col-hdr{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;font-weight:400;padding:2px 12px;}
   .xls-tbl .row-num{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;padding:2px 10px;min-width:32px;}
-  .xls-tbl td.xc{border:1px solid #d0d0d0;padding:2px 10px;}
+  .xls-tbl td.xc{border:1px solid #d0d0d0;padding:2px 10px;background:#fff;color:#222;}
   .xls-tbl td.xc.hdr{background:#217346;color:#fff;font-weight:700;}
   .xls-tbl td.xc.total{background:#e2efda;font-weight:700;border-top:2px solid #375623;}
   .xls-tbl td.xc.ctg{color:#888;font-style:italic;background:#fafafa;}
@@ -663,7 +700,7 @@
     </div>
   </div>
 
-  <div class="scene-block" id="scene-email">
+  <div class="scene-block" id="scene-email" data-folder-unlock="handover-docs">
     <div class="email-card">
       <div class="email-topbar">
         <div class="email-dot red"></div>
@@ -689,6 +726,7 @@
           <li>Changed conditions clause is in the contract for geotech. Understand what it says before we meet.</li>
         </ul>
         <p>See you Friday.</p>
+        <p>PS don't forget to save your work in the Project Folder.  You should have a link on your desktop for it now.</p>
       </div>
       <div class="email-attachment-bar">
         <div class="email-attachment" onclick="trackDocOpen('beat1','doc-contract')"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
@@ -705,7 +743,7 @@
     <div class="doc-hint" id="doc-hint-beat1">Open all 4 attachments — your kickoff notes will appear when you're done.</div>
   </div>
 
-  <div class="scene-block" data-require-docs="doc-contract,doc-estimate,doc-schedule,doc-brief" data-beat="beat1">
+  <div class="scene-block" data-require-docs="doc-contract,doc-estimate,doc-schedule,doc-brief" data-beat="beat1" data-folder-unlock="handover-docs,kickoff-notes">
   <div class="grid-note">
     <div class="grid-note-header">
       <div class="logo-mark">
@@ -873,12 +911,12 @@
   </div>
   </div>
 
-  <div class="scene-block">
+  <div class="scene-block" data-folder-unlock="meeting-notes">
   <div class="inner-voice">
     <div class="inner-voice-label">Jamie's thinking</div>
-    <p>The OT question started as a rate check and became a system setup task. The travel time question I almost skipped — 
-      2 field days, 3 people, 2 hours each: 250+ hours of real cost with nowhere to live. The risk register was Sarah's knowledge, 
-      finally written down.  I am a bit overwhelmed with how i'm going to deal with all this information, I should send Dan a message 
+    <p>The OT question started as a rate check and became a system setup task. The travel time question I almost skipped —
+      2 field days, 3 people, 2 hours each: 250+ hours of real cost with nowhere to live. The risk register was Sarah's knowledge,
+      finally written down.  I am a bit overwhelmed with how i'm going to deal with all this information, I should send Dan a message
       to see if he has any tips</p>
   </div>
   </div>
@@ -921,7 +959,7 @@
 
 
 
-  <div class="scene-block" id="scene-email">
+  <div class="scene-block" id="scene-dan-email" data-folder-unlock="dan-email">
       <div class="email-card">
         <div class="email-topbar">
           <div class="email-dot red"></div>
@@ -985,7 +1023,6 @@
   </div>
   </div>
 
-   <div class="scene-block"></div>
 
 </div>
 
@@ -1064,111 +1101,155 @@
     </div>
   </div>
 
-  <!-- WORK BLOCK 1 -->
-  <div class="work-block">
-    <span class="wb-label">WBS &amp; Rules of Credit — Final Setup (End of Week 2)</span>
-
-    <table class="data-table" style="margin:0;">
+  <!-- SCENE 3 — WBS table -->
+  <div class="scene-block">
+  <div style="max-width:960px;overflow:hidden;border:1px solid #c8c6c4;border-radius:4px;margin:22px 0;">
+  <div class="xls-titlebar" style="border-radius:4px 4px 0 0;">
+    <div class="xls-titlebar-left">
+      <span style="font-size:18px;">🟢</span>
+      <span class="xls-filename">Ridgeline_WBS_RulesOfCredit.xlsx — Week 2 Setup</span>
+    </div>
+  </div>
+  <div class="xls-ribbon">
+    <div class="xls-ribbon-item active">Home</div>
+    <div class="xls-ribbon-item">Insert</div>
+    <div class="xls-ribbon-item">Formulas</div>
+    <div class="xls-ribbon-item">Data</div>
+    <div class="xls-ribbon-item">View</div>
+  </div>
+  <div class="xls-namebar">
+    <div class="xls-namebox">C3</div>
+    <div class="xls-fx"><span class="xls-fx-icon">fx</span> =SUM(C3:C11)</div>
+  </div>
+  <div class="xls-body" style="overflow-x:auto;">
+    <table class="xls-tbl" style="white-space:normal;width:100%;">
       <thead>
+        <colgroup>
+          <col style="width:36px;">
+          <col style="width:5%;">
+          <col style="width:22%;">
+          <col style="width:9%;">
+          <col style="width:16%;">
+          <col style="width:48%;">
+        </colgroup>
         <tr>
-          <th>WBS</th>
-          <th>Element</th>
-          <th>Budget</th>
-          <th>Rule of Credit</th>
-          <th>Completion Trigger</th>
+          <th class="col-hdr"></th>
+          <th class="col-hdr">A</th>
+          <th class="col-hdr">B</th>
+          <th class="col-hdr">C</th>
+          <th class="col-hdr">D</th>
+          <th class="col-hdr">E</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>1.1</td>
-          <td>Project Management</td>
-          <td>$180,000</td>
-          <td>% Complete (capped 80%)</td>
-          <td>PM judgment against milestone log; 100% at regulatory submission accepted</td>
+          <td class="row-num">1</td>
+          <td class="xc hdr">WBS</td>
+          <td class="xc hdr">Element</td>
+          <td class="xc hdr r">Budget</td>
+          <td class="xc hdr">Rule of Credit</td>
+          <td class="xc hdr">Completion Trigger</td>
         </tr>
         <tr>
-          <td>1.2a</td>
-          <td>Env. Baseline — Field Work</td>
-          <td>$220,000</td>
-          <td>Units Complete</td>
-          <td>Completed field days ÷ 42 planned; verified against signed daily field logs</td>
+          <td class="row-num">2</td>
+          <td class="xc">1.1</td>
+          <td class="xc">Project Management</td>
+          <td class="xc r">$180,000</td>
+          <td class="xc">% Complete (capped 80%)</td>
+          <td class="xc">PM judgment vs. milestone log; 100% at regulatory submission</td>
         </tr>
         <tr>
-          <td>1.2b</td>
-          <td>Env. Baseline — Analysis &amp; Report</td>
-          <td>$200,000</td>
-          <td>Milestone Gates</td>
-          <td>0% → 40% draft issued for internal QC → 100% client-accepted report</td>
+          <td class="row-num">3</td>
+          <td class="xc">1.2a</td>
+          <td class="xc">Env. Baseline — Field Work</td>
+          <td class="xc r">$220,000</td>
+          <td class="xc">Units Complete</td>
+          <td class="xc">Completed field days ÷ 42; verified against signed daily field logs</td>
         </tr>
         <tr>
-          <td>1.3b</td>
-          <td>Ridgeline Drilling PO</td>
-          <td>$2,700,000</td>
-          <td>Units Complete</td>
-          <td>Confirmed holes ÷ 45; completion confirmed by Marcus's field log only</td>
+          <td class="row-num">4</td>
+          <td class="xc">1.2b</td>
+          <td class="xc">Env. Baseline — Analysis &amp; Report</td>
+          <td class="xc r">$200,000</td>
+          <td class="xc">Milestone Gates</td>
+          <td class="xc">0% → 40% draft for QC → 100% client-accepted report</td>
         </tr>
         <tr>
-          <td>1.4</td>
-          <td>HRIA (Ray Callahan sub)</td>
-          <td>$280,000</td>
-          <td>Milestone Gates</td>
-          <td>0% → 30% Stage 1 complete → 70% Stage 2 fieldwork → 100% report accepted by Alberta Culture</td>
+          <td class="row-num">5</td>
+          <td class="xc drill">1.3</td>
+          <td class="xc drill">Ridgeline Drilling PO ⚠</td>
+          <td class="xc drill r">$2,700,000</td>
+          <td class="xc drill">Units Complete</td>
+          <td class="xc drill">Confirmed holes ÷ 45; field log authoritative — not Ridgeline invoices</td>
         </tr>
         <tr>
-          <td>1.5</td>
-          <td>Traditional Land Use</td>
-          <td>$150,000</td>
-          <td>Milestone Gates</td>
-          <td>0% → 35% field sessions complete → 75% draft → 100% final accepted</td>
+          <td class="row-num">6</td>
+          <td class="xc">1.4</td>
+          <td class="xc">HRIA — Ray Callahan sub</td>
+          <td class="xc r">$280,000</td>
+          <td class="xc">Milestone Gates</td>
+          <td class="xc">0% → 30% Stage 1 → 70% Stage 2 field → 100% accepted by Alberta Culture</td>
         </tr>
         <tr>
-          <td>1.6</td>
-          <td>Consultation</td>
-          <td>$220,000</td>
-          <td>Milestone Gates</td>
-          <td>0% → 20% intro meetings → 55% community sessions → 85% draft What We Heard → 100% final</td>
+          <td class="row-num">7</td>
+          <td class="xc">1.5</td>
+          <td class="xc">Traditional Land Use</td>
+          <td class="xc r">$150,000</td>
+          <td class="xc">Milestone Gates</td>
+          <td class="xc">0% → 35% field sessions → 75% draft → 100% final accepted</td>
         </tr>
         <tr>
-          <td>1.7</td>
-          <td>Hydrotechnical</td>
-          <td>$180,000</td>
-          <td>Milestone Gates</td>
-          <td>0% → 50% draft crossing reports issued → 100% final accepted</td>
+          <td class="row-num">8</td>
+          <td class="xc">1.6</td>
+          <td class="xc">First Nations Consultation</td>
+          <td class="xc r">$220,000</td>
+          <td class="xc">Milestone Gates</td>
+          <td class="xc">0% → 20% intro → 55% community sessions → 85% draft → 100% final</td>
         </tr>
         <tr>
-          <td>1.8</td>
-          <td>Impact Assessment &amp; Reporting</td>
-          <td>$370,000</td>
-          <td>Weighted Steps</td>
-          <td>Outline 5% / Data compilation 15% / Draft sections 45% / Internal QC 65% / Client draft 85% / Submission
-            100%</td>
+          <td class="row-num">9</td>
+          <td class="xc">1.7</td>
+          <td class="xc">Hydrotechnical</td>
+          <td class="xc r">$180,000</td>
+          <td class="xc">Milestone Gates</td>
+          <td class="xc">0% → 50% draft crossing reports → 100% final accepted</td>
         </tr>
-        <tr class="total">
-          <td colspan="2"><strong>TOTAL BAC</strong></td>
-          <td><strong>$4,500,000</strong></td>
-          <td colspan="2">Contingency $225,000 — PM-held, outside Oracle budget</td>
+        <tr>
+          <td class="row-num">10</td>
+          <td class="xc">1.8</td>
+          <td class="xc">Impact Assessment &amp; Reporting</td>
+          <td class="xc r">$370,000</td>
+          <td class="xc">Weighted Steps</td>
+          <td class="xc">Outline 5% / Compile 15% / Draft 45% / QC 65% / Client 85% / Submission 100%</td>
+        </tr>
+        <tr>
+          <td class="row-num">11</td>
+          <td class="xc total" colspan="2"><strong>TOTAL BAC</strong></td>
+          <td class="xc total r"><strong>$4,500,000</strong></td>
+          <td class="xc ctg" colspan="2">Contingency $225,000 — PM-held reserve, outside Oracle budget</td>
+        </tr>
+        <tr>
+          <td class="row-num">12</td>
+          <td class="xc sub" colspan="5">Jamie confirmed: Ridgeline PO ✓ · Ray Callahan PO in procurement ✓ · TLU PO pending ✓ · Baseline schedule locked ✓ · Change log issued ✓ · OT rates verified ✓ · Non-chargeable register created ✓ · Risk register formalized ✓</td>
         </tr>
       </tbody>
     </table>
-
-    <p class="wb-note">
-      Jamie also confirmed: Ridgeline PO in system ✓ | Ray Callahan PO issued and in procurement ✓ |
-      TLU firm PO drafted, awaiting Sarah's approval ✓ | Baseline schedule PDF locked and filed ✓ |
-      Change log created and shared with Sarah ✓ | Oracle OT rate codes verified and loaded ✓ |
-      Nonchargeable register created — travel time, oversight, QC sign-offs, proposal write-off ✓ |
-      Risk register formalized — expected value $315,500 ✓
-    </p>
+  </div>
+  <div class="xls-tabs">
+    <div class="xls-tab on">WBS Setup</div>
+    <div class="xls-tab off">Rules of Credit</div>
+    <div class="xls-tab off">PO Register</div>
+  </div>
   </div>
 
-  <!-- SCENE 3 -->
+  </div>
+
+  <!-- SCENE 4 — PC Plan -->
   <div class="scene-block">
     <div class="prose">
       <p>On Friday of Week 2, Jamie sent Sarah the Project Controls Plan — a single page that documented how the project
         would be tracked, reported, and controlled for the next twelve months.</p>
     </div>
-  </div>
-
-  <!-- WORK BLOCK 2 -->
   <div class="work-block">
     <span class="wb-label">Project Controls Plan — Ridgeline Environmental Assessment (one-page summary)</span>
 
@@ -1292,7 +1373,12 @@
     </div>
   </div>
 
-  <!-- INNER VOICE -->
+  </div>
+
+  </div>
+
+  <!-- SCENE 5 — inner voice + callout -->
+  <div class="scene-block">
   <div class="inner-voice">
     <div class="inner-voice-label">Jamie's thinking</div>
     <p>The PC Plan took about three hours to write. Most of that time wasn't writing — it was thinking through the
@@ -1304,6 +1390,7 @@
     <div class="callout-label">What This Illustrates</div>
     <p>The PC Plan is not bureaucratic paperwork — it's a set of decisions made in advance about how you will handle
       situations you haven't encountered yet.</p>
+  </div>
   </div>
 
 </div> <!-- END .beat -->
@@ -2256,6 +2343,148 @@
   </div>
 </div>
 
+<!-- FRIDAY MEETING NOTES MODAL -->
+<div class="doc-overlay" id="doc-meeting-notes" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window" style="max-width:680px;">
+    <div class="doc-topbar" style="background:#1a2744;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="logo-icon" style="width:22px;height:22px;font-size:9px;">NE</div>
+        <span style="color:#fff;font-size:12px;font-weight:600;font-family:var(--sans);">Kickoff Meeting Notes — Sarah Chen · Jan 17</span>
+      </div>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-meeting-notes'))">✕</button>
+    </div>
+    <div class="doc-content" style="padding:0;background:#f8f6ee;">
+      <div class="grid-note-body" style="background:linear-gradient(rgba(165,185,210,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(165,185,210,0.3) 1px,transparent 1px),#f8f6ee;background-size:20px 20px;position:relative;">
+        <div class="note-page-line"></div>
+        <div class="grid-note-inner">
+          <div class="note-title">Ridgeline EA — Kickoff Meeting · J. Okafor · Fri Jan 17, 9:00 AM</div>
+          <div class="note-section-head">Attendees</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Sarah Chen (PM), Jamie Okafor (PC) — 90 min working session</span></div>
+
+          <div class="note-section-head">Decisions &amp; Actions</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>POs:</strong> Ridgeline signed and in system ✓ — Ray Callahan PO drafted, not yet in procurement. Sarah following up today. <em>Must be in system before any invoices can process.</em></span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Contingency:</strong> $225K is PM-held reserve — completely outside Oracle WBS budgets. Not visible to team. Jamie tracks balance and flags every drawdown.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>OT rates:</strong> Field techs are hourly. OT at 1.5×. Confirm OT rate codes are loaded in Oracle before first timesheets post. If wrong, actuals understated from Day 1.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Non-billable register:</strong> Set up parallel to Oracle. Travel time (~2 hrs/day), principal reviews (~2 hrs/month), QC sign-offs, proposal write-off. Report monthly alongside cost report.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Baseline schedule:</strong> Locked — Sarah sending signed PDF this afternoon. Any update = formal revision through Sarah. No working file changes.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Changed conditions trigger:</strong> Material departure from Marcus's pre-drilling methodology report. Jamie sees field logs weekly — flag immediately if soil departs from baseline, not at month-end.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Risk register:</strong> Sarah's 5 risks verbalized since proposal — Jamie to formalize with prob., impact range, EV, owner, response. Draft to Sarah EOD tomorrow. Check EV total vs. contingency.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Change log:</strong> Set up immediately. All scope conversations logged from Day 1. Share template with Dale Fortis at kickoff — clients behave better when they know it's being tracked.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>CO thresholds:</strong> Dale up to $50K — confirm in writing from Sarah. Above $50K = VP authorization required.</span></div>
+
+          <div class="note-section-head">Key Watch Items</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Drilling program — 60% of budget. Every hole count change is material.</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>April 1 hard constraint — clearing complete. Clock already running.</span></div>
+        </div>
+      </div>
+      <div class="grid-note-footer">
+        <span>J. Okafor · Project Controller</span>
+        <span>Ridgeline EA · Jan 17, 2025</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DAN REYES EMAIL MODAL -->
+<div class="doc-overlay" id="doc-dan-email" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window" style="max-width:620px;">
+    <div class="doc-topbar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">✉️</span>
+        <span style="font-size:12px;font-weight:600;font-family:var(--sans);color:#fff;">Dan Reyes — Project Controls Checklist</span>
+      </div>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-dan-email'))">✕</button>
+    </div>
+    <div class="doc-content">
+      <div class="email-header" style="border-bottom:1px solid #e8e8e8;padding-bottom:14px;margin-bottom:16px;">
+        <div class="email-subject" style="color:#1a1a2e;">Project Controls Checklist</div>
+        <div class="email-meta">
+          <div class="email-meta-row"><span class="email-meta-label">From:</span><span class="email-meta-value" style="color:#333;">Dan Reyes &lt;d.reyes@firm.ca&gt;</span></div>
+          <div class="email-meta-row"><span class="email-meta-label">To:</span><span class="email-meta-value" style="color:#333;">Jamie Okafor &lt;j.okafor@firm.ca&gt;</span></div>
+          <div class="email-meta-row"><span class="email-meta-label">Date:</span><span class="email-meta-value" style="color:#333;">Monday, January 20</span></div>
+        </div>
+      </div>
+      <div style="font-family:var(--sans);font-size:13.5px;color:#222;line-height:1.7;">
+        <p style="margin-bottom:10px;">Hi Jamie,</p>
+        <p style="margin-bottom:16px;">As discussed — here's the checklist I put together over a few projects. Follow it in order and you won't miss anything in setup.</p>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#217346;margin:14px 0 6px;font-weight:700;">Contract &amp; Documents</div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Read the contract — scope section, fee structure, and key clauses (changed conditions, CO authorization, delay)</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm contingency is PM-held and outside WBS budgets</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Map milestone billing triggers to WBS so billing events are tracked on time</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm subconsultant PO status — issued, in procurement, or pending</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Lock baseline schedule as contract document — not a working draft</span></div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#217346;margin:14px 0 6px;font-weight:700;">WBS, Budget &amp; Oracle</div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Review proposal WBS — align to estimate structure</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Build WBS in Oracle by discipline — subs in own elements, contingency excluded</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Load approved budgets by WBS — verify totals match contract BAC</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Verify OT rate codes for all hourly field staff</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm system access for all team members charging to the project</span></div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:#217346;margin:14px 0 6px;font-weight:700;">EVM, Reporting &amp; PC Plan</div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Define rules of credit for each WBS element with PM</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Document completion triggers — field logs, client acceptance, internal sign-off</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Set up monthly EV tracking — EV, AC, PV, CV, SV, CPI, SPI, EAC per WBS</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Formalize risk register — probability, impact, EV, owner, response</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Draft and issue Project Controls Plan</span></div>
+        <div class="setup-item"><div class="setup-check">✓</div><span>Set up change log and cost report template — share with client PM</span></div>
+        <p style="margin-top:16px;">Any questions let me know. Call me if the EV setup gets confusing — it always looks harder than it is the first time.</p>
+        <div style="margin-top:16px;padding-top:12px;border-top:1px solid #e8e8e8;font-size:12px;color:#555;">
+          <strong>Dan Reyes, PMP</strong><br>Senior Project Controls Manager<br>Northern Environmental Consulting Group
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- KICKOFF PREP NOTES MODAL -->
+<div class="doc-overlay" id="doc-kickoff-notes" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window" style="max-width:680px;">
+    <div class="doc-topbar" style="background:#1a2744;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="logo-icon" style="width:22px;height:22px;font-size:9px;">NE</div>
+        <span style="color:#fff;font-size:12px;font-weight:600;font-family:var(--sans);">PC Kickoff Prep Notes — J. Okafor · Jan 16</span>
+      </div>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-kickoff-notes'))">✕</button>
+    </div>
+    <div class="doc-content" style="padding:0;background:#f8f6ee;">
+      <div class="grid-note-body" style="background:linear-gradient(rgba(165,185,210,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(165,185,210,0.3) 1px,transparent 1px),#f8f6ee;background-size:20px 20px;position:relative;">
+        <div class="note-page-line"></div>
+        <div class="grid-note-inner">
+          <div class="note-title">Ridgeline EA — PC Kickoff Prep · J. Okafor</div>
+
+          <div class="note-section-head">Project Brief</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Client:</strong> Northern Corridor Pipeline Ltd. — new gas pipeline, boreal terrain NE of Grande Prairie, AB</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Our scope:</strong> Full ESA for 30km corridor — AER regulatory submission required before client can build</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Disciplines:</strong> Env. baseline, geotech drilling, HRIA (archaeology), TLU, First Nations consultation, hydrotechnical, IA report — 7 study areas → 1 submission</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Timeline:</strong> 12 months · Contract Jan → AER submission Dec</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>Client PM:</strong> Dale Fortis — experienced, fair, expects clear comms</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span><strong>First impression:</strong> Brief looks straightforward. Estimate tells a different story — drilling alone is 60% of the budget.</span></div>
+
+          <div class="note-section-head">Contract Review</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Lump sum $4,725,000 incl. $225K contingency — confirm contingency is OUTSIDE the project budget, not inside it</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Changed conditions clause — geotech section. Understand trigger criteria and documentation required</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>CO threshold: client PM up to $50K, VP above — need in writing from Sarah</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Milestone-based billing — map each milestone to WBS so billing triggers are clear</span></div>
+
+          <div class="note-section-head">Estimate Review</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Drilling $2.7M = ~60% of total budget. If hole count moves, everything else is noise</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Single selling rate for all field staff — are they hourly? OT at 1.5x. If wrong rates in Oracle, actuals will be understated from Day 1</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>No provision for non-billable costs — travel time? QC? Needs a parallel register</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>POs for Ridgeline + archaeology sub — issued yet or still draft?</span></div>
+
+          <div class="note-section-head">Schedule Review</div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>12 months tight but achievable if field seasons align</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>HARD CONSTRAINT: all clearing done before April 1 (MBCA bird breeding). LOC — already submitted?</span></div>
+          <div class="note-item"><span class="note-bullet">▸</span><span>Confirm this is the locked contract baseline — not a working draft</span></div>
+        </div>
+      </div>
+      <div class="grid-note-footer">
+        <span>J. Okafor · Project Controller</span>
+        <span>Page 1 of 1</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
   function openDoc(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
   function closeDoc(el) { el.classList.remove('open'); document.body.style.overflow=''; }
@@ -2399,6 +2628,8 @@
       }
     }
 
+    const leavingScene = scenes[current];
+    if (leavingScene.dataset.folderUnlock) handleFolderUnlock(leavingScene.dataset.folderUnlock);
     nextScene.classList.remove('scene-hidden');
     nextScene.style.opacity = '0';
     nextScene.style.transform = 'translateY(10px)';
@@ -2422,9 +2653,7 @@
   function trackDocOpen(beatId, docId) {
     if (!beatDocsReviewed[beatId]) beatDocsReviewed[beatId] = new Set();
     beatDocsReviewed[beatId].add(docId);
-    showNoteToast(docId);
     openDoc(docId);
-    // Update the hint bar once all docs for this beat are opened
     const reqs = beatDocRequirements[beatId];
     if (reqs) {
       const reviewed = beatDocsReviewed[beatId];
@@ -2441,25 +2670,79 @@
     }
   }
 
-  function showNoteToast(docId) {
-    const info = {
-      'doc-contract':  { doc: 'Ridgeline_Contract_Signed.pdf', note: 'Changed conditions clause noted. CO threshold $50K client PM, above = VP sign-off.' },
-      'doc-estimate':  { doc: 'Ridgeline_Estimate_v3.xlsx',    note: 'Drilling at $2.7M — 60% of total. OT rates need verification before first timesheet.' },
-      'doc-schedule':  { doc: 'Ridgeline_Baseline_Schedule.pdf',note: 'Hard constraint: April 1. Bird breeding window. Permitting clock already running.' },
-      'doc-brief':     { doc: 'Ridgeline_Project_Brief.docx',   note: '7 study areas → 1 AER submission. Client PM: Dale Fortis. 12-month contract.' }
-    };
-    const entry = info[docId] || { doc: docId, note: 'Document reviewed.' };
-    let toast = document.getElementById('note-toast-el');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.className = 'note-toast';
-      toast.id = 'note-toast-el';
-      document.body.appendChild(toast);
+  function handleFolderUnlock(keys) {
+    keys.split(',').forEach(key => key.trim() && _folderUnlock(key));
+  }
+  function _folderUnlock(key) {
+    if (key === 'handover-docs') {
+      const tab = document.getElementById('folder-tab');
+      if (tab) tab.classList.add('folder-tab-visible');
+      const docsEl = document.getElementById('folder-docs');
+      const empty = document.getElementById('folder-docs-empty');
+      if (empty) empty.remove();
+      if (!document.getElementById('folder-handover')) {
+        const frag = document.createElement('div');
+        frag.id = 'folder-handover';
+        frag.innerHTML = `
+          <div class="folder-subfolder open" onclick="toggleSubfolder(this)">
+            <span class="folder-subfolder-icon">📂</span>
+            <span class="folder-subfolder-name">Handover</span>
+            <span class="folder-subfolder-arrow">›</span>
+          </div>
+          <div class="folder-subfolder-contents open">
+            <div class="folder-doc-item" onclick="openDoc('doc-contract')"><span class="folder-doc-icon">📄</span><div><div class="folder-doc-name">Ridgeline_Contract_Signed.pdf</div><div class="folder-doc-type">PDF · Signed Contract</div></div></div>
+            <div class="folder-doc-item" onclick="openDoc('doc-estimate')"><span class="folder-doc-icon">📊</span><div><div class="folder-doc-name">Ridgeline_Estimate_v3.xlsx</div><div class="folder-doc-type">Excel · Budget Estimate</div></div></div>
+            <div class="folder-doc-item" onclick="openDoc('doc-schedule')"><span class="folder-doc-icon">📅</span><div><div class="folder-doc-name">Ridgeline_Baseline_Schedule.pdf</div><div class="folder-doc-type">PDF · Baseline Schedule</div></div></div>
+            <div class="folder-doc-item" onclick="openDoc('doc-brief')"><span class="folder-doc-icon">📋</span><div><div class="folder-doc-name">Ridgeline_Project_Brief.docx</div><div class="folder-doc-type">Word · Project Brief</div></div></div>
+          </div>`;
+        docsEl.appendChild(frag);
+      }
     }
-    toast.innerHTML = `<div class="note-toast-header"><span class="note-toast-icon">📝</span><span class="note-toast-label">Note Captured</span></div><div class="note-toast-doc">${entry.doc}</div><div class="note-toast-text">${entry.note}</div>`;
-    toast.classList.add('toast-show');
-    clearTimeout(toast._timer);
-    toast._timer = setTimeout(() => toast.classList.remove('toast-show'), 4000);
+    if (key === 'kickoff-notes') {
+      const notesEl = document.getElementById('folder-notes');
+      const empty = document.getElementById('folder-notes-empty');
+      if (empty) empty.remove();
+      if (!document.getElementById('folder-item-kickoff')) {
+        const item = document.createElement('div');
+        item.id = 'folder-item-kickoff';
+        item.className = 'folder-doc-item';
+        item.onclick = () => openDoc('doc-kickoff-notes');
+        item.innerHTML = `<span class="folder-doc-icon">📓</span><div><div class="folder-doc-name">PC Kickoff Prep Notes</div><div class="folder-doc-type">J. Okafor · Jan 16</div></div>`;
+        notesEl.appendChild(item);
+      }
+    }
+    if (key === 'meeting-notes') {
+      const notesEl = document.getElementById('folder-notes');
+      const empty = document.getElementById('folder-notes-empty');
+      if (empty) empty.remove();
+      if (!document.getElementById('folder-item-meeting')) {
+        const item = document.createElement('div');
+        item.id = 'folder-item-meeting';
+        item.className = 'folder-doc-item';
+        item.onclick = () => openDoc('doc-meeting-notes');
+        item.innerHTML = `<span class="folder-doc-icon">📓</span><div><div class="folder-doc-name">Kickoff Meeting Notes</div><div class="folder-doc-type">Sarah Chen · Jan 17</div></div>`;
+        notesEl.appendChild(item);
+      }
+    }
+    if (key === 'dan-email') {
+      const docsEl = document.getElementById('folder-docs');
+      const empty = document.getElementById('folder-docs-empty');
+      if (empty) empty.remove();
+      if (!document.getElementById('folder-pc-controls')) {
+        const frag = document.createElement('div');
+        frag.id = 'folder-pc-controls';
+        frag.innerHTML = `
+          <div class="folder-subfolder open" onclick="toggleSubfolder(this)">
+            <span class="folder-subfolder-icon">📂</span>
+            <span class="folder-subfolder-name">Project Controls</span>
+            <span class="folder-subfolder-arrow">›</span>
+          </div>
+          <div class="folder-subfolder-contents open">
+            <div class="folder-doc-item" onclick="openDoc('doc-dan-email')"><span class="folder-doc-icon">📧</span><div><div class="folder-doc-name">PC Checklist — Dan Reyes</div><div class="folder-doc-type">Email · Jan 20</div></div></div>
+          </div>`;
+        docsEl.appendChild(frag);
+      }
+    }
   }
 
   initStoryBeats();
@@ -2472,6 +2755,57 @@
       const target = n.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
       n.classList.toggle('active', target === current);
     });
+  });
+</script>
+
+<!-- PROJECT FOLDER PANEL -->
+<button class="folder-tab" onclick="toggleFolder()" id="folder-tab">
+  <span class="folder-tab-icon">📁</span>
+  <span class="folder-tab-label">Project Folder</span>
+</button>
+
+<div class="folder-panel" id="folder-panel">
+  <div class="folder-panel-header">
+    <div class="folder-panel-title">
+      <span class="folder-panel-title-icon">📁</span>
+      <div>
+        <div class="folder-panel-title-text">Project Folder</div>
+        <div class="folder-panel-title-sub">Ridgeline EA · Northern Environmental</div>
+      </div>
+    </div>
+    <button class="folder-close" onclick="toggleFolder()">✕</button>
+  </div>
+  <div class="folder-body">
+
+    <div class="folder-section">
+      <div class="folder-section-label">Documents</div>
+    </div>
+    <div id="folder-docs">
+      <div class="folder-empty" id="folder-docs-empty">Documents will appear as you progress through the story.</div>
+    </div>
+
+    <div class="folder-section" style="margin-top:8px;">
+      <div class="folder-section-label">Notes</div>
+    </div>
+    <div id="folder-notes">
+      <div class="folder-empty" id="folder-notes-empty">Notes will appear as you progress through the story.</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function toggleFolder() {
+    const panel = document.getElementById('folder-panel');
+    panel.classList.toggle('folder-open');
+  }
+  function toggleSubfolder(el) {
+    el.classList.toggle('open');
+    el.nextElementSibling.classList.toggle('open');
+  }
+  // Close folder if clicking the main content area while open
+  document.getElementById('main').addEventListener('click', () => {
+    document.getElementById('folder-panel').classList.remove('folder-open');
   });
 </script>
 </body>
