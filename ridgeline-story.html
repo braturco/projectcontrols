@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ridgeline — A Project Controller's Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Kalam:wght@400;700&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f1117;--surface:#181c26;--surface2:#1e2333;--border:#2a3048;
+    --amber:#f0a500;--amber-dim:#a87200;--amber-glow:rgba(240,165,0,0.12);
+    --red:#e05a4e;--green:#4caf82;--blue:#5b9bd5;
+    --purple:#7b68ee;--purple-glow:rgba(123,104,238,0.1);
+    --teal:#3eb8b8;--teal-glow:rgba(62,184,184,0.1);
+    --text:#d4dae8;--text-dim:#7a8499;--text-bright:#eef2ff;
+    --mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--display:'Bebas Neue',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.8;min-height:100vh;}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:0.4;}
+  #app{position:relative;z-index:1;display:flex;min-height:100vh;}
+
+  /* SIDEBAR */
+  #sidebar{width:270px;min-width:270px;background:var(--surface);border-right:1px solid var(--border);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;}
+  .sidebar-header{padding:28px 20px 20px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--surface2),var(--surface));}
+  .sidebar-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--teal);text-transform:uppercase;margin-bottom:6px;}
+  .sidebar-title{font-family:var(--display);font-size:21px;color:var(--text-bright);letter-spacing:0.04em;line-height:1.15;}
+  .sidebar-sub{font-size:11px;color:var(--text-dim);margin-top:6px;font-style:italic;}
+  .disclaimer{padding:12px 20px;border-bottom:1px solid var(--border);background:rgba(62,184,184,0.05);border-left:3px solid var(--teal);}
+  .disclaimer p{font-size:11px;color:var(--text-dim);line-height:1.5;margin:0;}
+  .disclaimer strong{color:var(--teal);}
+  .cast-block{padding:14px 20px;border-bottom:1px solid var(--border);}
+  .cast-label{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;color:var(--teal);text-transform:uppercase;margin-bottom:10px;}
+  .cast-item{margin-bottom:9px;}
+  .cast-name{font-family:var(--mono);font-size:11px;color:var(--amber);font-weight:600;display:block;}
+  .cast-name.hero{color:var(--teal);}
+  .cast-role{font-size:12px;color:var(--text-dim);line-height:1.4;}
+  .nav-section{padding:8px 0;}
+  .nav-section-label{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;color:var(--teal);text-transform:uppercase;padding:6px 20px 3px;opacity:0.7;}
+  .nav-item{display:flex;align-items:flex-start;gap:10px;padding:7px 20px;cursor:pointer;border-left:3px solid transparent;font-size:13px;color:var(--text-dim);transition:all 0.15s;line-height:1.4;}
+  .nav-item:hover{background:var(--teal-glow);color:var(--text);}
+  .nav-item.active{border-left-color:var(--teal);background:var(--teal-glow);color:var(--teal);}
+  .nav-num{font-family:var(--mono);font-size:10px;min-width:20px;color:var(--text-dim);padding-top:1px;}
+
+  /* MAIN */
+  #main{flex:1;overflow-y:auto;}
+  .hero{padding:60px 70px 50px;border-bottom:1px solid var(--border);background:linear-gradient(160deg,#121a1e 0%,var(--bg) 60%);position:relative;overflow:hidden;}
+  .hero::after{content:'PC';position:absolute;right:-10px;top:-20px;font-family:var(--display);font-size:200px;color:rgba(62,184,184,0.04);pointer-events:none;}
+  .hero-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.2em;color:var(--teal);text-transform:uppercase;margin-bottom:12px;}
+  .hero-title{font-family:var(--display);font-size:50px;letter-spacing:0.03em;color:var(--text-bright);line-height:1;margin-bottom:14px;}
+  .hero-sub{font-size:15px;color:var(--text-dim);font-style:italic;max-width:620px;margin-bottom:24px;line-height:1.7;}
+  .hero-tags{display:flex;gap:10px;flex-wrap:wrap;}
+  .tag{font-family:var(--mono);font-size:10px;padding:4px 10px;border:1px solid var(--border);border-radius:2px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;}
+  .tag.teal{border-color:var(--teal);color:var(--teal);background:var(--teal-glow);}
+  .tag.amber{border-color:var(--amber-dim);color:var(--amber);background:var(--amber-glow);}
+  .tag.red{border-color:var(--red);color:var(--red);background:rgba(224,90,78,0.08);}
+
+  /* BEATS */
+  .beat{padding:50px 70px 60px;border-bottom:1px solid var(--border);scroll-margin-top:0;}
+  .beat:last-child{border-bottom:none;}
+  .beat-header{display:flex;align-items:flex-start;gap:24px;margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+  .beat-num{font-family:var(--display);font-size:64px;color:var(--teal);opacity:0.2;line-height:1;min-width:70px;}
+  .beat-eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:0.2em;color:var(--teal);text-transform:uppercase;margin-bottom:5px;}
+  .beat-title{font-family:var(--display);font-size:34px;letter-spacing:0.03em;color:var(--text-bright);line-height:1.1;margin-bottom:8px;}
+  .beat-context{font-size:13px;color:var(--text-dim);font-style:italic;}
+
+  /* PROSE */
+  .prose{max-width:740px;}
+  .prose p{color:var(--text);font-size:15.5px;margin-bottom:18px;line-height:1.85;}
+  .prose p:last-child{margin-bottom:0;}
+
+  /* JAMIE'S INTERNAL VOICE — the controller's thoughts */
+  /* ── INNER MONOLOGUE ── */
+  .inner-voice{background:#1a1520;border-left:3px solid #9b7fd4;border-radius:0 6px 6px 0;padding:16px 20px 16px 48px;margin:22px 0;max-width:740px;position:relative;}
+  .inner-voice::before{content:'"';font-family:'Kalam',cursive;font-size:80px;color:#9b7fd4;opacity:0.15;position:absolute;top:-8px;left:8px;line-height:1;pointer-events:none;}
+  .inner-voice-label{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#9b7fd4;margin-bottom:10px;display:block;}
+  .inner-voice p{font-family:'Kalam',cursive;font-size:15px;line-height:1.7;color:#d4cce8;margin:0 0 10px;font-style:normal;}
+  .inner-voice p:last-child{margin-bottom:0;}
+
+  /* ── GRID PAPER NOTES ── */
+  .grid-note{max-width:740px;background:#f8f6ee;border-radius:3px;box-shadow:2px 3px 16px rgba(0,0,0,0.45),0 0 0 1px rgba(0,0,0,0.15);overflow:hidden;margin:22px 0;}
+  .grid-note-header{background:#1a2744;padding:10px 18px;display:flex;align-items:center;justify-content:space-between;}
+  .logo-mark{display:flex;align-items:center;gap:10px;}
+  .logo-icon{width:26px;height:26px;background:#3eb8b8;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:10px;font-weight:700;color:#1a2744;flex-shrink:0;}
+  .logo-text{font-family:var(--sans);font-size:12px;font-weight:600;color:#ffffff;letter-spacing:0.04em;display:block;}
+  .logo-sub{font-size:9px;color:rgba(255,255,255,0.45);letter-spacing:0.08em;font-family:var(--mono);display:block;}
+  .note-date{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,0.35);letter-spacing:0.08em;}
+  .grid-note-body{position:relative;background:linear-gradient(rgba(165,185,210,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(165,185,210,0.3) 1px,transparent 1px),#f8f6ee;background-size:20px 20px;}
+  .note-page-line{position:absolute;left:52px;top:0;bottom:0;width:1.5px;background:rgba(210,140,140,0.45);pointer-events:none;}
+  .grid-note-inner{padding:16px 20px 20px 62px;position:relative;}
+  .note-title{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;color:#1a2744;margin-bottom:12px;padding-bottom:8px;border-bottom:1.5px solid rgba(26,39,68,0.18);}
+  .note-section-head{font-family:var(--sans);font-size:12.5px;font-weight:600;color:#1a2744;margin:14px 0 5px;}
+  .note-item{display:flex;gap:8px;margin-bottom:5px;font-family:var(--sans);font-size:13px;color:#2c3a55;line-height:1.55;}
+  .note-item strong{color:#1a2744;font-weight:600;}
+  .note-bullet{color:#3eb8b8;font-weight:700;flex-shrink:0;margin-top:1px;font-size:11px;}
+  .grid-note-footer{background:rgba(26,39,68,0.06);border-top:1px solid rgba(26,39,68,0.1);padding:6px 18px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:rgba(26,39,68,0.4);}
+
+  /* DIALOGUE */
+  .dialogue{margin:22px 0;display:flex;flex-direction:column;gap:14px;max-width:740px;}
+  .line{display:flex;gap:14px;align-items:flex-start;}
+  .line-speaker{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple);min-width:130px;padding-top:3px;line-height:1.4;flex-shrink:0;}
+  .line-speaker.pm{color:var(--amber);}
+  .line-speaker.client{color:var(--blue);}
+  .line-speaker.geotech{color:#e8a04a;}
+  .line-speaker.internal{color:var(--green);}
+  .line-speaker.jamie{color:var(--teal);}
+  .line-text{font-style:italic;font-size:14.5px;color:#c8cfe0;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:0 4px 4px 4px;border-left:2px solid #2a3048;flex:1;line-height:1.7;}
+
+  /* JAMIE'S WORK — the spreadsheet / system view */
+  .work-block{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 4px 4px;padding:18px 22px;margin:22px 0;max-width:960px;}
+  .work-block .wb-label{font-family:var(--mono);font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);margin-bottom:12px;display:block;}
+  .work-block .wb-note{font-size:11px;color:var(--text-dim);margin-top:12px;font-style:italic;font-family:var(--sans);line-height:1.6;border-top:1px solid var(--border);padding-top:10px;}
+  .wb-good{color:var(--green);} .wb-bad{color:var(--red);} .wb-warn{color:var(--amber);} .wb-dim{color:var(--text-dim);}
+
+  .data-table{width:100%;border-collapse:collapse;margin:8px 0;font-size:13.5px;}
+  .data-table th{font-family:var(--mono);font-size:9px;letter-spacing:0.12em;text-transform:uppercase;color:var(--teal);text-align:left;padding:9px 12px;border-bottom:1px solid var(--teal);background:var(--surface2);}
+  .data-table td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;line-height:1.5;}
+  .data-table tr:hover td{background:rgba(255,255,255,0.02);}
+  .data-table .total td{border-top:2px solid var(--border);font-weight:600;color:var(--text-bright);background:var(--surface2);}
+  .data-table .sub-row td{color:var(--text-dim);font-size:11.5px;padding-left:24px;}
+  .data-table .highlight-row td{background:rgba(224,90,78,0.06);}
+
+  /* CALLOUTS */
+  .callout{border-left:3px solid var(--amber);background:var(--amber-glow);padding:14px 18px;margin:22px 0;border-radius:0 4px 4px 0;max-width:740px;}
+  .callout.red{border-color:var(--red);background:rgba(224,90,78,0.08);}
+  .callout.green{border-color:var(--green);background:rgba(76,175,130,0.08);}
+  .callout.teal{border-color:var(--teal);background:var(--teal-glow);}
+  .callout.purple{border-color:var(--purple);background:var(--purple-glow);}
+  .callout-label{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--amber);margin-bottom:6px;}
+  .callout.red .callout-label{color:var(--red);} .callout.green .callout-label{color:var(--green);}
+  .callout.teal .callout-label{color:var(--teal);} .callout.purple .callout-label{color:var(--purple);}
+  .callout p{font-size:14.5px;color:var(--text);margin:0;}
+
+  /* STATUS BADGES */
+  .status-row{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0;}
+  .status-badge{display:flex;flex-direction:column;gap:3px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:4px;min-width:130px;}
+  .sb-label{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);}
+  .sb-val{font-family:var(--mono);font-size:14px;font-weight:600;}
+  .sb-val.good{color:var(--green);} .sb-val.bad{color:var(--red);} .sb-val.warn{color:var(--amber);} .sb-val.neutral{color:var(--text-bright);}
+  .sb-sub{font-size:11px;color:var(--text-dim);}
+
+  /* TIMELINE */
+  .timeline{margin:24px 0;max-width:740px;}
+  .tl-item{display:flex;gap:0;position:relative;}
+  .tl-item:not(:last-child)::before{content:'';position:absolute;left:13px;top:28px;bottom:0;width:1px;background:var(--border);}
+  .tl-dot{width:26px;min-width:26px;height:26px;border-radius:50%;border:1px solid var(--teal);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;color:var(--teal);margin-right:16px;margin-top:2px;background:var(--surface);z-index:1;flex-shrink:0;}
+  .tl-dot.done{background:var(--teal);color:var(--bg);}
+  .tl-content{padding-bottom:22px;}
+  .tl-month{font-family:var(--mono);font-size:10px;color:var(--teal);letter-spacing:0.1em;margin-bottom:3px;}
+  .tl-event{font-size:13.5px;color:var(--text);line-height:1.6;}
+
+  .section-break{display:flex;align-items:center;gap:14px;margin:28px 0 20px;max-width:740px;}
+  .section-break-line{flex:1;height:1px;background:var(--border);}
+  .section-break-label{font-family:var(--mono);font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+
+  .concept{display:inline;background:rgba(240,165,0,0.15);color:var(--amber);padding:1px 6px;border-radius:2px;font-family:var(--mono);font-size:11px;}
+  .concept.teal{background:rgba(62,184,184,0.15);color:var(--teal);}
+  .hl{color:var(--amber);font-weight:600;} .hl-red{color:var(--red);} .hl-green{color:var(--green);} .hl-teal{color:var(--teal);}
+
+
+  /* ── SMS THREAD ── */
+  .sms-card {
+    background: #f0f0f0;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 24px 0;
+    max-width: 380px;
+    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  }
+
+  .sms-contact-header {
+    text-align: center;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #d8d8d8;
+  }
+
+  .sms-contact-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: #888; margin: 0 auto 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #fff;
+    font-family: -apple-system, Arial, sans-serif;
+  }
+
+  .sms-contact-name {
+    font-size: 13px; font-weight: 600; color: #111;
+  }
+
+  .sms-contact-sub {
+    font-size: 11px; color: #888; margin-top: 1px;
+  }
+
+  .sms-messages {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+
+  .sms-row {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sms-row.sent { align-items: flex-end; }
+  .sms-row.received { align-items: flex-start; }
+
+  .sms-bubble {
+    max-width: 78%;
+    padding: 9px 13px;
+    border-radius: 18px;
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: #111;
+  }
+
+  .sms-row.sent .sms-bubble {
+    background: #007aff;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+  }
+
+  .sms-row.received .sms-bubble {
+    background: #fff;
+    color: #111;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+
+  .sms-time {
+    font-size: 10px; color: #999; margin-top: 3px; padding: 0 4px;
+  }
+
+  /* ── EMAIL CARDS ── */
+  .email-card {
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.35), 0 0 0 1px rgba(0,0,0,0.12);
+    margin: 24px 0;
+    max-width: 680px;
+    overflow: hidden;
+    font-family: -apple-system, 'Segoe UI', Arial, sans-serif;
+    color: #1a1a1a;
+  }
+
+  .email-topbar {
+    background: #f0f0f0;
+    border-bottom: 1px solid #d0d0d0;
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .email-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+  }
+  .email-dot.red { background: #ff5f56; }
+  .email-dot.yellow { background: #ffbd2e; }
+  .email-dot.green { background: #27c93f; }
+
+  .email-topbar-label {
+    font-size: 11px;
+    color: #666;
+    margin-left: 6px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+
+  .email-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid #e8e8e8;
+    background: #fafafa;
+  }
+
+  .email-subject {
+    font-size: 15px;
+    font-weight: 600;
+    color: #111;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .email-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .email-meta-row {
+    display: flex;
+    gap: 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .email-meta-label {
+    color: #888;
+    min-width: 52px;
+    font-weight: 500;
+  }
+
+  .email-meta-value {
+    color: #333;
+  }
+
+  .email-body {
+    padding: 18px 20px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: #222;
+  }
+
+  .email-body p {
+    margin-bottom: 12px;
+    color: #222;
+    font-size: 13.5px;
+  }
+
+  .email-body p:last-child { margin-bottom: 0; }
+
+  .email-body ul {
+    margin: 8px 0 12px 20px;
+    padding: 0;
+  }
+
+  .email-body ul li {
+    margin-bottom: 4px;
+    font-size: 13px;
+    color: #333;
+  }
+
+  .email-attachment-bar {
+    padding: 10px 20px;
+    background: #f5f5f5;
+    border-top: 1px solid #e8e8e8;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .email-attachment {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff;
+    border: 1px solid #d8d8d8;
+    border-radius: 3px;
+    padding: 5px 10px;
+    font-size: 11.5px;
+    color: #444;
+  }
+
+  .email-attachment-icon {
+    font-size: 13px;
+  }
+
+  .email-sig {
+    padding: 12px 20px 16px;
+    border-top: 1px solid #ebebeb;
+    font-size: 12px;
+    color: #666;
+    line-height: 1.6;
+  }
+
+  .email-sig .sig-name {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+  }
+
+  .email-sig .sig-title {
+    color: #666;
+  }
+
+  .email-sig .sig-firm {
+    color: #888;
+  }
+
+  ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg);}
+  ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;} ::-webkit-scrollbar-thumb:hover{background:var(--teal);}
+</style>
+</head>
+<body>
+<div id="app">
+
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-eyebrow">Case Study · Project Controller POV</div>
+    <div class="sidebar-title">Ridgeline: A Project Controller's Story</div>
+    <div class="sidebar-sub">What the numbers look like from the inside</div>
+  </div>
+  <div class="disclaimer">
+    <p><strong>Training Note:</strong> This case study follows a project controller — not the PM — through a $4.5M pipeline EA. Same project, same problems, different seat at the table. Simplified for training purposes.</p>
+  </div>
+  <div class="cast-block">
+    <div class="cast-label">Cast</div>
+    <div class="cast-item">
+      <span class="cast-name hero">Jamie Okafor</span>
+      <span class="cast-role">Project Controller — our narrator. Four years as a project coordinator. Organized, systems-oriented, knows the firm's tools. Taking on project controls for the first time with a "call a friend" lifeline: Dan Reyes, the firm's senior PC, available by phone from BC.</span>
+    </div>
+    <div class="cast-item"><span class="cast-name">Dan Reyes</span><span class="cast-role">Senior Project Controller (offscreen — in BC). Vouched for Jamie. Available when things get tricky.</span></div>
+    <div class="cast-item"><span class="cast-name">Sarah Chen</span><span class="cast-role">Project Manager</span></div>
+    <div class="cast-item"><span class="cast-name">Marcus Webb</span><span class="cast-role">Geotechnical Lead</span></div>
+    <div class="cast-item"><span class="cast-name">Brad Kohut</span><span class="cast-role">Sr. Environmental Technician</span></div>
+    <div class="cast-item"><span class="cast-name">Dale Fortis</span><span class="cast-role">Client PM, Northern Corridor Pipeline</span></div>
+    <div class="cast-item"><span class="cast-name">Ridgeline Drilling Inc.</span><span class="cast-role">Drilling subconsultant</span></div>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Story Beats</div>
+    <div class="nav-item active" onclick="go('beat1',this)"><span class="nav-num">01</span>Project Controls Kickoff</div>
+    <div class="nav-item" onclick="go('beat2',this)"><span class="nav-num">02</span>WBS, Risks &amp; PC Plan</div>
+    <div class="nav-item" onclick="go('beat3',this)"><span class="nav-num">03</span>The First Monthly Report</div>
+    <div class="nav-item" onclick="go('beat4',this)"><span class="nav-num">04</span>Months 1–3: Learning the Rhythm</div>
+    <div class="nav-item" onclick="go('beat5',this)"><span class="nav-num">05</span>Month 5: Something Is Wrong</div>
+    <div class="nav-item" onclick="go('beat6',this)"><span class="nav-num">06</span>Month 7: The Clearing Stop</div>
+    <div class="nav-item" onclick="go('beat7',this)"><span class="nav-num">07</span>Month 9: Finding the Error</div>
+    <div class="nav-item" onclick="go('beat8',this)"><span class="nav-num">08</span>Month 12: Closing the Books</div>
+  </div>
+</nav>
+
+<main id="main">
+
+<div class="hero">
+  <div class="hero-eyebrow">Project Controls for Consultants · Running Case Study</div>
+  <div class="hero-title">Ridgeline:<br>A Project Controller's Story</div>
+  <div class="hero-sub">You've been assigned to support a $4.5M pipeline environmental assessment as project controller. You read the contract, review the estimate, build the risk register, set up the WBS, and write the PC Plan — all before the first timesheet is charged. Then you spend twelve months keeping the numbers honest.</div>
+  <div class="hero-tags">
+    <span class="tag teal">Controller POV</span>
+    <span class="tag amber">$4.5M · 12 Months</span>
+    <span class="tag">30km · Alberta Boreal</span>
+    <span class="tag red">$900K Changed Conditions</span>
+    <span class="tag">EVM in Practice</span>
+  </div>
+</div>
+
+<!-- ══ BEAT 1: GETTING ASSIGNED ══ -->
+<div class="beat" id="beat1">
+  <div class="beat-header">
+    <div class="beat-num">01</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Pre-Project · Days 1–3</div>
+      <div class="beat-title">Project Controls Kickoff</div>
+      <div class="beat-context">Jamie reads the contract, reviews the estimate, and walks into the kickoff meeting with a list of questions — vouched for by the firm's senior PC, who's tied up on a project in BC</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Jamie Okafor had been with the firm for four years as a project coordinator — supporting project teams with scheduling, document control, invoicing, subconsultant tracking, and client reporting. Organized, systematic, and good at following a process through to completion. When the Ridgeline project came in, the firm's senior project controller, Dan Reyes, was already committed to a major infrastructure project in BC and couldn't be pulled. Maya Okonkwo, the resource manager, ran it by Dan over text.</p>
+
+    <div class="sms-card">
+      <div class="sms-contact-header">
+        <div class="sms-contact-avatar">DR</div>
+        <div class="sms-contact-name">Dan Reyes</div>
+        <div class="sms-contact-sub">Senior Project Controller · Kelowna BC</div>
+      </div>
+      <div class="sms-messages">
+        <div class="sms-row sent">
+          <div class="sms-bubble">Do you think Jamie can do this? Big project, first time doing actual PC work.</div>
+          <div class="sms-time">Maya · Tue 2:14 PM</div>
+        </div>
+        <div class="sms-row received">
+          <div class="sms-bubble">Absolutely. Jamie's got all the fundamentals — knows the systems, tracks things properly, asks good questions. If he runs into trouble with the EV side of things he can give me a call!</div>
+          <div class="sms-time">Dan · Tue 2:22 PM</div>
+        </div>
+        <div class="sms-row sent">
+          <div class="sms-bubble">Awesome, thanks Dan 👍</div>
+          <div class="sms-time">Maya · Tue 2:23 PM</div>
+        </div>
+      </div>
+    </div>
+
+    <p>It was a vote of confidence with a caveat — and Jamie knew it. The project controls layer was newer territory. When the assignment came through, an email arrived from Sarah Chen the same afternoon.</p>
+
+    <div class="email-card">
+      <div class="email-topbar">
+        <div class="email-dot red"></div>
+        <div class="email-dot yellow"></div>
+        <div class="email-dot green"></div>
+        <span class="email-topbar-label">Email</span>
+      </div>
+      <div class="email-header">
+        <div class="email-subject">Ridgeline EA — Project Controls Kickoff</div>
+        <div class="email-meta">
+          <div class="email-meta-row"><span class="email-meta-label">From:</span><span class="email-meta-value">Sarah Chen &lt;s.chen@firm.ca&gt;</span></div>
+          <div class="email-meta-row"><span class="email-meta-label">To:</span><span class="email-meta-value">Jamie Okafor &lt;j.okafor@firm.ca&gt;</span></div>
+          <div class="email-meta-row"><span class="email-meta-label">Date:</span><span class="email-meta-value">Tuesday, January 14</span></div>
+        </div>
+      </div>
+      <div class="email-body">
+        <p>Jamie,</p>
+        <p>Welcome to Ridgeline. I've attached the four documents you need to review before we meet Friday morning at 9am. Read them carefully — not just the numbers, but the scope section of the contract and the assumptions tab in the estimate. Come with questions.</p>
+        <p>A few things to have in your head before Friday:</p>
+        <ul>
+          <li>The drilling program is the risk on this project. Everything else is manageable. That one line item can make or break the margin.</li>
+          <li>We have a hard field season constraint — all clearing access must be done before April 1. The permitting clock is already running.</li>
+          <li>Changed conditions clause is in the contract for geotech. Understand what it says before we meet.</li>
+        </ul>
+        <p>See you Friday.</p>
+      </div>
+      <div class="email-attachment-bar">
+        <div class="email-attachment"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
+        <div class="email-attachment"><span class="email-attachment-icon">📊</span> Ridgeline_Estimate_v3.xlsx</div>
+        <div class="email-attachment"><span class="email-attachment-icon">📅</span> Ridgeline_Baseline_Schedule.pdf</div>
+        <div class="email-attachment"><span class="email-attachment-icon">📋</span> Ridgeline_Project_Brief.docx</div>
+      </div>
+      <div class="email-sig">
+        <span class="sig-name">Sarah Chen, P.Eng.</span><br>
+        <span class="sig-title">Project Manager — Environmental Services</span><br>
+        <span class="sig-firm">Northern Environmental Consulting Group</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-note">
+    <div class="grid-note-header">
+      <div class="logo-mark">
+        <div class="logo-icon">NE</div>
+        <div>
+          <span class="logo-text">Northern Environmental</span>
+          <span class="logo-sub">Consulting Group</span>
+        </div>
+      </div>
+      <div class="note-date">Thursday, Jan 16 — Pre-Meeting Notes</div>
+    </div>
+    <div class="grid-note-body">
+      <div class="note-page-line"></div>
+      <div class="grid-note-inner">
+        <div class="note-title">Ridgeline EA — PC Kickoff Prep · J. Okafor</div>
+
+        <div class="note-section-head">Project Brief</div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>Client:</strong> Northern Corridor Pipeline Ltd. — new gas pipeline, boreal terrain NE of Grande Prairie, AB</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>Our scope:</strong> Full ESA for 30km corridor — AER regulatory submission required before client can build</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>Disciplines:</strong> Env. baseline, geotech drilling, HRIA (archaeology), TLU, First Nations consultation, hydrotechnical, IA report — 7 study areas → 1 submission</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>Timeline:</strong> 12 months · Contract Jan → AER submission Dec</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>Client PM:</strong> Dale Fortis — experienced, fair, expects clear comms</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span><strong>First impression:</strong> Brief looks straightforward. Estimate tells a different story — drilling alone is 60% of the budget.</span></div>
+
+        <div class="note-section-head">Contract Review</div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Lump sum $4,725,000 incl. $225K contingency — confirm contingency is OUTSIDE the project budget, not inside it</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Changed conditions clause — geotech section. Understand trigger criteria and documentation required</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>CO threshold: client PM up to $50K, VP above — need in writing from Sarah</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Milestone-based billing — map each milestone to WBS so billing triggers are clear</span></div>
+
+        <div class="note-section-head">Estimate Review</div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Drilling $2.7M = ~60% of total budget. If hole count moves, everything else is noise</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Single selling rate for all field staff — are they hourly? OT at 1.5x. If wrong rates in Oracle, actuals will be understated from Day 1</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>No provision for non-billable costs — travel time? QC? Needs a parallel register</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>POs for Ridgeline + archaeology sub — issued yet or still draft?</span></div>
+
+        <div class="note-section-head">Schedule Review</div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>12 months tight but achievable if field seasons align</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>HARD CONSTRAINT: all clearing done before April 1 (MBCA bird breeding). LOC — already submitted?</span></div>
+        <div class="note-item"><span class="note-bullet">▸</span><span>Confirm this is the locked contract baseline — not a working draft</span></div>
+      </div>
+    </div>
+    <div class="grid-note-footer">
+      <span>J. Okafor · Project Controller</span>
+      <span>Page 1 of 1</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>The Friday meeting with Sarah lasted ninety minutes. Jamie came with the grid paper notes. Sarah came with coffee. It was a working session, not an orientation.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Before I set up anything in Oracle I want to run through my open items list. Some of these I can resolve myself once I have access to the right documents. Some need a decision from you. Can we go through them now?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Go."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"POs. The estimate has Ridgeline Drilling at $2.7M and Ray Callahan's archaeology firm at $280,000. Are those POs issued and in the system?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Ridgeline is signed. Ray's PO is drafted but hasn't gone through procurement yet. I'll follow up today — that needs to be in the system before any of his invoices can be processed."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Good. Contingency — the $225,000. Is that sitting as a separate budget line or is it folded into the WBS budgets?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"It needs to be completely separate — not visible as available budget to the team. If it's in the system alongside everything else, people treat it as normal budget and spend it without realizing. I hold it as a PM reserve. You track the balance and flag every drawdown."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Understood. Next — field staff overtime. The estimate looks like it uses one selling rate per person across the board. Are the field techs hourly? Because if they are, OT posts at 1.5x — and if those hours go into Oracle at the straight-time rate by mistake, our cost actuals will be understated from day one. The system will show less than we're actually spending."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"You're right. The field technicians are hourly. The estimate used straight-time rates only. We need to make sure Oracle has the correct OT rate codes set up for those staff — so when someone charges overtime hours, the cost posts at the right rate, not at straight time."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I'll confirm the OT rates are loaded correctly before the first timesheets post. Secondary to that — if OT starts building heavily, I'll flag it to you so you can decide whether to adjust how the work is scheduled. But getting the costs right in the system is the first thing."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Correct costs first, visibility second. Good."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Non-billable costs. I didn't see any provision in the estimate for time the client won't pay for. What falls into that category on this project?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Travel time is the main one. The client won't pay for time spent driving to and from field sites — that's typically two hours a day per person, and we have field staff out there for weeks. It's a real cost to the firm that doesn't show up in the billable hours. We also have Tom Briggs doing a monthly principal review — maybe two hours a month, not billable. And QC sign-off time on each deliverable — I assumed it was absorbed in the estimates but I didn't call it out explicitly."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I'll set up a nonchargeable register — parallel to Oracle, not inside the project budget. Travel time, principal reviews, QC sign-offs, proposal write-off. Every month I'll report the running total to you alongside the cost report. At closeout it gives us the true cost to the firm versus what we billed — which is where the real margin picture lives."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Good. Travel time especially — it adds up fast on a field-heavy project and it's the one people always forget to account for."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Baseline schedule — is it locked and signed off? I want to make sure I'm loading the same version that's in the contract, not a working draft."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"It's locked. I'll send you the baseline PDF this afternoon — keep it as the reference. Any schedule updates go through me as a formal revision, not a working file change."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Last one. The changed conditions clause for geotech — I read it in the contract. I want to make sure I understand the trigger so I can flag it early if Marcus's field logs start showing something unexpected. What should I be watching for?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Marcus filed a pre-drilling methodology report that documents the baseline soil assumption — what the existing mapping shows we should find. If his field logs start showing material departures from that report, that's the trigger. You'll see it before I do because you're reconciling the logs weekly. If something looks off against the methodology baseline, bring it to me immediately, not at month-end."</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Sarah then pulled up a rough risks list she'd been keeping in her notes since the proposal stage — five items, mostly just a line each. Old soil mapping uncertainty. Bird breeding season window. Archaeology discovery. TLU scope. Regulatory guidance changes. She had the probability and impact in her head, none of it written down in any structured way.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"I've had these in my head since we wrote the proposal. They're in my notes but not in any format anyone else could actually use. The geotech one is the big one — if the soil conditions are different from what the old mapping shows, we could be looking at a lot of additional holes. I sized the contingency with that risk in mind but it's never been written down properly."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I'll formalize it — take what you have, add probability, impact range, expected value, owner, and response for each one. Then we check the expected values add up to less than the contingency balance. If they don't, we have a conversation before the project starts, not after something goes wrong."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Yes. And include the expected value column so we can compare the risk exposure to what's in the contingency. That's the number I care about."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Got it. I'll send you a draft register by end of day tomorrow — you verify the numbers and I'll lock it in as the baseline."</span>
+    </div>
+  </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"One more thing I want to set up before we go live — a change log. Every change request, every CO, every in-scope/out-of-scope determination gets logged with a date, a description, a cost estimate, and a status. That way we have a running record of every scope conversation from day one."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Yes. And send Dale the change log template at kickoff so he knows it exists. Clients behave better about scope when they know it's being tracked systematically."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>The OT question started as a rate check and became a system setup task. The travel time question I almost skipped — 42 field days, 3 people, 2 hours each: 250+ hours of real cost with nowhere to live. The risk register was Sarah's knowledge, finally written down. Good meeting.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">What This Illustrates</div>
+    <p>The most valuable thing a project controller does in Week 1 is not build a spreadsheet — it's ask the right questions before the spreadsheet exists. <span class="concept teal">Setup decisions made in the first week govern data quality for the entire project.</span> A PO that isn't in the system means invoices can't be processed correctly. Contingency sitting inside the base budget means it gets spent without authorization. A change log that starts in Month 6 has no record of the first five months of scope conversations. These problems are trivial to prevent and expensive to fix.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 2: SETTING UP THE SYSTEM ══ -->
+<div class="beat" id="beat2">
+  <div class="beat-header">
+    <div class="beat-num">02</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Pre-Project · Week 2</div>
+      <div class="beat-title">Setting Up the System</div>
+      <div class="beat-context">Building the WBS, loading budgets, defining rules of credit, and writing the PC Plan — the document that governs everything that follows</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>With the kickoff questions answered, Jamie spent Week 2 building the project controls infrastructure. The WBS in Oracle was first. Jamie had set up project codes before for administrative purposes — this was the same logic, applied more deliberately. The WBS needed to mirror the estimate structure closely enough that budget vs. actual comparisons were meaningful, but not be so granular that every minor task became its own reporting burden.</p>
+    <p>Nine WBS elements, matching the estimate's major discipline groupings. Each subconsultant — Ridgeline, Ray Callahan's archaeology firm, the TLU firm — in its own element so their costs could be tracked and reported separately from internal labor. The contingency, as agreed, outside the Oracle budget entirely.</p>
+    <p>The rules of credit conversation happened on Wednesday. Jamie had drafted proposals for each element based on the nature of the work — then walked them through with Sarah to confirm.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I've drafted the rules of credit for each WBS element. For the drilling PO I'm proposing units complete — confirmed holes divided by 45, using Marcus's field log as the authoritative source, not Ridgeline's invoices. My reasoning is that this is the most objective measure available and it removes any reliance on either party's estimate of progress."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Correct. And that distinction — field log, not invoice — matters most precisely when there's a dispute. If Ridgeline ever invoices ahead of confirmed completions, I need to know. Keep it clean."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"For the IA report — WBS 1.8 — I've proposed weighted steps rather than a straight percentage. The report has five distinct phases with very different effort levels. If I use a flat percentage, someone saying '50% done' might mean the outline is written — which is maybe 10% of the actual effort. The weighted steps force the percentage to reflect where the work actually sits in the effort curve."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Right. What weights did you assign?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Outline at 5%, data compilation 15%, draft sections 45%, internal QC 65%, client draft 85%, regulatory submission 100%. The draft sections step is the biggest weight because that's where the bulk of the writing work lives."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Agreed. Lock those in."</span>
+    </div>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">WBS &amp; Rules of Credit — Final Setup (End of Week 2)</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>WBS</th><th>Element</th><th>Budget</th><th>Rule of Credit</th><th>Completion Trigger</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.1</td><td>Project Management</td><td>$180,000</td><td>% Complete (capped 80%)</td><td>PM judgment against milestone log; 100% at regulatory submission accepted</td></tr>
+        <tr><td>1.2a</td><td>Env. Baseline — Field Work</td><td>$220,000</td><td>Units Complete</td><td>Completed field days ÷ 42 planned; verified against signed daily field logs</td></tr>
+        <tr><td>1.2b</td><td>Env. Baseline — Analysis &amp; Report</td><td>$200,000</td><td>Milestone Gates</td><td>0% → 40% draft issued for internal QC → 100% client-accepted report</td></tr>
+        <tr><td>1.3b</td><td>Ridgeline Drilling PO</td><td>$2,700,000</td><td>Units Complete</td><td>Confirmed holes ÷ 45; completion confirmed by Marcus's field log only</td></tr>
+        <tr><td>1.4</td><td>HRIA (Ray Callahan sub)</td><td>$280,000</td><td>Milestone Gates</td><td>0% → 30% Stage 1 complete → 70% Stage 2 fieldwork → 100% report accepted by Alberta Culture</td></tr>
+        <tr><td>1.5</td><td>Traditional Land Use</td><td>$150,000</td><td>Milestone Gates</td><td>0% → 35% field sessions complete → 75% draft → 100% final accepted</td></tr>
+        <tr><td>1.6</td><td>Consultation</td><td>$220,000</td><td>Milestone Gates</td><td>0% → 20% intro meetings → 55% community sessions → 85% draft What We Heard → 100% final</td></tr>
+        <tr><td>1.7</td><td>Hydrotechnical</td><td>$180,000</td><td>Milestone Gates</td><td>0% → 50% draft crossing reports issued → 100% final accepted</td></tr>
+        <tr><td>1.8</td><td>Impact Assessment &amp; Reporting</td><td>$370,000</td><td>Weighted Steps</td><td>Outline 5% / Data compilation 15% / Draft sections 45% / Internal QC 65% / Client draft 85% / Submission 100%</td></tr>
+        <tr class="total"><td colspan="2"><strong>TOTAL BAC</strong></td><td><strong>$4,500,000</strong></td><td colspan="2">Contingency $225,000 — PM-held, outside Oracle budget</td></tr>
+      </tbody>
+    </table>
+    <p class="wb-note">Jamie also confirmed: Ridgeline PO in system ✓ | Ray Callahan PO issued and in procurement ✓ | TLU firm PO drafted, awaiting Sarah's approval ✓ | Baseline schedule PDF locked and filed ✓ | Change log created and shared with Sarah ✓ | Oracle OT rate codes verified and loaded for hourly field staff ✓ | Nonchargeable register created — travel time (2hrs/day/person), principal oversight, QC sign-offs, proposal write-off ✓ | Risk register formalized from Sarah's proposal notes — 5 risks, expected value $315,500 (R-01 tail risk covered by contract clause, not contingency) ✓</p>
+  </div>
+
+  <div class="prose">
+    <p>On Friday of Week 2, Jamie sent Sarah the Project Controls Plan — a single page that documented how the project would be tracked, reported, and controlled for the next twelve months. It wasn't a long document. It didn't need to be. Its purpose was to create a shared, written understanding between Jamie and Sarah of exactly how controls would work — so that when something went wrong at Month 5, neither of them would be arguing about process.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Project Controls Plan — Ridgeline Environmental Assessment (one-page summary)</span>
+    <div style="font-family:var(--sans);font-size:13px;line-height:1.9;color:var(--text);">
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Reporting Cadence</div>
+        Weekly: Timesheet coding review; Ridgeline field log reconciliation; change log update.<br>
+        Monthly (last Friday): Full EV calculation; cost report pack prepared for Sarah's review; status report issued to client within 3 business days of Sarah's approval.
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Earned Value Method</div>
+        All WBS elements tracked per agreed rules of credit (see WBS table). EV calculated monthly using Oracle actuals + field-confirmed completion data. CPI and SPI reported at WBS element level and project total. EAC updated every month using bottom-up ETC; trend-based EAC (BAC÷CPI) reported as secondary reference only.
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Change Management</div>
+        All scope changes logged in the change log on the day identified. No out-of-scope work proceeds without written authorization. Change orders set up as separate WBS elements — never merged with original scope. Change log shared with client PM (Dale Fortis) as part of monthly report package.
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Escalation Thresholds</div>
+        Any WBS element with CPI &lt; 0.90 for two consecutive months: escalate to Sarah with cause analysis.<br>
+        Any WBS element forecast to exceed budget by &gt; 10%: escalate immediately.<br>
+        Any contingency drawdown: document against specific risk event; report remaining balance every month.<br>
+        Any potential changed conditions trigger (per methodology report baseline): escalate to Sarah same day.
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Overtime Cost Accuracy</div>
+        Field technicians are hourly and OT-eligible (1.5x over 8hrs/day or 44hrs/week). Oracle OT rate codes verified and loaded for all hourly field staff before first timesheet posting. If OT accumulates materially during field season, flagged to Sarah for resourcing decision. Primary concern is cost accuracy in the system — not just tracking hours.
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Nonchargeable Cost Register</div>
+        Known non-billable costs tracked in a parallel register outside Oracle — client will not pay these but they are real firm costs:<br>
+        • <strong>Travel time:</strong> ~2 hrs/day per field staff member during active field seasons (not billable per contract)<br>
+        • <strong>Principal oversight:</strong> Tom Briggs ~2 hrs/month<br>
+        • <strong>Deliverable QC sign-offs:</strong> senior review time absorbed in estimates — actual hours monitored<br>
+        • <strong>Proposal write-off:</strong> ~$3,200 estimated<br>
+        Reported to Sarah monthly. At closeout, provides true firm cost vs. billed revenue — the real margin picture.
+      </div>
+        Ridgeline Drilling: weekly field log from Marcus Webb is authoritative completion record. Invoices reconciled against field log before payment approval. Discrepancies flagged to Sarah before invoice processing.<br>
+        All other subs: invoices reconciled against milestone completion records. PO balances tracked monthly.
+      </div>
+
+      <div>
+        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;">Risk Register — Formalized from Sarah's Proposal Notes</div>
+        <table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--sans);">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border);">
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">ID</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Risk</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Prob</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Impact</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Exp. Value</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Owner</th>
+              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Response</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-01</td>
+              <td style="padding:6px 8px;color:var(--text);">Borehole program expansion — old soil mapping; changed conditions</td>
+              <td style="padding:6px 8px;color:var(--amber);">Medium (35%)</td>
+              <td style="padding:6px 8px;color:var(--text);">$600K–$900K</td>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$262,500</td>
+              <td style="padding:6px 8px;color:var(--text);">Marcus / Sarah</td>
+              <td style="padding:6px 8px;color:var(--text-dim);">Monitor field logs weekly; changed conditions clause in contract; CO if triggered</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-02</td>
+              <td style="padding:6px 8px;color:var(--text);">Bird breeding season clearing delay — MBCA April 1–July 31</td>
+              <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
+              <td style="padding:6px 8px;color:var(--text);">$40K–$80K</td>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$9,000</td>
+              <td style="padding:6px 8px;color:var(--text);">Brad / Sarah</td>
+              <td style="padding:6px 8px;color:var(--text-dim);">Clearing contractor booked; contract delay clause in place; LOC submitted</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-03</td>
+              <td style="padding:6px 8px;color:var(--text);">HRIA Stage 3 discovery — significant archaeological site</td>
+              <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
+              <td style="padding:6px 8px;color:var(--text);">$100K–$200K + schedule</td>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$22,500</td>
+              <td style="padding:6px 8px;color:var(--text);">Ray / Sarah</td>
+              <td style="padding:6px 8px;color:var(--text-dim);">Stage 1 early delivery; CO pass-through clause in Ray's sub agreement</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-04</td>
+              <td style="padding:6px 8px;color:var(--text);">TLU scope expansion — additional First Nation engagement sessions</td>
+              <td style="padding:6px 8px;color:var(--amber);">Medium (30%)</td>
+              <td style="padding:6px 8px;color:var(--text);">$20K–$50K</td>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$10,500</td>
+              <td style="padding:6px 8px;color:var(--text);">Priya / Sarah</td>
+              <td style="padding:6px 8px;color:var(--text-dim);">TLU sub on unit-rate for additional sessions; client notified as client-directed risk</td>
+            </tr>
+            <tr>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-05</td>
+              <td style="padding:6px 8px;color:var(--text);">Regulatory guidance change affecting IA report scope post-contract</td>
+              <td style="padding:6px 8px;color:var(--amber);">Low (20%)</td>
+              <td style="padding:6px 8px;color:var(--text);">$30K–$80K</td>
+              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$11,000</td>
+              <td style="padding:6px 8px;color:var(--text);">Sarah / Jamie</td>
+              <td style="padding:6px 8px;color:var(--text-dim);">Monitor AER guidance releases monthly; CO if triggered post-contract</td>
+            </tr>
+          </tbody>
+        </table>
+        <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--amber);">Total expected value: $315,500 &nbsp;|&nbsp; Contingency funded: $225,000 &nbsp;|&nbsp; <span style="color:var(--red);">Gap: $90,500 — discussed with Sarah; R-01 is the tail risk and is covered by the changed conditions clause rather than contingency</span></div>
+      </div>
+    </div>
+    <p class="wb-note">Sarah reviewed the PC Plan and sent back two words: "Looks good." Jamie filed the signed version and sent a copy to Dale Fortis with a cover note explaining that the change log would be included in every monthly report package. Dale replied: "Appreciated — good to know how this is being tracked."</p>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>The PC Plan took about three hours to write. Most of that time wasn't writing — it was thinking through the logic. What am I actually going to do every week? What am I going to look for? What do I escalate and when? What does Sarah need from me that she doesn't have time to produce herself? Once I had answers to those questions, the document was easy. And having it written down meant that in Month 5, when I needed to escalate the drilling situation, I wasn't inventing a process on the fly. The process was already agreed. I was just following it.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">What This Illustrates</div>
+    <p>The PC Plan is not bureaucratic paperwork — it's a <span class="concept teal">set of decisions made in advance</span> about how you will handle situations you haven't encountered yet. Loading correct OT rates before the first timesheet posts is a five-minute task that protects twelve months of cost accuracy. Identifying travel time as a non-billable cost means 250+ hours of real firm expenditure has somewhere to live rather than quietly eroding margin. Formalizing Sarah's rough risk notes into a structured register with expected values means the contingency balance can be defended — and the gap between R-01's tail risk and the contingency is explained by the contract clause that covers it, not hidden. None of these are complicated. They're just the things that need to be right before the project starts moving.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 3: FIRST MONTHLY REPORT ══ -->
+<div class="beat" id="beat3">
+  <div class="beat-header">
+    <div class="beat-num">03</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">End of Month 1</div>
+      <div class="beat-title">The First Monthly Report</div>
+      <div class="beat-context">Jamie runs the EV calculation for the first time and tries to explain what the numbers mean</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Month 1 ended. It was time for the first cost report. Sarah had given Jamie a template from a previous project and explained the process: pull actuals from Oracle, apply rules of credit to get EV, compare to planned value, calculate the metrics, prepare the summary pack. Jamie sat down on the last Friday of the month with the Oracle export, a spreadsheet, and the rules of credit table.</p>
+    <p>The actuals pulled cleanly from Oracle. The planned value came from the baseline schedule. Then Jamie hit the EV column and stared at the formula for a few minutes. This was the 20% Dan had mentioned. Jamie picked up the phone.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Dan — it's Jamie. I'm doing the first EV calc on Ridgeline. I've got the actuals from Oracle and I've got the rules of credit we set up. I understand the concept — budget times percent complete. But I'm second-guessing myself on whether I'm applying the rules correctly. Can I walk through the drilling PO with you?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker internal">Dan Reyes</span>
+      <span class="line-text">"Go ahead."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Drilling PO is $2.7M. Rule is units complete — confirmed holes divided by 45. Marcus's log shows 6 holes done. So EV is 6 over 45 times $2.7M, which is $360,000. Actuals are $362,000. So the CPI is $360K divided by $362K, which is 0.995. That seems almost too clean — like I must be doing something wrong."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker internal">Dan Reyes</span>
+      <span class="line-text">"You're not doing anything wrong. Clean early numbers are normal when a project is tracking well. The thing to remember is that CPI at Month 1 means almost nothing on its own — you've only completed 13% of the drilling program. What you're building is a baseline to compare against next month and the month after. The number isn't the point yet. The habit of producing it correctly every month is the point. Does it feel like you understand what the 0.995 means?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I think so. It means for every dollar we've spent on drilling, we've gotten 99.5 cents of work done. If it was 0.80, we'd have spent $1 and only gotten 80 cents of progress."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker internal">Dan Reyes</span>
+      <span class="line-text">"Exactly right. That's the whole thing. Call me when you hit something that doesn't make sense."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking — after the call with Dan</div>
+    <p>Five minutes with Dan was worth an hour of reading. EV = budget × % complete per the rule of credit. That's it. The CPI shows whether you're getting what you paid for. If Marcus logged 5 holes but we spent enough for 6, the gap is right there in the number. The EV shows what you've accomplished, not just what you've spent.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Month 1 EV Calculation — Jamie's First Run</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>WBS</th><th>Budget (BAC)</th><th>% Complete (per rule)</th><th>EV = BAC × %</th><th>AC (actuals)</th><th>PV (planned)</th><th>CV = EV−AC</th><th>CPI</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.1 PM</td><td>$180,000</td><td>8%</td><td>$14,400</td><td>$14,800</td><td>$15,000</td><td class="wb-warn">−$400</td><td class="wb-warn">0.97</td></tr>
+        <tr><td>1.2a Baseline Field</td><td>$220,000</td><td>5% (2/42 days)</td><td>$11,000</td><td>$10,600</td><td>$10,476</td><td class="wb-good">+$400</td><td class="wb-good">1.04</td></tr>
+        <tr><td>1.2b Baseline Analysis</td><td>$200,000</td><td>0% (no gate fired)</td><td>$0</td><td>$0</td><td>$0</td><td>—</td><td>—</td></tr>
+        <tr><td>1.3b Ridgeline PO</td><td>$2,700,000</td><td>13.3% (6/45 holes)</td><td>$360,000</td><td>$362,000</td><td>$360,000</td><td class="wb-warn">−$2,000</td><td class="wb-warn">0.995</td></tr>
+        <tr><td>1.4 HRIA</td><td>$280,000</td><td>0% (no gate fired)</td><td>$0</td><td>$0</td><td>$0</td><td>—</td><td>—</td></tr>
+        <tr><td>1.5–1.8</td><td>$920,000</td><td>0–5%</td><td>$18,400</td><td>$17,200</td><td>$18,400</td><td class="wb-good">+$1,200</td><td class="wb-good">1.07</td></tr>
+        <tr class="total"><td><strong>TOTAL</strong></td><td><strong>$4,500,000</strong></td><td><strong>9.0%</strong></td><td><strong>$403,800</strong></td><td><strong>$404,600</strong></td><td><strong>$403,876</strong></td><td class="wb-warn"><strong>−$800</strong></td><td class="wb-good"><strong>0.998</strong></td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;font-family:var(--mono);font-size:12px;line-height:2;">
+      SV = EV − PV = $403,800 − $403,876 = <span class="wb-warn">−$76 (essentially on schedule)</span><br>
+      SPI = EV ÷ PV = <span class="wb-good">1.000</span><br>
+      EAC (trend) = BAC ÷ CPI = $4,500,000 ÷ 0.998 = <span class="wb-good">$4,509,018</span><br>
+      VAC = BAC − EAC = <span class="wb-good">−$9,018 (projected minor overrun — essentially on budget)</span>
+    </div>
+    <p class="wb-note">Jamie's first EV report. CPI of 0.998 — almost exactly on budget. SPI of 1.000 — on schedule. The project is 9% complete and performing cleanly. Jamie prepared a one-page summary and brought it to Sarah.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I've finished the Month 1 EV calc. CPI is 0.998 — essentially on budget. SPI is 1.0 — on schedule. EAC is projecting a $9,000 overrun if nothing changes, which is less than 0.2% of the budget. I think everything looks fine."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Good work. A few things to add to the summary. First, note which WBS elements have CPI below 1.0 even if they're minor — get in the habit of calling those out by name, not just showing the project total. Second, for every element that fired a new milestone this month, note what triggered it. Third, always include the contingency balance even when it's untouched — it should be on every report so the client can see it hasn't been drawn. And one more thing: the EAC projection at Month 1 on a 12-month project carries almost no statistical weight. Note it but don't lead with it."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Why doesn't the EAC carry much weight yet?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Because you've completed 9% of the project. The trend-based EAC extrapolates your current CPI to completion — but after 9% of the project, small fluctuations in actuals create large swings in the projection. A CPI of 0.998 looks almost perfect but it might be 0.85 next month and 1.05 the month after. The EAC becomes meaningful once you're past roughly 20% complete and a performance pattern is establishing itself. Before that it's noise."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>That was the most useful thing Sarah told me in the first month. I had been proud of the EAC number — it looked good and I wanted to lead with it. But she was right: it was Month 1. We'd barely started. The discipline she was teaching me was to report accurately but communicate carefully — show the number, but tell the reader how much confidence to place in it. That's harder than just running the calculation.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 4: MONTHS 1-3 ══ -->
+<div class="beat" id="beat4">
+  <div class="beat-header">
+    <div class="beat-num">04</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Months 1–3 · Finding the Rhythm</div>
+      <div class="beat-title">Learning the Rhythm</div>
+      <div class="beat-context">Three months of clean data, a consistent process, and understanding what "good" looks like</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Months 1, 2, and 3 went smoothly. Jamie settled into a weekly rhythm: Monday, pull the prior week's timesheet postings from Oracle and check the WBS coding against the project register. Wednesday, reconcile Marcus's field log against Ridgeline's weekly progress report. Friday, update the tracking spreadsheet.</p>
+    <p>At month-end, Jamie ran the full EV calculation, prepared the status report pack for Sarah, and sat down with her to review it before it went to the client. These review sessions were the most valuable thirty minutes of each month. Sarah would ask questions about numbers that looked slightly off — not wrong enough to flag, but slightly off — and Jamie started to develop an instinct for what normal variation looked like versus what deserved attention.</p>
+    <p>By Month 3, the project looked healthy across every measure.</p>
+  </div>
+
+  <div class="status-row">
+    <div class="status-badge"><span class="sb-label">Overall Status</span><span class="sb-val good">GREEN</span><span class="sb-sub">On track</span></div>
+    <div class="status-badge"><span class="sb-label">CPI</span><span class="sb-val good">1.03</span><span class="sb-sub">Slightly under budget</span></div>
+    <div class="status-badge"><span class="sb-label">SPI</span><span class="sb-val good">1.01</span><span class="sb-sub">On schedule</span></div>
+    <div class="status-badge"><span class="sb-label">AC to Date</span><span class="sb-val neutral">$812,000</span><span class="sb-sub">vs PV $836,000</span></div>
+    <div class="status-badge"><span class="sb-label">EAC</span><span class="sb-val good">$4,371,000</span><span class="sb-sub">$129K under BAC</span></div>
+    <div class="status-badge"><span class="sb-label">Contingency</span><span class="sb-val good">$225,000</span><span class="sb-sub">Untouched</span></div>
+    <div class="status-badge"><span class="sb-label">Holes Done</span><span class="sb-val neutral">22 / 45</span><span class="sb-sub">49% of program</span></div>
+  </div>
+
+  <div class="prose">
+    <p>Jamie noticed something in the Month 3 numbers that hadn't appeared in Months 1 or 2: the PM element (WBS 1.1) was running consistently at a CPI of about 0.94 — spending slightly more than the EV warranted. It was minor, about $3,600 over three months. But it was consistent.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I want to flag WBS 1.1 PM — it's been running at 0.93 to 0.95 CPI for three months. It's only $3,600 cumulative variance but it's been negative every month. It looks like a pattern rather than noise."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Good catch. The PM element runs higher early on — coordination and mobilization in the first months is heavier than the budget model assumed. I expect it to normalize through Months 4 to 8 when the field work is running and PM time is lower. Keep flagging it monthly and we'll see if the trend reverses. If it's still negative at Month 6, I want to look at the remaining ETC more carefully."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>A $3,600 variance once is noise. The same variance three months running in the same direction is a pattern. Patterns matter more than individual data points. I added a trend column to the tracking sheet after this — negative CPI three months in a row gets a highlight.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">What This Illustrates</div>
+    <p>The most important skill a project controller develops is pattern recognition — the ability to distinguish between a one-time fluctuation and a systemic trend. A single negative CPI is worth noting. A negative CPI that persists over multiple periods is worth escalating. <span class="concept teal">Consistent small variances are often more important than large one-time variances</span> because they compound silently into large overruns. Jamie's instinct to flag a consistent pattern — even when the absolute number is small — is exactly the right instinct.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 5: MONTH 5 ══ -->
+<div class="beat" id="beat5">
+  <div class="beat-header">
+    <div class="beat-num">05</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Month 5 · The Numbers Break</div>
+      <div class="beat-title">Something Is Wrong</div>
+      <div class="beat-context">Jamie spots the drilling overrun in the data before Sarah knows — and has to explain what $900K means</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>It was a Wednesday in Month 5 — mid-month reconciliation day. Jamie pulled Marcus's weekly field log and opened Ridgeline's progress report alongside it. The routine check lasted about three minutes before something stopped the process cold.</p>
+    <p>Marcus's log showed 27 holes completed. The plan through this point in the month had assumed 30 holes complete. Three holes behind schedule — not unusual. But the actuals in Oracle told a different story. Ridgeline's costs posted to date were $1,620,000 against 27 confirmed holes. At $60,000 per hole, 27 holes should cost $1,620,000. That part checked out.</p>
+    <p>But the note at the bottom of Marcus's log — written in the same matter-of-fact style as always — changed the picture entirely.</p>
+    <p><em>"Encountered significant varved clay sequence in Km 22–27 zone. Conditions materially different from pre-drilling methodology report baseline. Drilling slower than planned in this zone — hollow stem insufficient in some locations, switched to water rotary. Program may require additional holes to adequately characterize the clay. Will provide formal assessment by Friday."</em></p>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>I read that note three times. "Program may require additional holes." I didn't know what varved clay was. But I knew what "additional holes" meant: additional holes at $60,000 each. I opened my tracking spreadsheet and started running numbers to understand what I was looking at.</p>
+  </div>
+
+  <div class="prose">
+    <p>Jamie worked through the EV calculation for the month-to-date picture and then extended it using Marcus's Friday assessment, which arrived as promised: 15 additional holes required. Jamie brought the analysis to Sarah the same afternoon.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Month 5 Mid-Month EV Analysis — Jamie's Numbers Before the Sarah Meeting</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>WBS</th><th>BAC</th><th>PV</th><th>EV</th><th>AC</th><th>CV</th><th>CPI</th><th>Jamie's Note</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.1 PM</td><td>$180,000</td><td>$90,000</td><td>$81,000</td><td>$88,200</td><td class="wb-warn">−$7,200</td><td class="wb-warn">0.92</td><td>Continued pattern — 6th month negative</td></tr>
+        <tr><td>1.2 Env. Baseline</td><td>$420,000</td><td>$210,000</td><td>$210,000</td><td>$204,600</td><td class="wb-good">+$5,400</td><td class="wb-good">1.03</td><td>On track</td></tr>
+        <tr class="highlight-row"><td>1.3b Ridgeline PO</td><td>$2,700,000</td><td>$1,800,000</td><td>$1,620,000</td><td>$1,620,000</td><td class="wb-warn">−</td><td class="wb-warn">1.00</td><td>⚠ On cost but behind schedule — 27 holes vs 30 planned. Clay zone will require 15 additional holes.</td></tr>
+        <tr><td>1.4–1.7</td><td>$830,000</td><td>$415,000</td><td>$415,000</td><td>$402,550</td><td class="wb-good">+$12,450</td><td class="wb-good">1.03</td><td>All on track</td></tr>
+        <tr><td>1.8 IA Report</td><td>$370,000</td><td>$0</td><td>$0</td><td>$0</td><td>—</td><td>—</td><td>Not started</td></tr>
+        <tr class="total"><td><strong>TOTAL (current scope)</strong></td><td><strong>$4,500,000</strong></td><td><strong>$2,515,000</strong></td><td><strong>$2,326,000</strong></td><td><strong>$2,315,350</strong></td><td class="wb-warn"><strong>+$10,650</strong></td><td class="wb-warn"><strong>1.005</strong></td><td>Looks OK — until you add the additional holes</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;font-family:var(--mono);font-size:12px;line-height:2.1;">
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--red);display:block;margin-bottom:8px;">ADDITIONAL SCOPE IMPACT — 15 HOLES × $60,000</span>
+      Additional cost if change order approved: <span class="wb-bad">$900,000</span><br>
+      Revised EAC (current scope + additional holes): $4,500,000 + $900,000 = <span class="wb-bad">$5,400,000</span><br>
+      Contingency available: <span class="wb-warn">$225,000</span><br>
+      Overrun above contingency without change order: <span class="wb-bad">$675,000</span><br>
+      <br>
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--amber);">IF CHANGE ORDER IS APPROVED BY CLIENT</span><br>
+      Revised contract value: $4,725,000 + $900,000 = <span class="wb-warn">$5,625,000</span><br>
+      Original scope EAC: <span class="wb-good">$4,500,000 (tracking on budget)</span><br>
+      Additional scope (CO) EAC: <span class="wb-warn">$900,000 (client-paid)</span>
+    </div>
+    <p class="wb-note">The key insight in this analysis: the current project CPI is 1.005 — the project looks fine in aggregate. The Ridgeline PO CPI is exactly 1.0 — cost matches the progress claimed. But the problem is not cost efficiency. The problem is that 15 holes are required that were never in the plan. No EVM metric catches an out-of-scope program expansion until you identify it. The CPI would stay at 1.0 even as $900,000 of unbudgeted work accumulates — because the cost matches the (expanded) progress. This is why understanding what the numbers mean matters more than calculating them correctly.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Sarah, I need to show you something. I've run the numbers on the clay zone situation Marcus flagged. I want to make sure I'm understanding this correctly before you talk to him."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Walk me through it."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Current project EVM looks fine — CPI of 1.005, everything basically on budget. But if Marcus's assessment is right and we need 15 additional holes at $60,000 each, that's $900,000 of work that isn't in our budget. If it's a legitimate changed conditions claim and the client approves a change order, it's their cost and we're fine. If it doesn't get approved as a change order, we have a $900,000 problem against a $225,000 contingency. The difference is $675,000 that we have no budget for."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"You've understood the situation correctly. This is exactly the kind of analysis I need from you — before I talk to Marcus, before I call Dale, and before it shows up in the month-end report as a surprise. What else did you flag?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"The current scope CPI is 1.0 on the drilling even though we need more holes. I wasn't sure if that was right or if I'd made an error."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"It's right. The EVM for the original 45 holes is clean — Ridgeline is delivering what we contracted at the price we contracted. The problem isn't their performance. The problem is that the scope itself changed. EVM measures efficiency against the plan. It doesn't automatically detect when the plan needs to change. That's your job — and Marcus's. You just did it."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>CPI of 1.0 looked healthy. The project wasn't. That gap — between what the metric shows and what's actually happening — is where judgment lives. My job isn't to run the numbers. It's to understand what they can't tell you.</p>
+  </div>
+
+  <div class="prose">
+    <p>Sarah called Marcus that afternoon. The change request package went to Dale within the week — forty-two pages of documentation that Jamie helped compile and format: the pre-drilling methodology report, Marcus's five clay zone borehole logs, annotated photographs, and a side-by-side comparison of the mapped soil profile against the actual logs. CO-01 was approved at $882,000 — negotiated from $900,000 — within ten days.</p>
+    <p>Jamie updated the Oracle project structure that afternoon. A new WBS element — CO-01, Additional Geotechnical Investigation — with a $882,000 budget, units complete rule (confirmed additional holes ÷ 15), tracked separately from the original drilling program. Clean separation. Original scope versus change order scope, visible and distinct in every future report.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">What This Illustrates</div>
+    <p>The most important moment in this beat is not the $900,000 number — it's Jamie's realization that <span class="concept teal">EVM measures efficiency, not completeness of scope</span>. A CPI of 1.0 means you're getting what you paid for. It doesn't mean you've correctly identified everything you need to pay for. Detecting out-of-scope work requires project knowledge, field communication, and judgment — not just calculation. The project controller's value is in connecting the numbers to the reality on the ground.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 6: MONTH 7 ══ -->
+<div class="beat" id="beat6">
+  <div class="beat-header">
+    <div class="beat-num">06</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Month 7 · An Unexpected Cost</div>
+      <div class="beat-title">The Clearing Stop</div>
+      <div class="beat-context">A client routing change in July triggers the bird breeding season restriction — and Jamie has to quantify the cost impact</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>CO-01 was authorized. The 14 approved clay zone holes were drilled and logged. The project was back on track. Jamie was getting comfortable with the monthly rhythm when Brad Kohut sent an email in the third week of Month 7 with a subject line that read: <em>MBCA Issue — Alternate Crossing Access.</em></p>
+    <p>Jamie read it twice before understanding what it meant. Northern Corridor's routing team had requested an alternate borehole location for Watercourse Crossing 4 — 800 metres off the existing access trail. Getting the rig to that location required a new access spur. The new spur required vegetation clearing. The date was July 19th. The Migratory Birds Convention Act breeding season restriction ran until July 31st. No tree cutting was legally permitted.</p>
+    <p>Jamie pulled up the project risk register. The bird breeding season restriction was there — flagged at project setup, with an associated contract clause. A note in Brad's column: <em>Clause 8.4 — client-caused delay due to regulatory restriction triggered by client routing decision.</em></p>
+    <p>Jamie ran the cost numbers before calling Sarah.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Clearing Stoppage Cost Impact — Jamie's Preliminary Analysis</span>
+    <div style="font-family:var(--mono);font-size:12.5px;line-height:2.1;">
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:10px;">Cause of Issue</span>
+      Northern Corridor routing decision (Month 7, July 19) requires new 800m access spur<br>
+      MBCA breeding season restriction: no clearing until August 1<br>
+      Days delayed: 12 days (July 19 → August 1)<br><br>
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:10px;">Cost Impact</span>
+      Clearing contractor remobilization (demobbed after March clearing): <span class="wb-bad">$42,000</span><br>
+      Ridgeline Drilling standby / remob for 3 additional crossing holes: <span class="wb-bad">$35,000</span><br>
+      3 additional crossing holes × $60,000 (the actual new scope): <span class="wb-bad">$180,000</span><br>
+      <span style="border-top:1px solid var(--border);display:block;margin-top:6px;padding-top:6px;"></span>
+      Total CO-02 value: <span class="wb-bad">$257,000</span><br><br>
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:10px;">Contract Position</span>
+      Clause 8.4 applies: client-directed routing change + regulatory restriction = client-caused delay<br>
+      Cost is recoverable — this is NOT a firm cost<br>
+      Authorization required before August 1 to preserve schedule
+    </div>
+    <p class="wb-note">Jamie's key contribution here was separating the $257,000 into two categories in the analysis: the $77,000 of remobilization cost caused by the timing of the routing decision (client's problem under the contract clause), and the $180,000 of actual new drilling scope (also client-directed). Both were recoverable. Neither should be absorbed against the project contingency.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"I've looked at the MBCA issue. The total change order value is $257,000 — three new crossing holes at $180,000, plus $77,000 of remobilization costs from the timing of the routing decision. Under Clause 8.4, the full $257,000 is recoverable from the client. We don't absorb any of it. But we need Dale's authorization before August 1st or the schedule impact gets worse."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Good. You've correctly separated the actual new scope from the delay cost. Some project controllers would have just quoted $257,000 as 'the change order' without explaining where it came from. The breakdown matters because Dale's approval process for work over $50,000 goes to his VP — and the VP will ask exactly those questions. I'll call Dale now. You draft the change request document."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>I hadn't thought about the VP approval threshold when I built the analysis. Sarah was right — the breakdown mattered not just for accuracy but for getting the authorization. When you're asking someone to sign off on $257,000, they want to know what it's for. "Clearing contractor remob" and "rig standby" are concrete, verifiable costs. "Additional scope caused by routing change" is also concrete. Presenting it that way made the approval easier because the logic was transparent. That was a lesson I didn't expect from a clearing stoppage.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Project Financial Position — End of Month 7 (Post Both Change Orders)</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>Scope Category</th><th>Contract Value</th><th>EAC</th><th>VAC</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Original scope (WBS 1.1–1.8)</td><td>$4,500,000</td><td>$4,487,000</td><td class="wb-good">+$13,000</td><td>On budget</td></tr>
+        <tr><td>CO-01: Clay zone geotech (14 holes)</td><td>$882,000</td><td>$868,000</td><td class="wb-good">+$14,000</td><td>Client-paid, tracking under</td></tr>
+        <tr><td>CO-02: Alternate crossing + clearing remob</td><td>$257,000</td><td>$257,000</td><td>$0</td><td>Client-paid, on budget</td></tr>
+        <tr class="total"><td><strong>TOTAL CONTRACT</strong></td><td><strong>$5,639,000</strong></td><td><strong>$5,612,000</strong></td><td class="wb-good"><strong>+$27,000</strong></td><td>Overall tracking $27K under</td></tr>
+      </tbody>
+    </table>
+    <p class="wb-note">This is what controlled change management looks like in the numbers. The project has grown from $4,500,000 to $5,639,000 — 25% larger. Every dollar of growth is in an authorized change order, tracked in its own WBS element, with its own EAC. Jamie can now report to Sarah exactly what the original scope cost, what each change order cost, and the variance on each. This is only possible because the change orders were set up as separate WBS elements from day one.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 7: MONTH 9 ══ -->
+<div class="beat" id="beat7">
+  <div class="beat-header">
+    <div class="beat-num">07</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Month 9 · Finding the Error</div>
+      <div class="beat-title">The Reconciliation</div>
+      <div class="beat-context">Jamie finds a timesheet coding error during the monthly close — and what it cost to not find it sooner</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Month 9. All field work was complete. The project was in the analysis and reporting phase, concentrated in WBS 1.8 — Impact Assessment and Reporting. Jamie ran the mid-month timesheet reconciliation on a Thursday afternoon, as usual. The actuals in Oracle against WBS 1.8 were $134,000. The weighted steps rule showed 30% complete — $111,000 was the expected AC for that level of progress. Jamie had $23,000 more than expected.</p>
+    <p>This was a $23,000 cost variance on a single WBS element in a single month. Not catastrophic, but not noise either. Jamie pulled the timesheet detail for WBS 1.8.</p>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>When actuals are higher than expected, first question isn't "is there a problem" — it's "is this real cost or a coding error?" Honest mistakes happen. Someone charges IA writing to 1.8 instead of 1.2b. It's not fraud, it's just wrong, and it corrupts every EV number downstream until it's fixed.</p>
+  </div>
+
+  <div class="prose">
+    <p>Jamie sorted the WBS 1.8 timesheet by employee. Dr. Sorge's team had 14 hours coded to 1.8 at senior ecologist rates — $4,200. Jamie checked the description fields: "wildlife section draft," "caribou habitat writing," "ecological assessment narrative." That was environmental baseline report writing — it belonged in WBS 1.2b, not WBS 1.8. Coding error.</p>
+    <p>That accounted for $4,200 of the $23,000 gap. The rest needed a different explanation. Jamie reviewed the remaining hours and spotted something that wasn't a coding error at all — it was a scope issue. James Tran, the lead report author, had 62 hours in WBS 1.8 in the past three weeks with a consistent description: "regional cumulative effects research" and "50km buffer GIS analysis."</p>
+    <p>Jamie pulled the WBS 1.8 scope description. The original scope said "project-level effects analysis." Regional scale with a 50km buffer was not in the original scope. Jamie checked the AER guidance document on Sarah's shared drive. The current version had a new section — added eight months ago — requiring regional cumulative effects analysis for pipeline corridor EAs in the boreal zone. The original project scope predated this guidance update.</p>
+    <p>Jamie drafted a brief summary and brought it to Sarah.</p>
+  </div>
+
+  <div class="work-block">
+    <span class="wb-label">Month 9 Timesheet Reconciliation — Jamie's Findings</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>Finding</th><th>WBS Affected</th><th>Hours</th><th>Cost</th><th>Type</th><th>Action Required</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Dr. Sorge team — wildlife report writing coded to 1.8 instead of 1.2b</td><td>1.8 → should be 1.2b</td><td>14 hrs</td><td>$4,200</td><td>Coding Error</td><td>Timesheet correction this week</td></tr>
+        <tr class="highlight-row"><td>James Tran — regional cumulative effects analysis; 50km buffer GIS work</td><td>1.8 (WBS description mismatch)</td><td>62 hrs</td><td>$18,600</td><td>Possible Out-of-Scope</td><td>Escalate to Sarah — potential CO-03</td></tr>
+        <tr><td>Routine 1.8 work (report writing, integration)</td><td>1.8 (correct)</td><td>varies</td><td>$111,200</td><td>Expected</td><td>None — on track</td></tr>
+        <tr class="total"><td><strong>Total 1.8 actuals</strong></td><td></td><td></td><td><strong>$134,000</strong></td><td></td><td>After corrections: $115,400 clean</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:14px;font-family:var(--mono);font-size:12px;line-height:2.1;">
+      After coding correction: WBS 1.8 AC = <span class="wb-good">$129,800</span> (vs $134,000 reported)<br>
+      WBS 1.2b AC adjustment: +$4,200 (net impact: slightly over budget on baseline analysis — still within tolerance)<br>
+      Potential CO-03 exposure: 62 hrs spent + est. 130 hrs remaining = <span class="wb-warn">192 hrs total additional scope</span><br>
+      Estimated CO-03 value: <span class="wb-warn">~$72,000</span>
+    </div>
+    <p class="wb-note">The $4,200 coding error would have inflated WBS 1.8's reported actuals and deflated WBS 1.2b's — making 1.8 look more expensive than it was and 1.2b look cheaper. Over time, these errors compound into a distorted cost picture. The out-of-scope cumulative effects work is more significant: 62 hours already spent with ~130 remaining is $72,000 of unbudgeted scope. If it's not caught and converted to a change order, it disappears silently into WBS 1.8's budget and the IA reporting element shows a major overrun with no clear explanation.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"Month 9 reconciliation found two issues. First, a $4,200 coding error — Dr. Sorge's team was charging environmental baseline report writing to 1.8 instead of 1.2b. I've flagged it for timesheet correction. Second, something more significant: James Tran has 62 hours of regional cumulative effects work in 1.8 that doesn't match the original scope description. I checked the current AER guidance and there's been a guidance update since we contracted this work — they're now requiring regional-scale cumulative effects for boreal corridor EAs. The original scope was project-level only. I think this is a change order situation."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"How much is the exposure?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"62 hours spent, James estimates about 130 remaining. Total additional scope at blended rates — approximately $72,000. If I code the 62 hours already spent to a suspense element and raise a CO-03 for the full amount, we keep 1.8 clean and the additional work is properly tracked. If we just absorb it into 1.8, the IA report element will show a major cost overrun with no explanation in the record."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"That's exactly right — code the 62 hours to suspense today. I'll call Dale and get CO-03 approved before the end of week. The AER guidance change is a straightforward regulatory-driven scope addition — Dale will authorize it quickly. Good catch on the coding error too. How did you spot it?"</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker jamie">Jamie</span>
+      <span class="line-text">"The actuals were $23,000 more than the rule of credit suggested they should be. When the numbers are off, I check the timesheet detail. That's just the reconciliation habit."</span>
+    </div>
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"Keep that habit."</span>
+    </div>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's thinking</div>
+    <p>That exchange was the moment I felt like I actually understood what my job was. I hadn't set out to find a change order — I'd set out to find out why the actuals didn't match the expected cost for the progress claimed. The EV calculation told me something was off. The reconciliation told me what it was. And the scope check told me why. Three different tools, all pointing at the same answer. That felt like project controls working properly.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">What This Illustrates</div>
+    <p>The timesheet coding error and the out-of-scope work were both found through the same habit: <span class="concept teal">when actuals don't match expected cost for the progress claimed, investigate before reporting</span>. A project controller who simply transcribes actuals from the accounting system into a report is a data courier. A project controller who checks the actuals against the rules of credit, identifies discrepancies, and traces them to their source is doing the job. The difference between those two things is what Jamie learned in Month 9.</p>
+  </div>
+</div>
+
+<!-- ══ BEAT 8: MONTH 12 ══ -->
+<div class="beat" id="beat8">
+  <div class="beat-header">
+    <div class="beat-num">08</div>
+    <div class="beat-header-text">
+      <div class="beat-eyebrow">Month 12 · Closing the Books</div>
+      <div class="beat-title">The End of the Project</div>
+      <div class="beat-context">What closeout looks like from the controller's seat — and what the final numbers mean</div>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>The AER regulatory submission was filed on Day 11 of Month 12. The TLU firm's final report had been three weeks late, which Sarah had communicated to Dale in Month 10 with a critical path analysis showing the impact. The schedule extension was eleven days. No dispute.</p>
+    <p>When the submission went in, Jamie's first instinct was to relax. Sarah's first instinct was to start closeout.</p>
+  </div>
+
+  <div class="dialogue">
+    <div class="line">
+      <span class="line-speaker pm">Sarah Chen</span>
+      <span class="line-text">"We don't close a project when the submission goes in. We close it when the Oracle project code is locked, all deliverables are formally accepted, the final invoice is issued, and the lessons learned are documented. Until then, hours can still be charged and money can still be lost. We've had projects sit open for three months after submission because nobody formally closed them. That's overhead masquerading as project cost."</span>
+    </div>
+  </div>
+
+  <div class="prose">
+    <p>Jamie ran the closeout checklist.</p>
+  </div>
+
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot done">W1</div>
+      <div class="tl-content">
+        <div class="tl-month">Week 1 — Deliverable Acceptance</div>
+        <div class="tl-event">Jamie drafted the formal acceptance request letter and tracked responses. All eleven deliverables (eight original + three change orders) accepted in writing by Day 5. This triggered the retainage release: 10% of $5,711,000 = <strong>$571,100</strong> unlocked.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done">W1</div>
+      <div class="tl-content">
+        <div class="tl-month">Week 1 — Close Oracle Project Code</div>
+        <div class="tl-event">Jamie closed the cost codes in Oracle within 24 hours of acceptance. Checked the timesheet system the following Monday — four team members had charged the project after the submission date. Total unauthorized post-submission hours: 22 hours at various rates = approximately $6,800. All redirected to overhead. Prevented from appearing in the final cost report.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done">W2</div>
+      <div class="tl-content">
+        <div class="tl-month">Week 2 — Final Invoice</div>
+        <div class="tl-event">Final invoice drafted by Jamie, reviewed by Sarah, issued to Northern Corridor. Total invoiced: $5,711,000 across all billing milestones and change orders. Payment received within 35 days.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done">W2</div>
+      <div class="tl-content">
+        <div class="tl-month">Week 2 — Final Cost Report</div>
+        <div class="tl-event">Jamie produced the final budget vs. actual for all WBS elements and change orders. This was the cleanest report of the project — every line had a clear story, every variance had a documented cause. Sarah reviewed it and filed it in the firm's benchmarking database.</div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot done">W3</div>
+      <div class="tl-content">
+        <div class="tl-month">Week 3 — Lessons Learned</div>
+        <div class="tl-event">90-minute session facilitated by Sarah. Jamie documented the outcomes and filed them with the project record.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-break"><div class="section-break-line"></div><div class="section-break-label">Final Numbers</div><div class="section-break-line"></div></div>
+
+  <div class="work-block">
+    <span class="wb-label">Final Budget vs. Actual — Jamie's Closeout Report</span>
+    <table class="data-table" style="margin:0;">
+      <thead>
+        <tr><th>WBS / CO</th><th>Description</th><th>Final Budget</th><th>Final AC</th><th>Variance</th><th>Note</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.1</td><td>Project Management</td><td>$180,000</td><td>$184,200</td><td class="wb-bad">−$4,200</td><td>CO management time and TLU delay coordination absorbed</td></tr>
+        <tr><td>1.2</td><td>Environmental Baseline</td><td>$420,000</td><td>$412,800</td><td class="wb-good">+$7,200</td><td>Efficient field team; clean three seasons</td></tr>
+        <tr><td>1.3b</td><td>Ridgeline Drilling PO (original 45 holes)</td><td>$2,700,000</td><td>$2,682,000</td><td class="wb-good">+$18,000</td><td>North segment productivity offset clay zone delays</td></tr>
+        <tr><td>CO-01</td><td>Clay zone geotech (14 holes)</td><td>$882,000</td><td>$864,000</td><td class="wb-good">+$18,000</td><td>Changed conditions — client-paid</td></tr>
+        <tr><td>1.4</td><td>HRIA (Ray Callahan sub)</td><td>$280,000</td><td>$274,400</td><td class="wb-good">+$5,600</td><td>No Stage 3 required</td></tr>
+        <tr><td>1.5</td><td>Traditional Land Use</td><td>$150,000</td><td>$156,000</td><td class="wb-bad">−$6,000</td><td>TLU firm required additional engagement session; absorbed</td></tr>
+        <tr><td>1.6</td><td>Consultation</td><td>$220,000</td><td>$214,600</td><td class="wb-good">+$5,400</td><td>Efficient engagement process</td></tr>
+        <tr><td>1.7</td><td>Hydrotechnical</td><td>$180,000</td><td>$175,200</td><td class="wb-good">+$4,800</td><td>Clean crossing assessments</td></tr>
+        <tr><td>CO-02</td><td>Alternate crossing + clearing remob</td><td>$257,000</td><td>$252,400</td><td class="wb-good">+$4,600</td><td>Client routing change — client-paid</td></tr>
+        <tr><td>1.8</td><td>IA &amp; Reporting</td><td>$370,000</td><td>$381,400</td><td class="wb-bad">−$11,400</td><td>Integration complexity; partly recovered by CO-03</td></tr>
+        <tr><td>CO-03</td><td>AER cumulative effects expansion</td><td>$72,000</td><td>$72,000</td><td>$0</td><td>Regulatory guidance change — client-paid</td></tr>
+        <tr class="total"><td colspan="2"><strong>TOTAL</strong></td><td><strong>$5,711,000</strong></td><td><strong>$5,669,000</strong></td><td class="wb-good"><strong>+$42,000</strong></td><td>Final: $42,000 under contract value</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top:16px;font-family:var(--mono);font-size:12px;line-height:2.2;">
+      <span style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--teal);display:block;margin-bottom:8px;">Key Metrics</span>
+      Contingency drawn: <span class="wb-warn">$27,000 of $225,000</span><br>
+      Contingency returned to overhead: <span class="wb-good">$198,000</span><br>
+      Change orders (3 total): <span class="wb-warn">$1,211,000 — all authorized, all client-paid</span><br>
+      Final contract CPI (all scope): EV $5,711,000 ÷ AC $5,669,000 = <span class="wb-good">1.007</span><br>
+      Post-submission cost leakage prevented by early code close: <span class="wb-good">$6,800</span>
+    </div>
+    <p class="wb-note">Jamie's final observation in the closeout notes: "The project ended $42,000 under contract value. Of the three change orders totalling $1,211,000, all three were client-paid. None of that growth came from the firm absorbing costs that belonged to the client. The original scope ended essentially at breakeven. The change order scope ended slightly under budget. The contingency was 88% returned. This is what the numbers look like when scope is managed properly."</p>
+  </div>
+
+  <div class="section-break"><div class="section-break-line"></div><div class="section-break-label">What Jamie Learned</div><div class="section-break-line"></div></div>
+
+  <div class="prose">
+    <p>The lessons learned session was ninety minutes. Jamie sat in the corner with a laptop, documenting what was said. Afterward, alone with the notes, Jamie wrote a personal summary — not for the file, just to consolidate twelve months of learning.</p>
+  </div>
+
+  <div class="inner-voice">
+    <div class="inner-voice-label">Jamie's end-of-project reflection</div>
+    <p>The numbers don't manage the project. They describe it. My job is to describe it accurately enough that the PM can see what's happening.</p>
+    <p>CPI and SPI are just ratios. The hard part is knowing what they mean in context — a 0.80 on drilling in Month 5 is a different problem than a 0.80 on the IA report in Month 10.</p>
+    <p>Sarah taught me to bring an interpretation, not just a printout. "PM CPI is 0.92" is a data point. "PM has been negative for six months, trending to a $15K overrun" is something she can act on.</p>
+    <p>I came into this knowing spreadsheets. I'm leaving knowing what they're for.</p>
+  </div>
+
+  <div class="callout teal">
+    <div class="callout-label">The Full Picture</div>
+    <p>Jamie spent twelve months on a $4.5M project in a support role — no authority to make decisions, no client-facing responsibility for outcomes. But the project ended $42,000 under budget with $198,000 of contingency returned, partly because of what Jamie found during reconciliations, partly because of the analysis that gave Sarah the information she needed before she needed it. That's what a project controller does. <span class="concept teal">You don't manage the project. You give the PM the clearest possible picture of it so they can.</span></p>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+  function go(id, navEl) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+    const el = document.getElementById(id);
+    if (el) document.getElementById('main').scrollTo({ top: el.offsetTop - 20, behavior: 'smooth' });
+  }
+  const main = document.getElementById('main');
+  const beats = ['beat1','beat2','beat3','beat4','beat5','beat6','beat7','beat8'];
+  main.addEventListener('scroll', () => {
+    const scrollPos = main.scrollTop + 120;
+    let current = beats[0];
+    beats.forEach(id => { const el = document.getElementById(id); if (el && el.offsetTop <= scrollPos) current = id; });
+    document.querySelectorAll('.nav-item').forEach(n => {
+      const target = n.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+      n.classList.toggle('active', target === current);
+    });
+  });
+</script>
+</body>
+</html>
