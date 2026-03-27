@@ -1,0 +1,2987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Controls for Consultants</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c26;
+    --surface2: #1e2333;
+    --border: #2a3048;
+    --amber: #f0a500;
+    --amber-dim: #a87200;
+    --amber-glow: rgba(240,165,0,0.12);
+    --red: #e05a4e;
+    --green: #4caf82;
+    --blue: #5b9bd5;
+    --text: #d4dae8;
+    --text-dim: #7a8499;
+    --text-bright: #eef2ff;
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+    --display: 'Bebas Neue', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  #app { position: relative; z-index: 1; display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    padding: 28px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, var(--surface2) 0%, var(--surface) 100%);
+  }
+
+  .course-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .course-title {
+    font-family: var(--display);
+    font-size: 26px;
+    letter-spacing: 0.04em;
+    color: var(--text-bright);
+    line-height: 1.15;
+  }
+
+  .course-subtitle {
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  .sidebar-progress {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .progress-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-bar {
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--amber);
+    border-radius: 2px;
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  .nav-section {
+    padding: 10px 0;
+  }
+
+  .nav-section-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    color: var(--amber-dim);
+    text-transform: uppercase;
+    padding: 8px 20px 4px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+
+  .nav-item:hover { background: var(--amber-glow); color: var(--text); }
+  .nav-item.active { border-left-color: var(--amber); background: var(--amber-glow); color: var(--amber); }
+  .nav-item.completed { color: var(--green); }
+  .nav-item.completed .nav-check { opacity: 1; }
+
+  .nav-num {
+    font-family: var(--mono);
+    font-size: 10px;
+    min-width: 22px;
+    color: var(--text-dim);
+  }
+  .nav-item.active .nav-num { color: var(--amber); }
+
+  .nav-check {
+    margin-left: auto;
+    opacity: 0;
+    color: var(--green);
+    font-size: 12px;
+    transition: opacity 0.2s;
+  }
+
+  /* ── MAIN ── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+  }
+
+  /* ── HERO ── */
+  #hero {
+    padding: 60px 60px 50px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(160deg, var(--surface2) 0%, var(--bg) 60%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #hero::after {
+    content: 'PC';
+    position: absolute;
+    right: -20px;
+    top: -30px;
+    font-family: var(--display);
+    font-size: 220px;
+    color: rgba(240,165,0,0.04);
+    pointer-events: none;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .hero-title {
+    font-family: var(--display);
+    font-size: 56px;
+    letter-spacing: 0.03em;
+    color: var(--text-bright);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .hero-desc {
+    max-width: 620px;
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+
+  .hero-tags {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .tag.amber { border-color: var(--amber-dim); color: var(--amber); background: var(--amber-glow); }
+
+  /* ── MODULE PAGES ── */
+  .module-page { display: none; padding: 40px 60px 80px; }
+  .module-page.active { display: block; animation: fadeIn 0.3s ease; }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  .mod-header {
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 36px;
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+  }
+
+  .mod-number {
+    font-family: var(--display);
+    font-size: 72px;
+    color: var(--amber);
+    opacity: 0.2;
+    line-height: 1;
+    min-width: 80px;
+  }
+
+  .mod-header-text {}
+
+  .mod-eyebrow {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .mod-title {
+    font-family: var(--display);
+    font-size: 38px;
+    letter-spacing: 0.03em;
+    color: var(--text-bright);
+    line-height: 1.1;
+    margin-bottom: 10px;
+  }
+
+  .mod-intro {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-style: italic;
+    max-width: 640px;
+  }
+
+  /* ── CONTENT BLOCKS ── */
+  .section { margin-bottom: 40px; }
+
+  .section-title {
+    font-family: var(--display);
+    font-size: 22px;
+    letter-spacing: 0.06em;
+    color: var(--amber);
+    margin-bottom: 14px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  p { color: var(--text); margin-bottom: 14px; font-size: 14px; }
+
+  /* ── CALLOUT BOXES ── */
+  .callout {
+    border-left: 3px solid var(--amber);
+    background: var(--amber-glow);
+    padding: 16px 20px;
+    margin: 20px 0;
+    border-radius: 0 4px 4px 0;
+  }
+  .callout.red { border-color: var(--red); background: rgba(224,90,78,0.08); }
+  .callout.green { border-color: var(--green); background: rgba(76,175,130,0.08); }
+  .callout.blue { border-color: var(--blue); background: rgba(91,155,213,0.08); }
+
+  .callout-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 6px;
+  }
+  .callout.red .callout-label { color: var(--red); }
+  .callout.green .callout-label { color: var(--green); }
+  .callout.blue .callout-label { color: var(--blue); }
+
+  .callout p { margin: 0; font-size: 13.5px; }
+
+  /* ── DEFINITION LIST ── */
+  .def-list { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+
+  .def-item {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    padding: 12px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+  }
+
+  .def-term {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    font-weight: 600;
+    padding-top: 1px;
+  }
+
+  .def-desc { font-size: 13px; color: var(--text); }
+
+  /* ── TABLE ── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 13px;
+  }
+
+  .data-table th {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--amber-dim);
+    background: var(--surface2);
+  }
+
+  .data-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: top;
+  }
+
+  .data-table tr:hover td { background: var(--surface); }
+
+  /* ── FORMULA BLOCK ── */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--amber);
+    padding: 18px 20px;
+    margin: 16px 0;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text-bright);
+    border-radius: 0 0 4px 4px;
+  }
+
+  .formula-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+  }
+
+  .formula .eq { font-size: 16px; letter-spacing: 0.05em; }
+  .formula .sub { color: var(--text-dim); font-size: 12px; margin-top: 6px; }
+
+  /* ── STEP LIST ── */
+  .step-list { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+
+  .step {
+    display: flex;
+    gap: 0;
+    position: relative;
+  }
+
+  .step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 18px;
+    top: 40px;
+    bottom: 0;
+    width: 1px;
+    background: var(--border);
+  }
+
+  .step-num {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    border: 1px solid var(--amber-dim);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+    margin-right: 16px;
+    margin-top: 2px;
+    background: var(--surface);
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .step-content { padding-bottom: 24px; flex: 1; }
+
+  .step-title {
+    font-weight: 600;
+    color: var(--text-bright);
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+
+  .step-body { font-size: 13px; color: var(--text-dim); }
+
+  /* ── GRID CARDS ── */
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin: 20px 0;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    border-radius: 4px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover { border-color: var(--amber-dim); transform: translateY(-2px); }
+
+  .card-icon { font-size: 22px; margin-bottom: 10px; }
+  .card-title { font-family: var(--display); font-size: 18px; letter-spacing: 0.04em; color: var(--text-bright); margin-bottom: 6px; }
+  .card-body { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; }
+
+  /* ── QUIZ ── */
+  .quiz-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 24px 28px;
+    margin: 28px 0;
+  }
+
+  .quiz-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .quiz-question { font-size: 15px; color: var(--text-bright); font-weight: 600; margin-bottom: 16px; }
+
+  .quiz-options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+
+  .quiz-opt {
+    padding: 10px 16px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text);
+    transition: all 0.15s;
+    background: var(--surface);
+  }
+
+  .quiz-opt:hover { border-color: var(--amber-dim); background: var(--amber-glow); color: var(--text-bright); }
+  .quiz-opt.correct { border-color: var(--green); background: rgba(76,175,130,0.1); color: var(--green); }
+  .quiz-opt.wrong { border-color: var(--red); background: rgba(224,90,78,0.08); color: var(--red); }
+  .quiz-opt.disabled { cursor: default; }
+
+  .quiz-feedback {
+    display: none;
+    padding: 12px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(76,175,130,0.1); color: var(--green); border: 1px solid var(--green); }
+  .quiz-feedback.no { background: rgba(224,90,78,0.08); color: var(--red); border: 1px solid var(--red); }
+
+  /* ── SCENARIO BOX ── */
+  .scenario {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 20px 0;
+  }
+
+  .scenario-header {
+    background: var(--surface2);
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--amber);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scenario-body { padding: 18px 20px; font-size: 13.5px; color: var(--text); }
+
+  /* ── NAV FOOTER ── */
+  .mod-nav {
+    display: flex;
+    gap: 12px;
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .btn {
+    padding: 10px 22px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.15s;
+  }
+
+  .btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+  .btn.primary { background: var(--amber); color: var(--bg); border-color: var(--amber); font-weight: 600; }
+  .btn.primary:hover { background: #ffb820; border-color: #ffb820; }
+  .btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+
+  /* ── MISC ── */
+  ul.bullet-list { list-style: none; padding: 0; margin: 12px 0; display: flex; flex-direction: column; gap: 6px; }
+  ul.bullet-list li { padding-left: 20px; position: relative; font-size: 13.5px; color: var(--text); }
+  ul.bullet-list li::before { content: '▸'; position: absolute; left: 0; color: var(--amber); font-size: 10px; top: 3px; }
+
+  .highlight { color: var(--amber); font-weight: 600; }
+  .hl-red { color: var(--red); }
+  .hl-green { color: var(--green); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--amber-dim); }
+
+  @media (max-width: 900px) {
+    #sidebar { width: 220px; min-width: 220px; }
+    #hero, .module-page { padding: 32px 28px 60px; }
+    .hero-title { font-size: 38px; }
+    .mod-title { font-size: 28px; }
+  }
+
+  /* ── RIDGELINE STORY BLOCKS ── */
+  .story-block {
+    border: 1px solid #3a4060;
+    border-left: 4px solid #7b68ee;
+    border-radius: 4px;
+    margin: 24px 0;
+    background: linear-gradient(135deg, #16192a 0%, #1a1e30 100%);
+    overflow: hidden;
+  }
+
+  .story-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #2a3048;
+    transition: background 0.15s;
+  }
+
+  .story-toggle:hover { background: rgba(123,104,238,0.08); }
+
+  .story-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fff;
+    background: #7b68ee;
+    padding: 3px 8px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  .story-toggle-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: #a89eee;
+    flex: 1;
+    letter-spacing: 0.05em;
+  }
+
+  .story-chevron {
+    font-size: 11px;
+    color: #7b68ee;
+    transition: transform 0.25s;
+  }
+
+  .story-block.collapsed .story-chevron { transform: rotate(-90deg); }
+  .story-block.collapsed .story-body { display: none; }
+
+  .story-body {
+    padding: 20px 22px;
+    font-size: 13.5px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .story-body p { margin-bottom: 12px; color: var(--text); font-size: 13.5px; }
+  .story-body p:last-child { margin-bottom: 0; }
+
+  .story-dialogue {
+    margin: 14px 0;
+    padding: 12px 16px;
+    background: rgba(0,0,0,0.25);
+    border-radius: 4px;
+    font-style: italic;
+    font-size: 13px;
+    color: #c8cfe0;
+    border-left: 2px solid #3a4060;
+  }
+
+  .story-dialogue .speaker {
+    font-style: normal;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #7b68ee;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .story-concept {
+    display: inline;
+    background: rgba(240,165,0,0.15);
+    color: var(--amber);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.05em;
+    margin: 0 2px;
+    white-space: nowrap;
+  }
+
+  .story-numbers {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #2a3048;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin: 14px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--text);
+  }
+
+  .story-numbers .num-label { color: var(--text-dim); }
+  .story-numbers .num-good { color: var(--green); }
+  .story-numbers .num-bad { color: var(--red); }
+  .story-numbers .num-warn { color: var(--amber); }
+
+  /* ── S-CURVE ── */
+  .scurve-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px;
+    margin: 20px 0;
+  }
+
+  .scurve-wrap svg { width: 100%; height: auto; display: block; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ── SIDEBAR ── -->
+<nav id="sidebar">
+  <div class="sidebar-header">
+    <div class="course-label">Professional Development</div>
+    <div class="course-title">Project Controls for Consultants</div>
+    <div class="course-subtitle">For technical specialists & cost administrators</div>
+  </div>
+  <div class="sidebar-progress">
+    <div class="progress-label">
+      <span>Course Progress</span>
+      <span id="pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Introduction</div>
+    <div class="nav-item active" data-target="home" onclick="showPage('home',this)">
+      <span class="nav-num">—</span> Overview
+      <span class="nav-check">✓</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Core Modules</div>
+    <div class="nav-item" data-target="m1" onclick="showPage('m1',this)">
+      <span class="nav-num">01</span> PM Language for Technical People
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m2" onclick="showPage('m2',this)">
+      <span class="nav-num">02</span> How Projects Are Structured
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m3" onclick="showPage('m3',this)">
+      <span class="nav-num">03</span> Cost Control Fundamentals
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m4" onclick="showPage('m4',this)">
+      <span class="nav-num">04</span> Earned Value Management
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m5" onclick="showPage('m5',this)">
+      <span class="nav-num">05</span> Schedule Control
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m6" onclick="showPage('m6',this)">
+      <span class="nav-num">06</span> Scope &amp; Change Management
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m7" onclick="showPage('m7',this)">
+      <span class="nav-num">07</span> Risk &amp; Contingency
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m8" onclick="showPage('m8',this)">
+      <span class="nav-num">08</span> Reporting &amp; Forecasting
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m9" onclick="showPage('m9',this)">
+      <span class="nav-num">09</span> Stakeholder Communication
+      <span class="nav-check">✓</span>
+    </div>
+    <div class="nav-item" data-target="m10" onclick="showPage('m10',this)">
+      <span class="nav-num">10</span> Surviving the Project Handoff
+      <span class="nav-check">✓</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-section-label">Reference</div>
+    <div class="nav-item" data-target="glossary" onclick="showPage('glossary',this)">
+      <span class="nav-num">—</span> Glossary &amp; Formulas
+      <span class="nav-check">✓</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN CONTENT ── -->
+<main id="main">
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="home" class="module-page active">
+  <div id="hero">
+    <div class="hero-eyebrow">Consulting Skills Series · Project Controls</div>
+    <div class="hero-title">Project Controls<br>for Consultants</div>
+    <div class="hero-desc">You're an engineer, a technician, or an administrator — and somehow you're now responsible for tracking budgets, managing scope, and reporting to a client. This course gives you the practical project controls toolkit used on real consulting engagements, without the fluff.</div>
+    <div class="hero-tags">
+      <span class="tag amber">10 Modules</span>
+      <span class="tag">For Technical Staff</span>
+      <span class="tag">Cost Control</span>
+      <span class="tag">EVM</span>
+      <span class="tag">Schedule Management</span>
+      <span class="tag">Reporting</span>
+    </div>
+  </div>
+  <div style="padding: 40px 60px 80px;">
+    <div class="section">
+      <div class="section-title">Who This Course Is For</div>
+      <div class="card-grid">
+        <div class="card">
+          <div class="card-icon">🔧</div>
+          <div class="card-title">The Accidental PM</div>
+          <div class="card-body">An engineer, scientist, or technical specialist who has been asked to "own" a project. You know the technical work but not how to control it.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📋</div>
+          <div class="card-title">The Cost Admin</div>
+          <div class="card-body">An office administrator or coordinator supporting a project team. You enter data, track invoices, and produce reports — but don't always understand what they mean.</div>
+        </div>
+        <div class="card">
+          <div class="card-icon">📐</div>
+          <div class="card-title">The Technical Lead</div>
+          <div class="card-body">A discipline lead (structural, mechanical, civil) who reports on their deliverables but needs to speak the language of the project manager and client.</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">What You'll Learn</div>
+      <ul class="bullet-list">
+        <li>The core vocabulary of project management — without the PMI jargon overload</li>
+        <li>How consulting projects are structured financially and contractually</li>
+        <li>How to track and forecast costs accurately against a budget</li>
+        <li>Earned Value Management (EVM) — the industry standard for cost/schedule performance</li>
+        <li>How to identify schedule slippage before it becomes a crisis</li>
+        <li>How to handle scope changes without blowing the budget</li>
+        <li>Risk and contingency — what it is, who owns it, and how to manage it</li>
+        <li>How to write status reports clients actually read and trust</li>
+        <li>How to communicate bad news without losing credibility</li>
+        <li>How to close a project and protect your firm's interests</li>
+      </ul>
+    </div>
+    <div class="callout">
+      <div class="callout-label">A Note on Approach</div>
+      <p>This course is deliberately practical. Every concept comes with a scenario from the consulting world — engineering firms, advisory practices, construction oversight. We'll use real numbers, not textbook abstractions.</p>
+    </div>
+    <div class="mod-nav">
+      <button class="btn primary" onclick="showPage('m1', document.querySelector('[data-target=m1]'))">Start Module 01 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 1 ══════════════ -->
+<div id="m1" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">01</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module One</div>
+      <div class="mod-title">PM Language for Technical People</div>
+      <div class="mod-intro">Project managers speak a dialect you weren't taught. This module decodes it so you can operate confidently in any project meeting.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Why Language Matters</div>
+    <p>Technical professionals often know exactly what's happening on a project but struggle to communicate it in the terms clients and project managers expect. The result: you seem uncertain, even when you're not. Learning the vocabulary of project controls is not about bureaucracy — it's about credibility.</p>
+    <div class="callout blue">
+      <div class="callout-label">Key Insight</div>
+      <p>The fastest way to lose a client's confidence is to use technical jargon when they ask about budget status, or to give a vague answer when they ask about schedule. Precision in language signals precision in work.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Essential Vocabulary</div>
+    <p>Project managers and clients use formal terms you won't find on your engineering degree. The table below maps each formal term to its plain English meaning and what you'll actually hear in meetings — plus why each one matters to you.</p>
+
+    <div class="callout blue">
+      <div class="callout-label">How to Use This Table</div>
+      <p>When someone says "what's the EAC looking like?" or "are we still within the not-to-exceed?", you need to know immediately what they're asking for. Fluency in this language is what separates a project controls professional from someone who just does data entry.</p>
+    </div>
+
+    <table class="data-table" style="margin-top:20px;">
+      <thead>
+        <tr>
+          <th style="min-width:130px">Formal Term</th>
+          <th style="min-width:150px">Plain English</th>
+          <th style="min-width:200px">What You'll Hear in Meetings</th>
+          <th>Why It Matters to You</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="highlight">Scope</span></td>
+          <td>The work we agreed to do</td>
+          <td>"Is that in scope?" / "That's out of scope." / "Scope creep."</td>
+          <td>Everything not in scope is either a change order or a gift to the client. You need to know the boundary cold.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">BAC<br><span style="font-size:11px;color:var(--text-dim)">Budget at Completion</span></span></td>
+          <td>The total project budget</td>
+          <td>"The budget." / "Our number." / "The contract value." / "The cap."</td>
+          <td>This is the ceiling. Everything you track is measured against it. It only changes through an approved change order.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Baseline</span></td>
+          <td>The approved plan</td>
+          <td>"The original plan." / "What we signed up for." / "The baseline schedule."</td>
+          <td>Your reference point for all variances. If someone wants to change it, that's a formal process — not a conversation.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">AC<br><span style="font-size:11px;color:var(--text-dim)">Actual Cost</span></span></td>
+          <td>What we've spent so far</td>
+          <td>"Actuals." / "Posted costs." / "What's hit the books." / "Spend to date."</td>
+          <td>What your accounting system shows. The starting point for all cost reporting. Check that it's accurate before you report.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">EV<br><span style="font-size:11px;color:var(--text-dim)">Earned Value</span></span></td>
+          <td>The budget value of work we've actually completed</td>
+          <td>"How much have we earned?" / "What's our earned value?" / "BCWP."</td>
+          <td>This is the most misunderstood number. It's not what you've spent — it's what you've <em>accomplished</em> in budget terms. BAC × % complete.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">PV<br><span style="font-size:11px;color:var(--text-dim)">Planned Value</span></span></td>
+          <td>What we planned to have done by now</td>
+          <td>"Planned spend." / "The S-curve." / "BCWS." / "Where we should be."</td>
+          <td>Your scheduled progress expressed in dollars. Comparing EV to PV tells you if you're ahead or behind on the work itself.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">EAC<br><span style="font-size:11px;color:var(--text-dim)">Estimate at Completion</span></span></td>
+          <td>What we now think the total will cost</td>
+          <td>"The forecast." / "Our EAC." / "Where do you think we'll land?" / "Projected final cost."</td>
+          <td>The most important number in your status report. Clients and management make decisions based on your EAC. It must be defensible.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">ETC<br><span style="font-size:11px;color:var(--text-dim)">Estimate to Complete</span></span></td>
+          <td>What it will cost to finish the remaining work</td>
+          <td>"How much more do you need?" / "Remaining budget." / "What's left to spend?"</td>
+          <td>A judgment call — not a formula. Ask the person doing the work, not your spreadsheet. AC + ETC = EAC.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">VAC<br><span style="font-size:11px;color:var(--text-dim)">Variance at Completion</span></span></td>
+          <td>Projected overrun or underrun at project end</td>
+          <td>"How much are we over?" / "What's the exposure?" / "The overrun."</td>
+          <td>BAC − EAC. Negative means projected overrun. This is what triggers the difficult client conversation.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">CPI<br><span style="font-size:11px;color:var(--text-dim)">Cost Performance Index</span></span></td>
+          <td>Are we getting our money's worth?</td>
+          <td>"What's the CPI?" / "How efficient are we?" / "Are we burning too fast?"</td>
+          <td>EV ÷ AC. Below 1.0 means you're spending more than the work is worth. A CPI of 0.85 means 15 cents of every dollar is lost efficiency.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">SPI<br><span style="font-size:11px;color:var(--text-dim)">Schedule Performance Index</span></span></td>
+          <td>Are we keeping up with the plan?</td>
+          <td>"Are we on track?" / "What's our schedule performance?" / "How behind are we?"</td>
+          <td>EV ÷ PV. Below 1.0 means less work is done than planned. SPI and CPI together tell the full story.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Milestone</span></td>
+          <td>A key completion point</td>
+          <td>"When's the next milestone?" / "We missed the milestone." / "Gate review."</td>
+          <td>Has no duration — it's a moment, not a task. Milestones are what clients track. Missing one is visible and serious.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Float / Slack</span></td>
+          <td>How much a task can slip before it hurts the end date</td>
+          <td>"How much float do we have?" / "Is that on the critical path?" / "How much room?"</td>
+          <td>Zero float = critical path = no wiggle room. Understanding float tells you where to spend your attention on a schedule.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Contingency</span></td>
+          <td>The rainy-day fund for known risks</td>
+          <td>"What's left in contingency?" / "We need to draw on contingency." / "The risk budget."</td>
+          <td>Owned by the PM, set aside for identified risks. Not a slush fund — every drawdown should be documented against a specific risk event.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Management Reserve</span></td>
+          <td>Emergency budget for true surprises</td>
+          <td>"That's above the PM's authority." / "We'd need to go to management reserve." / "The reserve."</td>
+          <td>Above the PM's control. Requiring it means the project has exceeded its risk envelope. Needs senior approval.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Deliverable</span></td>
+          <td>A specific thing we hand over</td>
+          <td>"When's the deliverable due?" / "Is the report out?" / "What's the output?"</td>
+          <td>Your work only counts when a deliverable is complete and accepted. Hours alone don't close a project.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Variance</span></td>
+          <td>The gap between plan and reality</td>
+          <td>"What's the variance?" / "Why are we over?" / "Explain the delta."</td>
+          <td>Negative variance = worse than planned. Always diagnose: is this a real problem or just a timing issue? Context matters.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">NTE<br><span style="font-size:11px;color:var(--text-dim)">Not-to-Exceed</span></span></td>
+          <td>The spending ceiling — do not cross it</td>
+          <td>"What's the NTE?" / "Don't exceed the cap." / "Stay within the ceiling."</td>
+          <td>Common on T&amp;M contracts. Once you hit the NTE, work stops — or you've just done free work. Track your burn rate against it constantly.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Change Order (CO)</span></td>
+          <td>A formal add-on to the contract</td>
+          <td>"We need a CO for that." / "Put in a change order." / "It's a variation."</td>
+          <td>The mechanism for converting out-of-scope work into paid work. No CO = no payment. Raise them early, raise them clearly.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">WBS<br><span style="font-size:11px;color:var(--text-dim)">Work Breakdown Structure</span></span></td>
+          <td>The project organized as a numbered hierarchy</td>
+          <td>"What WBS code is that under?" / "Charge it to 1.3." / "Which task number?"</td>
+          <td>Everything — costs, schedule, reporting — attaches to the WBS. Using the right code is how your work gets tracked correctly.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Contracts You'll Encounter</div>
+    <p>How a project is contracted determines how you track and report costs. Know which type you're on.</p>
+    <table class="data-table">
+      <thead><tr><th>Contract Type</th><th>Description</th><th>Who Bears Cost Risk</th><th>Controls Focus</th></tr></thead>
+      <tbody>
+        <tr><td><span class="highlight">Lump Sum / Fixed Price</span></td><td>One fixed price for defined scope</td><td>Consultant / Contractor</td><td>Margin protection; scope discipline</td></tr>
+        <tr><td><span class="highlight">Time &amp; Materials (T&amp;M)</span></td><td>Billed at hourly rates, actual costs</td><td>Client</td><td>Hours tracking; not-to-exceed monitoring</td></tr>
+        <tr><td><span class="highlight">Cost-Plus</span></td><td>Actual costs + fee (fixed or %) </td><td>Client</td><td>Cost accuracy; fee calculations</td></tr>
+        <tr><td><span class="highlight">Unit Price</span></td><td>Fixed rate per unit of work completed</td><td>Shared</td><td>Quantity tracking; unit verification</td></tr>
+        <tr><td><span class="highlight">Reimbursable + Cap</span></td><td>Cost-plus with a ceiling</td><td>Shared up to cap</td><td>Burn rate vs. cap; early warning</td></tr>
+      </tbody>
+    </table>
+    <div class="callout red">
+      <div class="callout-label">Common Mistake</div>
+      <p>Many technical staff treat all projects like T&amp;M — "just track the hours." On a lump sum contract, your hours are a cost to the firm, not a billing mechanism. Tracking how much you've spent vs. how much work you've completed is what matters.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q1">
+      <div class="quiz-label">Quick Check · Module 01</div>
+      <div class="quiz-question">Your firm has a fixed-price contract for $200,000. You've spent $180,000 in labor and are 70% done. What's the primary concern?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">The project is almost over budget — it might be fine.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,true)">You've spent 90% of the budget completing only 70% of the scope — you will likely overrun.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">You need to bill the client for the extra hours immediately.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q1',this,false)">No concern — 70% done with 10% left to spend is good progress.</div>
+      </div>
+      <div class="quiz-feedback" id="q1-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('home', document.querySelector('[data-target=home]'))">← Overview</button>
+    <button class="btn primary" onclick="showPage('m2', document.querySelector('[data-target=m2]'))">Module 02 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 2 ══════════════ -->
+<div id="m2" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">02</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Two</div>
+      <div class="mod-title">How Projects Are Structured</div>
+      <div class="mod-intro">Before you can control a project, you need to understand how it's organized — the work breakdown, the budget breakdown, and the schedule hierarchy.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Work Breakdown Structure (WBS)</div>
+    <p>The WBS is the backbone of project controls. It breaks the total scope into smaller, manageable pieces — and everything (budget, schedule, reporting) attaches to it.</p>
+    <ul class="bullet-list">
+      <li>Level 1: The whole project (e.g., "Highway Bridge Rehabilitation")</li>
+      <li>Level 2: Major phases or deliverable groups (e.g., "Preliminary Engineering," "Final Design," "Construction Support")</li>
+      <li>Level 3: Individual deliverables or work packages (e.g., "Geotechnical Report," "Structural Drawings")</li>
+      <li>Level 4+: Tasks within a work package (used in detailed project plans)</li>
+    </ul>
+    <div class="callout">
+      <div class="callout-label">Rule of Thumb</div>
+      <p>Work packages at the lowest level you'll track should represent 2–8 weeks of effort and have a clear, verifiable completion criteria. Too small = overhead. Too large = no visibility into problems.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Cost Breakdown Structure (CBS)</div>
+    <p>While the WBS organizes <em>what</em> work is done, the CBS organizes <em>how costs are categorized.</em> Common CBS categories in consulting:</p>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Direct Labor</div>
+        <div class="def-desc">Hours worked by staff on billable project activities. Your primary cost driver in consulting.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Subconsultants</div>
+        <div class="def-desc">Third-party firms engaged to perform specific scope. Often passed through at cost + a markup.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Direct Expenses</div>
+        <div class="def-desc">Reimbursable costs: travel, per diem, printing, survey equipment rentals, etc.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Overhead / Indirect</div>
+        <div class="def-desc">Applied as a multiplier to labor — covers rent, administration, insurance, non-billable time.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Fee / Profit</div>
+        <div class="def-desc">The firm's margin. In lump sum, this is what's left after all costs. In cost-plus, it's a defined amount or %.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Project Budget Matrix</div>
+    <p>In practice, you'll often see a budget that crosses the WBS with the CBS — each WBS element has a labor budget, a subconsultant budget, and an expenses budget. This is your control document.</p>
+    <table class="data-table">
+      <thead><tr><th>WBS Element</th><th>Labor Budget</th><th>Subconsultant</th><th>Expenses</th><th>Total Budget</th></tr></thead>
+      <tbody>
+        <tr><td>1.1 Project Management</td><td>$18,000</td><td>—</td><td>$1,200</td><td>$19,200</td></tr>
+        <tr><td>1.2 Preliminary Design</td><td>$35,000</td><td>$12,000</td><td>$2,500</td><td>$49,500</td></tr>
+        <tr><td>1.3 Detailed Design</td><td>$62,000</td><td>$28,000</td><td>$4,000</td><td>$94,000</td></tr>
+        <tr><td>1.4 Client Review &amp; Revisions</td><td>$14,000</td><td>—</td><td>$500</td><td>$14,500</td></tr>
+        <tr><td>1.5 Construction Support</td><td>$20,000</td><td>—</td><td>$2,800</td><td>$22,800</td></tr>
+        <tr><td><strong>TOTAL</strong></td><td><strong>$149,000</strong></td><td><strong>$40,000</strong></td><td><strong>$11,000</strong></td><td><strong>$200,000</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Control Accounts &amp; Work Packages</div>
+    <p>A <span class="highlight">Control Account</span> is the intersection of a WBS element and a resource category — it's where you actually measure performance. Each control account has a budget, a schedule, and someone accountable.</p>
+    <div class="callout green">
+      <div class="callout-label">Practical Tip</div>
+      <p>Even on small projects, assign a single person as the "owner" of each major WBS element. They are responsible for updating % complete, flagging issues, and forecasting remaining work. Without ownership, nothing gets updated.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q2">
+      <div class="quiz-label">Quick Check · Module 02</div>
+      <div class="quiz-question">You're setting up a WBS for a structural assessment report. Which of these is the correct lowest-level WBS element?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">The entire project</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">The "Structural Assessment" phase</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,true)">"Draft Report — Structural Assessment" with a defined deliverable and hours estimate</div>
+        <div class="quiz-opt" onclick="checkQuiz('q2',this,false)">A list of all staff working on the project</div>
+      </div>
+      <div class="quiz-feedback" id="q2-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m1', document.querySelector('[data-target=m1]'))">← Module 01</button>
+    <button class="btn primary" onclick="showPage('m3', document.querySelector('[data-target=m3]'))">Module 03 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 3 ══════════════ -->
+<div id="m3" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">03</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Three</div>
+      <div class="mod-title">Cost Control Fundamentals</div>
+      <div class="mod-intro">Cost control is not just data entry. It's the continuous act of comparing where you are to where you planned to be — tracking margin, recognizing revenue honestly, and forecasting where you'll end up.</div>
+    </div>
+  </div>
+
+  <!-- SECTION: THREE NUMBERS -->
+  <div class="section">
+    <div class="section-title">The Three Numbers You Always Need</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">📊</div>
+        <div class="card-title">Budget</div>
+        <div class="card-body">What you planned to spend (BAC — Budget at Completion). This is your baseline. It does not change unless scope changes.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">💸</div>
+        <div class="card-title">Actuals</div>
+        <div class="card-body">What you have actually spent to date. Labor costs, invoices received, expenses posted. Real money out the door.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔮</div>
+        <div class="card-title">Forecast (EAC)</div>
+        <div class="card-body">What you now expect to spend in total by project end. This is the number clients and management care most about.</div>
+      </div>
+    </div>
+    <div class="callout">
+      <div class="callout-label">The Forecasting Mindset</div>
+      <p>Actuals tell you history. Forecasts tell you the future. Cost control is primarily about producing accurate forecasts — not just reporting what has already happened. If your EAC equals your BAC with 10% work remaining and a known risk, your forecast is wrong.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: HOURS -->
+  <div class="section">
+    <div class="section-title">Hours: Your Primary Currency</div>
+    <p>In consulting, labor is typically 65–85% of total project cost. Every cost control conversation starts with hours. You must track:</p>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Budgeted Hours</div>
+        <div class="def-desc">Hours allocated to each WBS element in the project budget. Your baseline.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Actual Hours (to date)</div>
+        <div class="def-desc">Hours charged to the project so far, from timesheets. Usually available weekly.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Remaining Hours (ETC)</div>
+        <div class="def-desc">Estimate to Complete — how many hours are needed to finish the remaining work. This is a judgment call, not a formula.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Total Forecast Hours (EAC)</div>
+        <div class="def-desc">Actuals + Remaining. Compare this to budgeted hours to see your variance.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: COST CONTROL CYCLE -->
+  <div class="section">
+    <div class="section-title">The Cost Control Cycle</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Collect Actuals</div>
+          <div class="step-body">Pull posted timesheet hours and approved invoices for the reporting period. Verify data is complete and correctly coded to WBS elements.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Assess % Complete</div>
+          <div class="step-body">For each work package, determine how much of the scope is actually done — not just how many hours you've spent. This is where technical knowledge is essential.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Estimate Remaining Work</div>
+          <div class="step-body">Ask the person doing the work: "Setting aside what you've already spent, how many hours does it take to finish?" This is your ETC.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Calculate Forecast (EAC)</div>
+          <div class="step-body">Add actuals + ETC for each work package. Roll up to the total project level.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Analyze Variances</div>
+          <div class="step-body">Compare Budget vs. Forecast for each element. Investigate any element where the forecast exceeds budget by more than 10% or your threshold.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Take Action &amp; Report</div>
+          <div class="step-body">Implement corrective actions (scope reduction, resource reallocation, change order) and communicate status to stakeholders.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: % COMPLETE TRAP -->
+  <div class="section">
+    <div class="section-title">The % Complete Trap</div>
+    <div class="scenario">
+      <div class="scenario-header">⚠️ Scenario — The 90% Problem</div>
+      <div class="scenario-body">A technical lead reports that a deliverable is "90% complete." Three weeks later, it's still 90% complete. Two weeks after that — still 90%. The report was never actually 90% done; it was "90% done except for the hard parts."<br><br><span class="highlight">Rule:</span> Never accept a % complete estimate without asking: "What specifically is done, and what specifically remains?" For deliverables, % complete should be tied to discrete sub-tasks, not intuition.</div>
+    </div>
+    <p>Common % complete methods for consulting deliverables:</p>
+    <table class="data-table">
+      <thead><tr><th>Method</th><th>How It Works</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr><td><span class="highlight">Units Complete</span></td><td>Completed units ÷ total units</td><td>Repetitive tasks (drawings, inspections)</td></tr>
+        <tr><td><span class="highlight">Milestone Gates</span></td><td>Set % at defined milestones (0/50/100)</td><td>Short deliverables, reports</td></tr>
+        <tr><td><span class="highlight">Weighted Steps</span></td><td>Each sub-task has a weight; sum completed weights</td><td>Multi-step deliverables</td></tr>
+        <tr><td><span class="highlight">Cost Ratio</span></td><td>Actuals ÷ EAC (dangerous — assumes spending = progress)</td><td>Avoid unless nothing else is possible</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══ PART 2: COST, MARGIN & MULTIPLIERS ═══ -->
+  <div class="section">
+    <div class="section-title">Cost, Margin &amp; How Consulting Firms Make Money</div>
+    <p>Understanding cost control without understanding margin is like tracking speed without knowing where the speed limit is. This section explains how consulting firms price work and where the money goes — so you understand what you're actually protecting when you control costs.</p>
+
+    <div class="section-title" style="font-size:16px; margin-top:28px;">How a Consulting Fee Is Built</div>
+    <p>A consulting fee is not just "hours × rate." There are multiple layers between a staff member's salary and the price a client pays. Understanding this stack is critical for cost control.</p>
+
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Raw Labor Cost</div>
+        <div class="def-desc">The actual salary cost per hour for a staff member. Example: a $90,000/yr engineer working 1,800 billable hours = <span class="highlight">$50/hr raw cost</span>.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Overhead Rate</div>
+        <div class="def-desc">A multiplier applied to raw labor to cover indirect costs: rent, IT, HR, insurance, non-billable time, benefits. Typical consulting overhead: 1.4× to 1.8× raw labor. So that $50/hr engineer costs the firm ~$75–$90/hr fully loaded.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Fully Loaded Cost</div>
+        <div class="def-desc">Raw labor × overhead multiplier. This is what the work actually costs the firm before any fee is added.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Fee / Profit</div>
+        <div class="def-desc">The margin added on top of fully loaded costs. On a lump sum, this is what's left after all costs are paid. On cost-plus, it's defined contractually.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Billing Rate / Charge-Out Rate</div>
+        <div class="def-desc">The rate the client is charged per hour. Typically Raw Labor × a multiplier of 2.5× to 3.5×. This covers overhead + profit in a single number.</div>
+      </div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-header">📐 Example — Following the Dollar</div>
+      <div class="scenario-body">
+        Engineer salary: $90,000/yr → $50/hr raw labor cost<br>
+        Overhead multiplier: 1.6× → $80/hr fully loaded cost<br>
+        Billing rate: 2.8× raw = <span class="highlight">$140/hr billed to client</span><br><br>
+        Margin per hour = $140 − $80 = <span class="hl-green">$60/hr gross margin (43%)</span><br><br>
+        If that engineer spends 2 extra unbudgeted hours on a lump sum task, the firm absorbs $160 in cost with no additional revenue. At scale, this is how projects lose margin quietly.
+      </div>
+    </div>
+  </div>
+
+  <!-- MARGIN CONCEPTS -->
+  <div class="section">
+    <div class="section-title" style="font-size:18px;">Markup vs. Margin — The Confusion That Costs People</div>
+    <p>These two terms are used interchangeably in conversation but mean different things mathematically. Mixing them up causes real errors in budgets and fee proposals.</p>
+
+    <div class="formula">
+      <div class="formula-label">Markup</div>
+      <div class="eq">Markup % = (Revenue − Cost) ÷ Cost × 100</div>
+      <div class="sub">Profit expressed as a percentage of COST. "We marked up by 25%."</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Gross Margin</div>
+      <div class="eq">Gross Margin % = (Revenue − Cost) ÷ Revenue × 100</div>
+      <div class="sub">Profit expressed as a percentage of REVENUE. "We made 20% margin." This is the standard financial metric.</div>
+    </div>
+
+    <table class="data-table" style="margin-top:16px;">
+      <thead><tr><th>Cost</th><th>Revenue</th><th>Markup %</th><th>Gross Margin %</th><th>What people say</th></tr></thead>
+      <tbody>
+        <tr><td>$80</td><td>$100</td><td>25%</td><td>20%</td><td>"25% markup" = "20% margin" — same deal, different math</td></tr>
+        <tr><td>$80</td><td>$96</td><td>20%</td><td>16.7%</td><td>Common confusion: "20% markup" is NOT "20% margin"</td></tr>
+        <tr><td>$80</td><td>$120</td><td>50%</td><td>33.3%</td><td>Strong margin project</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout red">
+      <div class="callout-label">Watch Out For</div>
+      <p>If someone says "we need to make 20% on this project" — ask them: 20% of what? 20% markup on cost is very different from 20% gross margin on revenue. The difference on a $500,000 project is $16,667 of profit.</p>
+    </div>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">Gross Margin vs. Net Margin</div>
+    <p>Gross margin measures project-level profitability. Net margin measures firm-level profitability after all overhead and G&A is absorbed.</p>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Gross Margin</div>
+        <div class="def-desc">(Revenue − Direct Project Costs) ÷ Revenue. This is what the project contributes before firm overhead is allocated. A healthy consulting project targets 30–45% gross margin.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Net Margin</div>
+        <div class="def-desc">(Revenue − All Costs including overhead) ÷ Revenue. This is the firm's bottom line after everything is paid. Healthy professional services firms target 10–20% net margin.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DLM -->
+  <div class="section">
+    <div class="section-title" style="font-size:18px;">DLM — Direct Labour Multiplier</div>
+    <p>The <span class="highlight">Direct Labour Multiplier (DLM)</span> is one of the most useful efficiency metrics in consulting project controls. It measures how much net revenue the firm generates for every dollar of raw labor cost.</p>
+
+    <div class="formula">
+      <div class="formula-label">Direct Labour Multiplier (DLM)</div>
+      <div class="eq">DLM = Net Revenue ÷ Raw Labour Cost</div>
+      <div class="sub">Net Revenue = total contract revenue minus subconsultant and direct expense pass-throughs (i.e., revenue the firm actually earns on its own effort).</div>
+    </div>
+
+    <p style="margin-top:14px;">Why subtract subconsultants and expenses first? Because those dollars pass through the firm with minimal effort — the firm didn't "earn" them through labor. DLM isolates how efficiently the firm converts its own staff hours into revenue.</p>
+
+    <div class="scenario">
+      <div class="scenario-header">📐 DLM Example — Why It Matters</div>
+      <div class="scenario-body">
+        Contract value: $200,000<br>
+        Subconsultant costs: $40,000 | Direct expenses: $10,000<br>
+        Net Revenue = $200,000 − $40,000 − $10,000 = <span class="highlight">$150,000</span><br>
+        Raw Labour Cost (actual salaries): $55,000<br><br>
+        DLM = $150,000 ÷ $55,000 = <span class="hl-green">2.73</span><br><br>
+        <strong>Interpretation:</strong> For every dollar of raw salary cost, the firm is generating $2.73 in net revenue. Typical targets range from 2.5× to 3.5× depending on the firm and contract type. A DLM below 2.0 usually signals a problem — either the project is being over-serviced, rates are too low, or too much overhead is being absorbed.
+      </div>
+    </div>
+
+    <table class="data-table">
+      <thead><tr><th>DLM Range</th><th>What It Signals</th><th>Common Causes</th></tr></thead>
+      <tbody>
+        <tr><td><span class="hl-red">&lt; 2.0</span></td><td>Losing money or barely covering overhead</td><td>Scope creep, under-staffed rates, fixed price bid too low</td></tr>
+        <tr><td><span class="highlight">2.0 – 2.5</span></td><td>Marginal — covering costs, thin profit</td><td>Competitive bid, high pass-throughs eating net revenue</td></tr>
+        <tr><td><span class="hl-green">2.5 – 3.5</span></td><td>Healthy — firm target zone</td><td>Well-estimated project, controlled scope</td></tr>
+        <tr><td><span class="hl-green">&gt; 3.5</span></td><td>Strong — efficient delivery or conservative bid</td><td>Junior-heavy team, well-scoped T&amp;M, change orders captured</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-label">DLM as an Early Warning Tool</div>
+      <p>Track DLM monthly during execution, not just at the end. If your DLM is trending down — net revenue flat but labor costs rising — you are burning your margin in real time. A declining DLM is the first signal that hours are being spent without corresponding scope value.</p>
+    </div>
+  </div>
+
+  <!-- MARGIN EROSION -->
+  <div class="section">
+    <div class="section-title" style="font-size:18px;">How Margin Erodes — The Six Silent Killers</div>
+    <p>Projects rarely blow their budget in one dramatic event. Margin is usually lost in small, repeatable ways that seem harmless in isolation but compound into significant overruns. Every person on a project team is responsible for recognizing these patterns.</p>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Scope Creep Without Change Orders</div>
+          <div class="step-body">The most common cause. Work is added informally — extra meetings, additional analysis, revised deliverables — and never converted to a change order. Each individual instance seems too small to bother with. Cumulatively, it can consume an entire project's contingency.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Over-Servicing</div>
+          <div class="step-body">Senior staff spend time on tasks budgeted for junior staff. A principal reviewing every memo, a senior engineer doing drafting work. The hours match the budget but the cost doesn't — senior rates are higher, eroding margin even when the hour count looks fine.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Rework</div>
+          <div class="step-body">Redoing work due to errors, poor briefs, or changed client direction. Rework hours are real costs with zero progress value. On a fixed price contract, every rework hour comes directly off the firm's margin.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Client-Caused Delays (Unclaimed)</div>
+          <div class="step-body">Client review cycles extend, data arrives late, approvals stall. The project team keeps running — coordination, chasing, re-mobilizing — and absorbs those costs without claiming the delay. These are often billable but require documentation and assertiveness to recover.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Late Closeout</div>
+          <div class="step-body">Hours continue to be charged to a project after all substantive work is done. Administration, project management, chasing sign-offs. The project is "99% done" for weeks. These hours have no offsetting revenue on a fixed price contract.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Underbidding the Original Estimate</div>
+          <div class="step-body">The project was bid to win, not to make money. No amount of cost control can save a project that was priced below cost from the start. This is a pre-award problem — but the project controls team is often the first to discover it and must escalate immediately.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══ PART 3: RULES OF CREDIT ═══ -->
+  <div class="section">
+    <div class="section-title">Rules of Credit — What They Are and Why They Matter</div>
+
+    <p>If you've ever been asked "what rule of credit are you using for that work package?" and had no idea what that meant — this section is for you. Rules of credit are one of the most practical tools in project controls, and once you understand them, you'll use them constantly.</p>
+
+    <div class="section-title" style="font-size:18px; margin-top:24px;">The Problem They Solve</div>
+    <p>Imagine you have 50 deliverables in a project. At month-end, you need to report how much of the total work is complete. Asking each person "what percentage are you done?" and relying on their gut feel produces inconsistent, unreliable numbers — the 90% problem in practice across an entire portfolio.</p>
+    <p>A <span class="highlight">rule of credit</span> is a pre-agreed, objective rule for how a work package earns its % complete. It removes judgment from the measurement and makes progress tracking consistent, auditable, and defensible. You set the rule at the start of the project — before work begins — and apply it mechanically throughout.</p>
+
+    <div class="callout blue">
+      <div class="callout-label">The Key Principle</div>
+      <p>A rule of credit answers one question: <em>"Under what specific conditions does this task get credit for being X% complete?"</em> The answer must be observable and verifiable by someone who didn't do the work.</p>
+    </div>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">The Common Rule Types</div>
+
+    <table class="data-table">
+      <thead><tr><th>Rule Type</th><th>How It Works</th><th>Best For</th><th>Watch Out For</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="highlight">0 / 100</span></td>
+          <td>No credit until the task is 100% complete. Binary — done or not done.</td>
+          <td>Short tasks (1–2 weeks), single-output deliverables, tasks where "almost done" has no value</td>
+          <td>Can make progress look stalled if many tasks are in-flight simultaneously — use only for short work packages</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">50 / 50</span></td>
+          <td>50% credit when the task starts (or reaches a defined start gate), 100% when complete.</td>
+          <td>Medium-duration tasks (2–6 weeks) where start and finish are clear events</td>
+          <td>The "50% at start" credit can be gamed — define the start gate precisely (e.g., "first draft issued for review," not "work has begun")</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">25 / 75</span></td>
+          <td>25% credit at a defined start milestone, 75% remaining at completion.</td>
+          <td>Tasks where early-stage effort is small but you want to acknowledge mobilization</td>
+          <td>Less common; ensure the milestones are meaningful checkpoints</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Milestone Gates</span></td>
+          <td>Credit is awarded at defined checkpoints. Example: 20% on outline approval, 60% on draft submission, 100% on final acceptance.</td>
+          <td>Phased deliverables — reports, design packages, studies with review cycles</td>
+          <td>Milestones must be defined upfront with clear, objective completion criteria. Vague milestones defeat the purpose.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">% Complete (Subjective)</span></td>
+          <td>The responsible person estimates % complete each period, within defined bounds (often capped at 80% until officially done).</td>
+          <td>Long-duration tasks where interim progress is real and meaningful</td>
+          <td>Susceptible to the 90% problem. Use only when other rules are impractical, and cap the maximum reportable % (e.g., no more than 90% until deliverable is issued).</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Units Complete</span></td>
+          <td>Completed units ÷ total units. If 30 of 100 drawings are issued, you're 30% complete.</td>
+          <td>Repetitive, countable work: drawings, inspections, boreholes, data records, calculations</td>
+          <td>Ensure unit definitions are consistent — a "completed drawing" should mean the same thing for all units</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">Weighted Steps</span></td>
+          <td>Sub-tasks are assigned weights totalling 100%. Each completed sub-task contributes its weight to overall %.</td>
+          <td>Complex deliverables with distinct, unequal sub-phases</td>
+          <td>Weight assignments must be agreed upfront. Re-weighting mid-project is a red flag.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">How Rules of Credit Feed into Earned Value</div>
+    <p>Rules of credit are the mechanism by which % complete becomes <span class="highlight">Earned Value (EV)</span>. This is the critical link — without a rule of credit, your EV is just someone's opinion.</p>
+
+    <div class="formula">
+      <div class="formula-label">Earned Value from Rules of Credit</div>
+      <div class="eq">EV = BAC (work package) × % Complete (per rule of credit)</div>
+      <div class="sub">The rule of credit determines the % complete. The budget determines the scale. The result is your EV — an objective measure of progress in dollar terms.</div>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-header">📐 Example — 50/50 Rule in Practice</div>
+      <div class="scenario-body">
+        Work package: "Geotechnical Report — Draft" | Budget: $12,000 | Rule: 50/50<br><br>
+        <strong>Month 1:</strong> Work has started but draft not yet issued. Per the 50/50 rule, no credit yet — the start gate hasn't been hit.<br>
+        EV = $0<br><br>
+        <strong>Month 2:</strong> Draft report issued to client for review. Start gate hit.
+        EV = 50% × $12,000 = <span class="highlight">$6,000</span><br><br>
+        <strong>Month 3:</strong> Final report accepted. Task complete.
+        EV = 100% × $12,000 = <span class="highlight">$12,000</span><br><br>
+        No subjectivity. No "I think we're about 70% done." The rule makes the number.
+      </div>
+    </div>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">The Smoothing Effect — Why Errors Cancel Out at Scale</div>
+    <p>Here's a reassuring truth about rules of credit that many people don't realize: <span class="highlight">when applied consistently across many work packages, individual measurement errors tend to cancel out at the project level.</span></p>
+    <p>Think about it this way. At any given point in a project, some work packages will have their rule of credit firing slightly early (over-claiming progress) and some will fire slightly late (under-claiming). If your rules are consistently applied and your work packages are reasonably sized, these over- and under-claims balance each other across the portfolio.</p>
+
+    <div class="scenario">
+      <div class="scenario-header">📊 Scenario — The Portfolio Smoothing Effect</div>
+      <div class="scenario-body">
+        You have 40 work packages, all using 50/50 rules. At month-end:<br><br>
+        • 8 tasks are in progress but haven't hit the 50% gate yet → <span class="hl-red">EV is understated</span> for these<br>
+        • 6 tasks have hit the 50% gate but are barely started → <span class="hl-green">EV is slightly overstated</span> for these<br>
+        • 26 tasks are faithfully reflecting their true state<br><br>
+        At the project level, the under-claims and over-claims partially offset. The aggregate EV is a reasonable approximation of true project progress — much better than 40 subjective estimates from 40 different people.<br><br>
+        <span class="highlight">The rule matters more than the precision of any single measurement.</span> Consistency is what makes EVM work.
+      </div>
+    </div>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">What Goes Wrong When the Wrong Rule Is Applied</div>
+    <ul class="bullet-list">
+      <li><strong>Using % Complete (subjective) on short tasks:</strong> A 1-week task reported as "70% done" for two weeks is just the 90% problem at a smaller scale.</li>
+      <li><strong>Using 0/100 on long-duration tasks:</strong> A 3-month analysis task shows zero EV for 11 weeks, then suddenly jumps to 100%. This makes the project look worse than it is for most of its life, masking real progress until the end.</li>
+      <li><strong>Changing rules mid-project:</strong> If you switch from 50/50 to milestone gates partway through, historical EV comparisons become meaningless. Changing rules is a form of re-baselining and must be documented and approved.</li>
+      <li><strong>Defining gates vaguely:</strong> "Work has started" is not a gate. "First draft issued to the PM for internal review" is a gate. The difference is whether a third party can verify it without asking the person doing the work.</li>
+    </ul>
+  </div>
+
+  <hr class="divider">
+
+  <!-- ═══ PART 4: REVENUE RECOGNITION ═══ -->
+  <div class="section">
+    <div class="section-title">Revenue Recognition — How Your Firm Records Money Earned</div>
+
+    <p>You've been tracking costs all module. Now it's time to understand the other side of the ledger: how and when your firm recognizes the revenue those costs are generating. This matters to you as a project controls professional because your % complete estimates are not just an operational tool — they directly drive what your firm reports as revenue on its financial statements.</p>
+
+    <div class="section-title" style="font-size:18px; margin-top:24px;">What Revenue Recognition Actually Means</div>
+    <p>When your firm wins a $200,000 contract, it does <em>not</em> record $200,000 in revenue on day one. Revenue is recognized as work is performed — period by period — because the firm hasn't yet <em>earned</em> that money until the work is done. This is the matching principle in accounting: revenue is matched to the costs incurred to earn it.</p>
+    <p>For long-term service contracts, the standard method is the <span class="highlight">Percentage of Completion (PoC)</span> method — and it's almost certainly what your firm uses if it runs Oracle Projects, Deltek, BST, or any major professional services ERP.</p>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">PoC via Cost-on-Cost — How Oracle Calculates It</div>
+    <p>The cost-on-cost method is the most common PoC approach in engineering and consulting. The logic is simple: the percentage of the project that is complete equals the percentage of the total expected costs that have been incurred.</p>
+
+    <div class="formula">
+      <div class="formula-label">PoC% (Cost-on-Cost Method)</div>
+      <div class="eq">PoC% = Costs Incurred to Date ÷ Estimated Total Cost (EAC)</div>
+      <div class="sub">Recognized Revenue for the period = Contract Value (BAC) × PoC% — previously recognized revenue</div>
+    </div>
+
+    <div class="callout blue">
+      <div class="callout-label">What Oracle Does Each Period</div>
+      <p>At each accounting period close, Oracle Projects recalculates PoC% using the latest actuals and your current EAC. It then determines how much cumulative revenue should have been recognized to date, compares that to what has already been posted, and records the difference as the period's revenue. This happens automatically — but only if your EAC is accurate.</p>
+    </div>
+
+    <div class="scenario">
+      <div class="scenario-header">📐 Worked Example — PoC Revenue Recognition Over Three Periods</div>
+      <div class="scenario-body">
+        Contract Value (BAC): <span class="highlight">$200,000</span> | Original EAC: <span class="highlight">$200,000</span><br><br>
+
+        <strong>Month 1:</strong><br>
+        Costs incurred to date: $30,000<br>
+        EAC (current estimate): $200,000<br>
+        PoC% = $30,000 ÷ $200,000 = <span class="highlight">15%</span><br>
+        Cumulative revenue to recognize: 15% × $200,000 = $30,000<br>
+        Revenue recognized this month: <span class="hl-green">$30,000</span><br><br>
+
+        <strong>Month 2:</strong><br>
+        Costs incurred to date: $80,000<br>
+        EAC revised upward to $220,000 (cost overrun detected)<br>
+        PoC% = $80,000 ÷ $220,000 = <span class="highlight">36.4%</span><br>
+        Cumulative revenue to recognize: 36.4% × $200,000 = $72,700<br>
+        Less previously recognized: $30,000<br>
+        Revenue recognized this month: <span class="hl-green">$42,700</span><br><br>
+
+        <strong>Month 3:</strong><br>
+        Costs incurred to date: $140,000<br>
+        EAC still $220,000<br>
+        PoC% = $140,000 ÷ $220,000 = <span class="highlight">63.6%</span><br>
+        Cumulative revenue to recognize: 63.6% × $200,000 = $127,300<br>
+        Less previously recognized: $72,700<br>
+        Revenue recognized this month: <span class="hl-green">$54,600</span><br><br>
+
+        <span class="highlight">Key observation:</span> When the EAC went up in Month 2, the PoC% actually <em>decreased</em> relative to what it would have been — recognizing less revenue per dollar of cost. This correctly signals that the firm is working less efficiently.
+      </div>
+    </div>
+  </div>
+
+  <!-- POC VS EV DIVERGENCE -->
+  <div class="section">
+    <div class="section-title" style="font-size:18px;">When PoC% and EV% Diverge — What It Signals</div>
+    <p>You now have two measures of project progress running in parallel: your <span class="highlight">EV% (Earned Value % complete)</span> from your project controls system, and your <span class="highlight">PoC% (cost-on-cost)</span> from your financial system. In a healthy, well-estimated project, these numbers should be close. When they diverge significantly, something is wrong — and knowing which way they diverge tells you what the problem is.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Situation</th>
+          <th>EV% vs PoC%</th>
+          <th>What It Signals</th>
+          <th>What To Do</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="hl-green">Aligned</span></td>
+          <td>EV% ≈ PoC%<br><span style="font-size:11px;color:var(--text-dim)">(within ~5%)</span></td>
+          <td>Project is performing as estimated. Cost efficiency matches progress claims. Financial and operational views agree.</td>
+          <td>No action required. Continue monitoring.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">EV% &gt; PoC%</span></td>
+          <td>e.g. EV says 60% done, PoC says 45%</td>
+          <td>You are claiming more progress than your costs support. Either % complete is overstated (optimism bias), or the EAC is too high (making PoC% artificially low). <strong>Risk: over-claiming progress to the client while financials show less.</strong></td>
+          <td>Review % complete estimates — are rules of credit being applied correctly? If EAC is overstated, revise it. Do not inflate EV to match invoicing milestones.</td>
+        </tr>
+        <tr>
+          <td><span class="highlight">EV% &lt; PoC%</span></td>
+          <td>e.g. EV says 40% done, PoC says 55%</td>
+          <td>Your costs are running faster than your progress claims. Either the EAC is too low (underestimating remaining work) or work is inefficient — spending without equivalent progress. <strong>Risk: revenue is recognized based on cost burn, but the project isn't actually that far along.</strong></td>
+          <td>Reassess ETC — is remaining work being underestimated? Investigate cost efficiency. Update EAC immediately. This is an early overrun signal.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Large gap either way</span></td>
+          <td>Divergence &gt; 10–15%</td>
+          <td>A systemic issue: either the rules of credit aren't being applied, the EAC is stale, or someone is managing % complete to look good rather than reflect reality.</td>
+          <td>Escalate. A large, persistent divergence is a financial reporting risk — not just a controls issue. Finance and the PM need to align.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="section-title" style="font-size:18px; margin-top:28px;">How to Fix a Divergence</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-content">
+          <div class="step-title">Fix the EAC First</div>
+          <div class="step-body">Most divergences trace back to a stale or inaccurate EAC. If your EAC hasn't been updated since the project started, PoC% is being calculated against a fiction. Update EAC to the best current estimate of total project cost — this recalibrates PoC% automatically in Oracle.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-content">
+          <div class="step-title">Audit Your % Complete Estimates</div>
+          <div class="step-body">Go work-package by work-package. Are rules of credit being applied consistently? Is anyone self-reporting % complete without reference to their rule? Reset any packages where the rule hasn't been followed.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">C</div>
+        <div class="step-content">
+          <div class="step-title">Do Not Adjust % Complete to Match Revenue Targets</div>
+          <div class="step-body">This is the critical integrity rule. You will sometimes feel pressure to "get the revenue up" by boosting % complete. Resist it. Inflated % complete corrupts your EV, produces false CPI/SPI, and eventually forces a painful correction. Report what is true — the financial consequences of a bad project should be visible, not hidden.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">D</div>
+        <div class="step-content">
+          <div class="step-title">Communicate the Divergence</div>
+          <div class="step-body">If EV% and PoC% are materially different after you've corrected the inputs, document the variance and its cause in your status report. Finance needs to know, and so does the PM. A surprise at year-end is far worse than a documented issue in month three.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout red">
+      <div class="callout-label">The Risk of Over-Recognizing Revenue Early</div>
+      <p>If costs run fast early (front-loaded spending) and PoC% is based purely on cost-on-cost, the firm can recognize substantial revenue in early periods — only to find the project stalls and under-delivers later. This means revenue recognized in Q1 must be reversed in Q3. Revenue reversals are painful for the firm's financials and deeply uncomfortable for everyone involved. Accurate EAC and honest % complete estimates prevent this. The rule: never let financial pressure drive project reporting.</p>
+    </div>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q3">
+      <div class="quiz-label">Quick Check · Module 03</div>
+      <div class="quiz-question">A work package has a $10,000 budget and uses a 50/50 rule of credit. The team has spent $4,000 but the first draft hasn't been issued yet. What is the Earned Value?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">$4,000 — that's what's been spent</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">$5,000 — 50% of the budget</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,true)">$0 — the 50% gate hasn't been triggered yet</div>
+        <div class="quiz-opt" onclick="checkQuiz('q3',this,false)">$2,000 — proportional to spend vs. budget</div>
+      </div>
+      <div class="quiz-feedback" id="q3-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m2', document.querySelector('[data-target=m2]'))">← Module 02</button>
+    <button class="btn primary" onclick="showPage('m4', document.querySelector('[data-target=m4]'))">Module 04 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 4 ══════════════ -->
+<div id="m4" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">04</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Four</div>
+      <div class="mod-title">Earned Value Management</div>
+      <div class="mod-intro">EVM is the industry standard for measuring project performance. It integrates scope, cost, and schedule into a single framework — and once you understand it, you'll wonder how anyone managed projects without it.</div>
+    </div>
+  </div>
+
+  <div class="callout blue">
+    <div class="callout-label">Running Case Study — Ridgeline Environmental Assessment</div>
+    <p>Throughout Modules 04–08 we follow a real project as it unfolds. Look for the <span style="background:#7b68ee;color:#fff;padding:1px 6px;border-radius:2px;font-size:10px;font-family:var(--mono);letter-spacing:0.1em;">RIDGELINE</span> story blocks after each concept — they show the theory in action with named characters, real numbers, and the messy decisions that come with actual project work. You can collapse them if you prefer straight theory.</p>
+  </div>
+
+  <div class="scenario" style="margin-top:20px;">
+    <div class="scenario-header">📋 Project Brief — Ridgeline Environmental Assessment</div>
+    <div class="scenario-body">
+      <strong>Client:</strong> Northern Corridor Pipeline Ltd. &nbsp;|&nbsp; <strong>Contract type:</strong> Lump Sum &nbsp;|&nbsp; <strong>Value (BAC):</strong> $500,000 &nbsp;|&nbsp; <strong>Duration:</strong> 12 months<br><br>
+      <strong>Scope:</strong> Environmental assessment for a proposed 180km pipeline corridor — baseline studies, geotechnical investigation, Indigenous &amp; community consultation, impact assessment, and final reporting.<br><br>
+      <strong>Project Team:</strong><br>
+      • <span class="highlight">Sarah Chen</span> — Project Manager &amp; Environmental Science Lead<br>
+      • <span class="highlight">Marcus Webb</span> — Geotechnical Lead (internal)<br>
+      • <span class="highlight">Ridgeline Drilling Inc.</span> — Drilling subconsultant (PO: $80,000)<br>
+      • <span class="highlight">Dale Fortis</span> — Client PM, Northern Corridor Pipeline<br><br>
+      <strong>Budget:</strong> 1.1 PM $35K &nbsp;|&nbsp; 1.2 Environmental Baseline $120K &nbsp;|&nbsp; 1.3 Geotechnical $145K (incl. $80K drilling sub) &nbsp;|&nbsp; 1.4 Consultation $75K &nbsp;|&nbsp; 1.5 Impact Assessment &amp; Reporting $90K &nbsp;|&nbsp; 1.6 Client Review $35K &nbsp;|&nbsp; <strong>BAC: $500,000</strong><br>
+      Contingency: $25,000 held by Sarah separately.
+    </div>
+  </div>
+
+  <!-- SECTION: THREE CORE VALUES -->
+  <div class="section">
+    <div class="section-title">The Three Core Values</div>
+    <p>EVM works by tracking three numbers simultaneously for every project. On their own, each number is incomplete. Together, they tell the full story of project health.</p>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">PV — Planned Value</div>
+        <div class="def-desc">The budgeted cost of work <em>planned</em> to be done by now. Also called BCWS (Budgeted Cost of Work Scheduled). Think of it as your target on the S-curve — where you should be today if everything went to plan.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">EV — Earned Value</div>
+        <div class="def-desc">The budgeted cost of work <em>actually completed</em>. Also called BCWP. This is your actual progress expressed in dollars — not what you spent, but what you accomplished. EV = BAC × % Complete (per your rules of credit from Module 03).</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">AC — Actual Cost</div>
+        <div class="def-desc">The actual cost incurred for all work done to date. Also called ACWP. Real money out the door — labor posted, invoices approved, expenses processed.</div>
+      </div>
+    </div>
+    <div class="callout blue">
+      <div class="callout-label">The Key Insight</div>
+      <p>EVM separates "how much have we spent?" (AC) from "how much <em>should</em> we have spent for what we've completed?" (EV). The gap between them is your cost efficiency. Without EV, you can't tell if spending $200K on a $500K project is good or bad — it depends entirely on how much work you've actually done.</p>
+    </div>
+
+    <!-- RIDGELINE STORY 1 -->
+    <div class="story-block" id="story-m4-1">
+      <div class="story-toggle" onclick="toggleStory('story-m4-1')">
+        <span class="story-badge">Ridgeline</span>
+        <span class="story-toggle-title">Month 5 — Sarah pulls the numbers for the first time</span>
+        <span class="story-chevron">▼</span>
+      </div>
+      <div class="story-body">
+        <p>It's the end of Month 5. Sarah is preparing for the monthly project review and pulls the cost report from Oracle. The numbers land on her screen and she stares at them for a moment.</p>
+        <div class="story-dialogue">
+          <span class="speaker">Sarah's internal monologue</span>
+          "We've spent $198,000 out of $500,000. That's almost 40% of the budget at Month 5 of 12. Are we 40% done? I have no idea — until I calculate the EV."
+        </div>
+        <p>She works through the rules of credit for each work package. Environmental Baseline (1.2) used milestone gates — the field sampling phase is complete, triggering 60% credit. Geotechnical (1.3) used 50/50 — Ridgeline Drilling has mobilized and is on site, so the 50% gate has fired. PM and Consultation are on % complete with a cap at 80%.</p>
+        <div class="story-numbers">
+          <span class="num-label">WBS 1.1 PM:</span> Budget $35K × 45% complete = <span class="num-good">EV $15,750</span><br>
+          <span class="num-label">WBS 1.2 Env. Baseline:</span> Budget $120K × 60% complete = <span class="num-good">EV $72,000</span><br>
+          <span class="num-label">WBS 1.3 Geotechnical:</span> Budget $145K × 50% complete (gate fired) = <span class="num-warn">EV $72,500</span><br>
+          <span class="num-label">WBS 1.4 Consultation:</span> Budget $75K × 35% complete = <span class="num-good">EV $26,250</span><br>
+          <span class="num-label">WBS 1.5 + 1.6:</span> Not yet started = <span class="num-label">EV $0</span><br>
+          <span class="num-label">──────────────────────────────</span><br>
+          <span class="num-label">Total EV: </span><span class="num-good">$186,500</span> &nbsp;|&nbsp; <span class="num-label">Total AC: </span><span class="num-warn">$198,000</span> &nbsp;|&nbsp; <span class="num-label">PV (plan): </span><span class="num-good">$190,000</span>
+        </div>
+        <p>The <span class="story-concept">EV ($186,500)</span> is lower than the <span class="story-concept">AC ($198,000)</span> — meaning the team has spent more than the work is worth at this point. The gap is small but it's there, and it's coming from one place: Geotechnical.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: FOUR KEY METRICS -->
+  <div class="section">
+    <div class="section-title">The Four Key Metrics</div>
+    <p>From PV, EV, and AC you derive four metrics that tell you everything about project health in a single glance.</p>
+
+    <div class="formula">
+      <div class="formula-label">Cost Variance (CV)</div>
+      <div class="eq">CV = EV − AC</div>
+      <div class="sub">Positive = under budget for completed work. Negative = over budget. CV &lt; 0 means you've spent more than the work is worth.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Schedule Variance (SV)</div>
+      <div class="eq">SV = EV − PV</div>
+      <div class="sub">Positive = ahead of schedule (more done than planned). Negative = behind schedule. Note: SV is expressed in dollars, not days.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Cost Performance Index (CPI)</div>
+      <div class="eq">CPI = EV ÷ AC</div>
+      <div class="sub">CPI = 1.0: on budget. &lt;1.0: over budget — getting less than $1 of work per $1 spent. &gt;1.0: under budget. The most important single number in EVM.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Schedule Performance Index (SPI)</div>
+      <div class="eq">SPI = EV ÷ PV</div>
+      <div class="sub">SPI = 1.0: on schedule. &lt;1.0: behind schedule — completing less work than planned. &gt;1.0: ahead of schedule.</div>
+    </div>
+
+    <div class="section-title" style="font-size:16px;margin-top:24px;">Reading the CPI/SPI Matrix</div>
+    <p>CPI and SPI together tell a richer story than either alone. Learn to read the combination:</p>
+    <table class="data-table">
+      <thead><tr><th>CPI</th><th>SPI</th><th>What It Means</th><th>Urgency</th></tr></thead>
+      <tbody>
+        <tr><td><span class="hl-green">&gt;1.0</span></td><td><span class="hl-green">&gt;1.0</span></td><td>Under budget AND ahead of schedule. Rare — check your % complete estimates.</td><td>Low</td></tr>
+        <tr><td><span class="hl-green">&gt;1.0</span></td><td><span class="hl-red">&lt;1.0</span></td><td>Under budget but behind schedule. Efficient work, just not enough of it. Resource or priority issue.</td><td>Medium</td></tr>
+        <tr><td><span class="hl-red">&lt;1.0</span></td><td><span class="hl-green">&gt;1.0</span></td><td>Over budget but ahead of schedule. Spending too much per unit of work — senior staff on junior tasks, rework, or scope creep.</td><td>Medium-High</td></tr>
+        <tr><td><span class="hl-red">&lt;1.0</span></td><td><span class="hl-red">&lt;1.0</span></td><td>Over budget AND behind schedule. The worst quadrant. Requires immediate action and escalation.</td><td>Critical</td></tr>
+      </tbody>
+    </table>
+
+    <!-- RIDGELINE STORY 2 -->
+    <div class="story-block" id="story-m4-2">
+      <div class="story-toggle" onclick="toggleStory('story-m4-2')">
+        <span class="story-badge">Ridgeline</span>
+        <span class="story-toggle-title">Month 5 — Calculating the metrics, spotting the problem</span>
+        <span class="story-chevron">▼</span>
+      </div>
+      <div class="story-body">
+        <p>Sarah runs the four metrics for the overall project and then drills down to WBS 1.3 Geotechnical separately — because something feels off.</p>
+        <div class="story-numbers">
+          <span class="num-label">PROJECT LEVEL</span><br>
+          CV = $186,500 − $198,000 = <span class="num-bad">−$11,500</span><br>
+          SV = $186,500 − $190,000 = <span class="num-bad">−$3,500</span><br>
+          CPI = $186,500 ÷ $198,000 = <span class="num-bad">0.942</span><br>
+          SPI = $186,500 ÷ $190,000 = <span class="num-bad">0.982</span><br><br>
+          <span class="num-label">WBS 1.3 GEOTECHNICAL ONLY</span><br>
+          EV = $72,500 &nbsp;|&nbsp; AC = $89,000 &nbsp;|&nbsp; PV = $75,000<br>
+          CV = <span class="num-bad">−$16,500</span> &nbsp;|&nbsp; CPI = <span class="num-bad">0.814</span> &nbsp;|&nbsp; SPI = <span class="num-bad">0.967</span>
+        </div>
+        <p>The overall project <span class="story-concept">CPI of 0.942</span> looks borderline — concerning but not alarming. But when Sarah isolates Geotechnical, the <span class="story-concept">CPI drops to 0.814</span>. For every dollar spent on geotech, only $0.81 of work is being earned. The rest of the project is actually performing well; Geotechnical is dragging the average down.</p>
+        <div class="story-dialogue">
+          <span class="speaker">Sarah → Marcus Webb (Geotech Lead)</span>
+          "Marcus, your actuals are $89K against a $145K budget and your rule of credit shows 50% done. But your drilling sub has already invoiced $52K of an $80K PO. That's 65% of the PO spent for work that might not be 65% complete. What's going on with Ridgeline?"
+        </div>
+        <div class="story-dialogue">
+          <span class="speaker">Marcus Webb</span>
+          "Yeah… I was going to bring this up. When they started drilling at Segment 4, they hit unexpected clay layers. The original scope was 18 boreholes. We're now looking at 24 to get adequate coverage. That's six additional boreholes I didn't budget for."
+        </div>
+        <p>Sarah notes this carefully. The geotech overrun has a clear, documented cause — <span class="story-concept">changed site conditions</span>, not inefficiency. That distinction matters enormously for how she'll handle it.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: THE S-CURVE -->
+  <div class="section">
+    <div class="section-title">The S-Curve — Visualizing Project Progress</div>
+    <p>An S-curve plots cumulative cost (or progress) against time. It gets its name from the characteristic shape of project spending: slow start as the team mobilizes, rapid acceleration through the middle, then tapering as work completes. EVM gives you three S-curves running simultaneously — and the gaps between them tell the story.</p>
+
+    <div class="scurve-wrap">
+      <svg viewBox="0 0 600 320" xmlns="http://www.w3.org/2000/svg" style="font-family:'IBM Plex Mono',monospace;">
+        <!-- Grid -->
+        <defs>
+          <pattern id="grid" width="50" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 50 0 L 0 0 0 40" fill="none" stroke="#2a3048" stroke-width="0.5"/>
+          </pattern>
+        </defs>
+        <rect x="50" y="10" width="500" height="240" fill="url(#grid)"/>
+        <rect x="50" y="10" width="500" height="240" fill="none" stroke="#2a3048" stroke-width="1"/>
+
+        <!-- Axes -->
+        <line x1="50" y1="250" x2="550" y2="250" stroke="#4a5270" stroke-width="1.5"/>
+        <line x1="50" y1="10" x2="50" y2="250" stroke="#4a5270" stroke-width="1.5"/>
+
+        <!-- X axis labels -->
+        <text x="50" y="268" fill="#7a8499" font-size="9" text-anchor="middle">0</text>
+        <text x="133" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M3</text>
+        <text x="216" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M5</text>
+        <text x="300" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M6</text>
+        <text x="383" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M9</text>
+        <text x="466" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M11</text>
+        <text x="550" y="268" fill="#7a8499" font-size="9" text-anchor="middle">M12</text>
+        <text x="300" y="285" fill="#7a8499" font-size="9" text-anchor="middle">TIME (Months)</text>
+
+        <!-- Y axis labels -->
+        <text x="44" y="253" fill="#7a8499" font-size="9" text-anchor="end">$0</text>
+        <text x="44" y="213" fill="#7a8499" font-size="9" text-anchor="end">$100K</text>
+        <text x="44" y="173" fill="#7a8499" font-size="9" text-anchor="end">$200K</text>
+        <text x="44" y="133" fill="#7a8499" font-size="9" text-anchor="end">$300K</text>
+        <text x="44" y="93" fill="#7a8499" font-size="9" text-anchor="end">$400K</text>
+        <text x="44" y="53" fill="#7a8499" font-size="9" text-anchor="end">$500K</text>
+
+        <!-- PV curve (Planned) - smooth S-curve -->
+        <path d="M50,250 C80,248 100,240 133,225 C166,210 183,185 216,165 C249,145 266,120 300,100 C334,80 366,65 400,52 C433,40 466,28 550,22"
+              fill="none" stroke="#5b9bd5" stroke-width="2" stroke-dasharray="6,3"/>
+
+        <!-- EV curve (Earned) - lags PV slightly, flatter in middle -->
+        <path d="M50,250 C80,249 105,243 133,230 C162,216 180,192 216,174 C250,156 268,132 300,113 C330,95 360,76 400,60 C430,47 466,34 550,22"
+              fill="none" stroke="#4caf82" stroke-width="2"/>
+
+        <!-- AC curve (Actual) - runs above EV -->
+        <path d="M50,250 C80,249 108,242 133,226 C160,210 178,184 216,162 C250,142 268,118 300,100 C328,84 356,68 383,54"
+              fill="none" stroke="#e05a4e" stroke-width="2"/>
+
+        <!-- Today line at M5 -->
+        <line x1="216" y1="10" x2="216" y2="250" stroke="#f0a500" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="220" y="22" fill="#f0a500" font-size="9">TODAY</text>
+
+        <!-- Gap annotations at M5 -->
+        <!-- EV at M5 ~174, AC at M5 ~162, PV at M5 ~165 -->
+        <!-- Cost Variance arrow (EV to AC) -->
+        <line x1="230" y1="162" x2="230" y2="174" stroke="#e05a4e" stroke-width="1.5" marker-end="url(#arrowred)"/>
+        <text x="234" y="170" fill="#e05a4e" font-size="8">CV</text>
+
+        <!-- Schedule Variance arrow (PV to EV) -->
+        <line x1="245" y1="165" x2="245" y2="174" stroke="#5b9bd5" stroke-width="1.5"/>
+        <text x="249" y="172" fill="#5b9bd5" font-size="8">SV</text>
+
+        <!-- Legend -->
+        <line x1="60" y1="300" x2="85" y2="300" stroke="#5b9bd5" stroke-width="2" stroke-dasharray="6,3"/>
+        <text x="89" y="304" fill="#5b9bd5" font-size="9">PV (Planned)</text>
+        <line x1="180" y1="300" x2="205" y2="300" stroke="#4caf82" stroke-width="2"/>
+        <text x="209" y="304" fill="#4caf82" font-size="9">EV (Earned)</text>
+        <line x1="300" y1="300" x2="325" y2="300" stroke="#e05a4e" stroke-width="2"/>
+        <text x="329" y="304" fill="#e05a4e" font-size="9">AC (Actual)</text>
+        <line x1="410" y1="295" x2="410" y2="307" stroke="#f0a500" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="416" y="304" fill="#f0a500" font-size="9">Status Date</text>
+      </svg>
+    </div>
+
+    <p>Reading the S-curve at the status date (today): if <span class="hl-red">AC sits above EV</span>, you are spending more than you're earning — cost overrun. If <span class="hl-green">EV sits below PV</span>, you have completed less work than planned — schedule delay. The ideal: all three curves converge.</p>
+    <div class="callout">
+      <div class="callout-label">The S-Shape Explained</div>
+      <p>Projects spend slowly at the start (mobilizing, planning, early deliverables), accelerate sharply through the middle phase when most work is being executed, then taper at the end as deliverables finalize and close-out begins. A project spending money faster than the S-curve predicts in early months is a warning sign — work may not be matching the spend.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: FORECASTING -->
+  <div class="section">
+    <div class="section-title">Forecasting with EVM</div>
+    <p>EVM's real power is forecasting — using current performance to project where the project will end up. There are two primary methods, and knowing when to use each is critical.</p>
+
+    <div class="formula">
+      <div class="formula-label">EAC — Trend-Based (CPI Forecast)</div>
+      <div class="eq">EAC = BAC ÷ CPI</div>
+      <div class="sub">Assumes current cost efficiency will continue for the rest of the project. Use when the root cause of variance is systemic — the whole project is running inefficiently.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">EAC — Revised Bottom-Up Estimate</div>
+      <div class="eq">EAC = AC + ETC</div>
+      <div class="sub">Use when you have a new, bottoms-up estimate of remaining work. More accurate when conditions have changed and past performance is no longer representative.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">Variance at Completion (VAC)</div>
+      <div class="eq">VAC = BAC − EAC</div>
+      <div class="sub">Negative = projected overrun. This is the number that goes in your status report and triggers client conversations.</div>
+    </div>
+    <div class="formula">
+      <div class="formula-label">To-Complete Performance Index (TCPI)</div>
+      <div class="eq">TCPI = (BAC − EV) ÷ (BAC − AC)</div>
+      <div class="sub">The cost efficiency you must achieve on ALL remaining work to finish within budget. TCPI &gt; 1.2 is generally considered unrealistic — the budget is gone.</div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-label">Which EAC Method to Use</div>
+      <p>Use <strong>BAC ÷ CPI</strong> as your first pass — it's the mathematically honest answer based on actual performance. Then use <strong>AC + ETC</strong> when you have a credible, bottom-up re-estimate. If the two numbers differ significantly, you need to understand why before reporting either. Never choose the lower one simply because it looks better.</p>
+    </div>
+
+    <!-- RIDGELINE STORY 3 -->
+    <div class="story-block" id="story-m4-3">
+      <div class="story-toggle" onclick="toggleStory('story-m4-3')">
+        <span class="story-badge">Ridgeline</span>
+        <span class="story-toggle-title">Month 5 — Sarah forecasts the overrun two ways</span>
+        <span class="story-chevron">▼</span>
+      </div>
+      <div class="story-body">
+        <p>Sarah needs to produce an EAC for the project. She runs both methods to compare.</p>
+        <div class="story-numbers">
+          <span class="num-label">METHOD 1: Trend-based (BAC ÷ CPI)</span><br>
+          EAC = $500,000 ÷ 0.942 = <span class="num-bad">$530,786</span><br>
+          VAC = $500,000 − $530,786 = <span class="num-bad">−$30,786 projected overrun</span><br><br>
+          <span class="num-label">METHOD 2: Bottom-up (AC + ETC)</span><br>
+          Known remaining work per team estimates: $312,000<br>
+          Plus 6 additional boreholes × $4,500 each = $27,000 extra drilling cost<br>
+          ETC = $312,000 + $27,000 = $339,000<br>
+          EAC = $198,000 + $339,000 = <span class="num-bad">$537,000</span><br>
+          VAC = $500,000 − $537,000 = <span class="num-bad">−$37,000 projected overrun</span>
+        </div>
+        <p>The two methods give similar answers — both showing a <span class="story-concept">projected overrun of $30K–$37K</span>. The bottom-up estimate is slightly higher because it captures the full drilling cost that the CPI trend doesn't yet fully reflect. Sarah decides to use the bottom-up EAC of $537,000 as her official forecast — it's more defensible because it's based on a specific, documented cause.</p>
+        <div class="story-dialogue">
+          <span class="speaker">Sarah</span>
+          "The overrun is real and it has a clear cause — changed site conditions on the drilling. That's not our fault and it's potentially billable as a changed conditions claim. Before I tell Dale we're $37K over, I need to talk to contracts about whether we have grounds for a change order."
+        </div>
+        <p>This is the distinction between <span class="story-concept">forecasting the financial reality</span> and <span class="story-concept">determining who pays for it</span>. The EAC tells you what it will cost. The contract and the change management process determine who absorbs it.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: EVM AND REV REC CONNECTION -->
+  <div class="section">
+    <div class="section-title">EVM and Revenue Recognition — The Connection</div>
+    <p>In Module 03 you learned that Oracle calculates PoC% using cost-on-cost: costs incurred ÷ EAC. Your EVM work directly feeds this calculation. When you update your EAC in the project system, you are not just updating a forecast number — you are changing what revenue Oracle will recognize this period.</p>
+
+    <table class="data-table">
+      <thead><tr><th>Your EVM Action</th><th>Effect on PoC%</th><th>Effect on Revenue This Period</th></tr></thead>
+      <tbody>
+        <tr><td>Increase EAC (cost overrun detected)</td><td>PoC% decreases (same costs ÷ larger denominator)</td><td><span class="hl-red">Revenue recognized decreases</span> — a revenue reversal may occur</td></tr>
+        <tr><td>Decrease EAC (project running lean)</td><td>PoC% increases</td><td><span class="hl-green">Revenue recognized increases</span></td></tr>
+        <tr><td>EAC unchanged, costs continue</td><td>PoC% increases naturally as costs accumulate</td><td>Revenue recognized increases normally</td></tr>
+        <tr><td>Stale EAC (not updated)</td><td>PoC% is calculated on a fiction</td><td><span class="hl-red">Revenue is misstated</span> — over or under depending on direction</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout red">
+      <div class="callout-label">The Practical Consequence</div>
+      <p>When Sarah updates the Ridgeline EAC from $500,000 to $537,000, Oracle will recalculate PoC% downward — and recognize less revenue than it would have at the original EAC. This hits the period's revenue line. Finance needs to know this is coming before month-end close, not after. Updating your EAC late is not just a project controls failure — it's a financial reporting problem.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: EVM LIMITATIONS -->
+  <div class="section">
+    <div class="section-title">When NOT to Trust EVM — Its Limitations</div>
+    <p>EVM is powerful but not magic. Knowing its limitations prevents you from using it as a crutch or reporting false confidence.</p>
+
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">!</div>
+        <div class="step-content">
+          <div class="step-title">EVM is only as good as your % complete estimates</div>
+          <div class="step-body">If rules of credit aren't being applied consistently, EV is fiction. A CPI of 1.02 built on inflated % complete estimates is not a healthy project — it's a hidden overrun. Garbage in, garbage out. EVM amplifies the quality of your inputs, good or bad.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">!</div>
+        <div class="step-content">
+          <div class="step-title">SPI becomes meaningless at project end</div>
+          <div class="step-body">As a project nears completion, EV approaches BAC regardless of actual schedule performance — because EV is capped at BAC. SPI therefore drifts toward 1.0 at the end of every project, masking real schedule delays. Use actual milestone dates, not SPI, to assess schedule performance in the final 20% of a project.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">!</div>
+        <div class="step-content">
+          <div class="step-title">CPI trend forecasting assumes the problem continues</div>
+          <div class="step-body">EAC = BAC ÷ CPI assumes your current inefficiency will persist. If the overrun has a specific, isolated cause that has been resolved, a bottom-up ETC is more accurate. Using CPI-based EAC after a problem has been fixed will over-forecast the overrun — and cause unnecessary alarm.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">!</div>
+        <div class="step-content">
+          <div class="step-title">EVM doesn't tell you why — only that something is wrong</div>
+          <div class="step-body">A CPI of 0.85 is a signal, not a diagnosis. It tells you costs are outpacing progress. It doesn't tell you if that's scope creep, rework, over-staffing, a bad estimate, or a subconsultant issue. EVM points you at the problem — investigation determines the cause.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">!</div>
+        <div class="step-content">
+          <div class="step-title">EVM on very small work packages creates noise</div>
+          <div class="step-body">A $2,000 work package with a 50/50 rule will show wild swings in EV — $0 one period, $2,000 the next. At the project level this averages out (the smoothing effect from Module 03), but don't try to read CPI/SPI on individual small work packages in isolation.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: CLIENT LANGUAGE -->
+  <div class="section">
+    <div class="section-title">Explaining EVM to Clients — Without the Acronyms</div>
+    <p>Most clients don't know what CPI means. But they absolutely understand the concepts behind it. Here's how to translate your EVM metrics into plain language that lands in any meeting.</p>
+
+    <table class="data-table">
+      <thead><tr><th>What you calculated</th><th>What to say to the client</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>CPI = 0.91</td>
+          <td>"For every dollar we're spending, we're completing about 91 cents of work. We're slightly less efficient than planned — we're tracking to finish about 10% over budget if the current trend holds."</td>
+        </tr>
+        <tr>
+          <td>SPI = 0.87</td>
+          <td>"We've completed about 87% of the work we planned to have done by this point. We're running a few weeks behind the baseline schedule."</td>
+        </tr>
+        <tr>
+          <td>VAC = −$37,000</td>
+          <td>"Our current forecast shows the project finishing approximately $37,000 over the original budget. I want to walk you through the cause and our options."</td>
+        </tr>
+        <tr>
+          <td>TCPI = 1.18</td>
+          <td>"To finish within the original budget from here, we'd need to be about 18% more efficient on all remaining work than we've been so far. That's achievable but tight — I'd recommend we discuss a budget adjustment or scope reduction."</td>
+        </tr>
+        <tr>
+          <td>CV = −$11,500, but isolated to one WBS</td>
+          <td>"The overall project is slightly over budget, but the issue is concentrated in the geotechnical work — the rest of the project is performing on or under budget. The geotech overrun has a specific cause I can explain."</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout green">
+      <div class="callout-label">The Golden Rule of Client Communication</div>
+      <p>Never lead with the metric. Lead with the meaning. "Our CPI is 0.91" means nothing to most clients. "We're tracking 10% over budget because of an unexpected site condition, and here are three options" means everything.</p>
+    </div>
+  </div>
+
+  <!-- SECTION: FIRST TIMER MISTAKES -->
+  <div class="section">
+    <div class="section-title">Common EVM Mistakes — First-Timers</div>
+
+    <table class="data-table">
+      <thead><tr><th>Mistake</th><th>What It Looks Like</th><th>Why It's Wrong</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="hl-red">Treating AC as progress</span></td>
+          <td>"We've spent $200K of $500K so we're 40% done."</td>
+          <td>Spending money is not the same as completing work. You could have spent $200K and be 20% done — or 60% done. Only EV measures progress.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Not updating the EAC</span></td>
+          <td>EAC stays at BAC for the whole project until final close-out.</td>
+          <td>A flat EAC is a lie. It should be updated every reporting period as new information emerges. A stale EAC corrupts PoC% and masks overruns until it's too late.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Ignoring WBS-level CPI</span></td>
+          <td>Only reporting project-level CPI, missing a single bad work package.</td>
+          <td>Project-level CPI can look acceptable while one element is catastrophically over budget, hidden by healthy packages. Always drill down.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Using cost ratio % complete</span></td>
+          <td>% complete = AC ÷ EAC on every work package.</td>
+          <td>This makes EV = AC by definition, producing a perfect CPI of 1.0 on every task regardless of actual performance. It completely defeats the purpose of EVM.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Panicking at early negative SV</span></td>
+          <td>Raising alarms at Month 1 because SPI = 0.7.</td>
+          <td>Early in a project, small absolute variances produce dramatic-looking SPI numbers. Context matters — a $5,000 SV on a $500K project is noise, not a crisis. Look at absolute values alongside indices.</td>
+        </tr>
+        <tr>
+          <td><span class="hl-red">Conflating schedule variance with days late</span></td>
+          <td>"SV is −$15,000 so we're 15,000 days behind."</td>
+          <td>SV is in dollars, not time. A −$15,000 SV on a $500K project might mean two weeks late or six weeks late depending on the burn rate. Use actual milestone dates for schedule communication.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- KNOWLEDGE CHECK -->
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q4">
+      <div class="quiz-label">Quick Check · Module 04</div>
+      <div class="quiz-question">Ridgeline: overall project CPI = 0.942. If Sarah uses the trend-based EAC (BAC ÷ CPI), what does it forecast — and why might the bottom-up EAC of $537,000 be more appropriate here?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">Trend EAC = $530,786. Both methods are equally valid — use whichever is lower.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,true)">Trend EAC = $530,786. The bottom-up is better here because the overrun has an isolated, documented cause — extra boreholes — not a systemic efficiency problem across the whole project.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">Trend EAC = $530,786. The trend EAC is always more accurate because it uses real data.</div>
+        <div class="quiz-opt" onclick="checkQuiz('q4',this,false)">Trend EAC = $472,000. A CPI below 1.0 means the project will finish under budget.</div>
+      </div>
+      <div class="quiz-feedback" id="q4-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m3', document.querySelector('[data-target=m3]'))">← Module 03</button>
+    <button class="btn primary" onclick="showPage('m5', document.querySelector('[data-target=m5]'))">Module 05 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 5 ══════════════ -->
+<div id="m5" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">05</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Five</div>
+      <div class="mod-title">Schedule Control</div>
+      <div class="mod-intro">Schedule slippage is the most common way projects fail. This module covers how to read, maintain, and defend a project schedule as a non-scheduler.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Schedule Hierarchy</div>
+    <p>Not all schedules are equal. On consulting projects, you'll encounter multiple levels:</p>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Level 1 — Master</div>
+        <div class="def-desc">High-level milestones only. 1 page. Used in client contracts and executive reports.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Level 2 — Summary</div>
+        <div class="def-desc">Major work packages and key deliverables. Used in monthly status reports and client meetings.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Level 3 — Detailed</div>
+        <div class="def-desc">Individual activities with durations, predecessors, and resource assignments. Used by the team for day-to-day work management.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Critical Path — What It Actually Means</div>
+    <p>The <span class="highlight">critical path</span> is the longest chain of dependent activities in the schedule. Any delay on the critical path delays the project end date by the same amount.</p>
+    <div class="callout red">
+      <div class="callout-label">Critical Principle</div>
+      <p>Activities NOT on the critical path have float — they can slip by their float amount without affecting the end date. Critical path activities have zero float. This is where your attention should focus.</p>
+    </div>
+    <p>Common errors made by non-schedulers:</p>
+    <ul class="bullet-list">
+      <li>Focusing only on the longest-duration tasks (these may have lots of float)</li>
+      <li>Ignoring dependencies — a 1-day task with no float matters more than a 3-week task with 2 weeks of float</li>
+      <li>Not updating the schedule — a schedule that isn't maintained tells you nothing</li>
+      <li>Confusing planned dates with committed dates (the baseline)</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Schedule Health Indicators</div>
+    <table class="data-table">
+      <thead><tr><th>Indicator</th><th>Healthy</th><th>Warning</th><th>Action Required</th></tr></thead>
+      <tbody>
+        <tr><td>SPI</td><td>0.95 – 1.05</td><td>0.85 – 0.94</td><td>&lt; 0.85</td></tr>
+        <tr><td>Critical Path Float</td><td>0 (by definition)</td><td>Approaching critical</td><td>Activities going critical unexpectedly</td></tr>
+        <tr><td>Late Activities</td><td>None or trivial</td><td>&lt; 5% of activities</td><td>&gt; 10% of activities late</td></tr>
+        <tr><td>Forecast End Date vs. Baseline</td><td>On time or early</td><td>1–2 week slip</td><td>&gt; 3% of duration slipped</td></tr>
+        <tr><td>Open Constraints</td><td>All resolved</td><td>1–2 unresolved</td><td>Client approvals outstanding</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Recovery Planning</div>
+    <p>When the schedule is behind, there are only a few real options. Don't promise recovery without a plan:</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">A</div>
+        <div class="step-content">
+          <div class="step-title">Crashing</div>
+          <div class="step-body">Add resources to critical path activities to reduce duration. Costs more. Only effective on activities where more hands actually help.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">B</div>
+        <div class="step-content">
+          <div class="step-title">Fast-Tracking</div>
+          <div class="step-body">Overlap activities that were planned sequentially. Increases risk of rework. Only works where the sequence was conservative, not mandatory.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">C</div>
+        <div class="step-content">
+          <div class="step-title">Scope Reduction</div>
+          <div class="step-body">Reduce or defer scope to hit the date. Requires client agreement. Often the most honest option.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">D</div>
+        <div class="step-content">
+          <div class="step-title">Extension Request</div>
+          <div class="step-body">Formally request a schedule extension from the client. Do this early — clients accept slippage better when told proactively.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q5">
+      <div class="quiz-label">Quick Check · Module 05</div>
+      <div class="quiz-question">Activity A has 0 days of float. Activity B has 10 days of float but will take 4 weeks. Which should you monitor most closely?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,true)">Activity A — it's on the critical path and any delay affects the end date</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">Activity B — it takes longer so it's more likely to slip</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">Both equally — duration and float are both important</div>
+        <div class="quiz-opt" onclick="checkQuiz('q5',this,false)">Neither — focus on the most expensive activities</div>
+      </div>
+      <div class="quiz-feedback" id="q5-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m4', document.querySelector('[data-target=m4]'))">← Module 04</button>
+    <button class="btn primary" onclick="showPage('m6', document.querySelector('[data-target=m6]'))">Module 06 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 6 ══════════════ -->
+<div id="m6" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">06</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Six</div>
+      <div class="mod-title">Scope &amp; Change Management</div>
+      <div class="mod-intro">Scope creep is the silent budget killer. This module teaches you to recognize it, document it, and convert unauthorized work into approved change orders.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">What Is Scope Creep?</div>
+    <p>Scope creep is the gradual expansion of project work beyond the contracted scope — usually without corresponding increases in budget or schedule. It is almost always unintentional, and almost always comes from a desire to be helpful.</p>
+    <div class="scenario">
+      <div class="scenario-header">📋 Scenario — The Friendly Extra</div>
+      <div class="scenario-body">A structural engineer is engaged to assess three bridges. During a site visit, the client asks, "While you're out there, could you just take a quick look at the culvert too?" The engineer, wanting to be helpful, says yes. This culvert review takes 6 hours, generates findings, and eventually requires a supplemental memo. Total scope creep: ~$2,000 of unrecovered cost, plus a precedent that the engineer will do extra work on request.</div>
+    </div>
+    <div class="callout red">
+      <div class="callout-label">The Rule</div>
+      <p>There is no such thing as "quick." Every informal request costs something. Your job is to quantify it, document it, and determine whether it's an authorized change or a business development decision — before you do the work.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Change Management Process</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Identify the Change</div>
+          <div class="step-body">Recognize when a request falls outside the contracted scope. Compare to the contract scope statement and WBS. If in doubt, ask your PM.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Document It Immediately</div>
+          <div class="step-body">Write a brief Change Request (CR) describing: what the change is, why it's out of scope, and a preliminary estimate of cost and schedule impact.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Get Approval Before Starting</div>
+          <div class="step-body">Work should not start on a change until it is approved — either through a formal change order, or a written authorization from the client PM. Email confirmation is sufficient.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Update the Baseline</div>
+          <div class="step-body">An approved change order becomes a baseline revision — the budget, schedule, and scope baseline are updated accordingly.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Track Separately</div>
+          <div class="step-body">Change order work should be tracked in its own WBS element so its cost can be reported separately and verified against the approved amount.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Types of Changes</div>
+    <table class="data-table">
+      <thead><tr><th>Change Type</th><th>Example</th><th>Who Initiates</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td><span class="highlight">Client-Directed</span></td><td>Client adds a new deliverable to scope</td><td>Client</td><td>Issue change order for additional fee</td></tr>
+        <tr><td><span class="highlight">Design Evolution</span></td><td>Scope grows as the project progresses (common in design)</td><td>Consultant</td><td>Track carefully; escalate when material</td></tr>
+        <tr><td><span class="highlight">Error / Omission</span></td><td>Something was missed in the original estimate</td><td>Consultant</td><td>Usually absorbed; assess if fundamental to contract</td></tr>
+        <tr><td><span class="highlight">Changed Conditions</span></td><td>Site conditions differ from what was assumed</td><td>Either</td><td>Typically billable — document the assumption and the reality</td></tr>
+        <tr><td><span class="highlight">Client-Caused Delay</span></td><td>Client doesn't provide data on time, causing rework</td><td>Client</td><td>Document impact; claim delay costs if material</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Knowledge Check</div>
+    <div class="quiz-block" id="q6">
+      <div class="quiz-label">Quick Check · Module 06</div>
+      <div class="quiz-question">A client asks you to include an extra section in your final report — something not in the original scope. You estimate 8 hours. What should you do?</div>
+      <div class="quiz-options">
+        <div class="quiz-opt" onclick="checkQuiz('q6',this,false)">Do it — 8 hours isn't worth a change order conversation</div>
+        <div class="quiz-opt" onclick="checkQuiz('q6',this,false)">Refuse — it's out of scope</div>
+        <div class="quiz-opt" onclick="checkQuiz('q6',this,true)">Issue a change request, get written approval, then proceed</div>
+        <div class="quiz-opt" onclick="checkQuiz('q6',this,false)">Do it now and mention it in the next meeting</div>
+      </div>
+      <div class="quiz-feedback" id="q6-fb"></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m5', document.querySelector('[data-target=m5]'))">← Module 05</button>
+    <button class="btn primary" onclick="showPage('m7', document.querySelector('[data-target=m7]'))">Module 07 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 7 ══════════════ -->
+<div id="m7" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">07</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Seven</div>
+      <div class="mod-title">Risk &amp; Contingency</div>
+      <div class="mod-intro">Every project has unknowns. This module covers how to identify them systematically, price them intelligently, and manage them without drama.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Risk vs. Contingency vs. Uncertainty</div>
+    <div class="def-list">
+      <div class="def-item">
+        <div class="def-term">Risk (Known Unknowns)</div>
+        <div class="def-desc">Events you can identify in advance that might happen. You can estimate their probability and impact. Example: "The client may request an additional meeting, adding 4 hours of PM time."</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Contingency</div>
+        <div class="def-desc">Budget set aside to cover identified risks if they occur. Typically 5–15% of project budget on consulting projects. Released by the PM as needed.</div>
+      </div>
+      <div class="def-item">
+        <div class="def-term">Uncertainty (Unknown Unknowns)</div>
+        <div class="def-desc">Things you can't anticipate. Covered by Management Reserve, not contingency. Usually held at the portfolio or business unit level.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Risk Register</div>
+    <p>A risk register is simply a table of identified risks with their attributes. Even a basic one improves project outcomes. Minimum fields:</p>
+    <table class="data-table">
+      <thead><tr><th>Risk ID</th><th>Description</th><th>Probability</th><th>Impact ($)</th><th>Expected Value</th><th>Response</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr><td>R-01</td><td>Client delays review by &gt;2 weeks</td><td>Medium (40%)</td><td>$3,500</td><td>$1,400</td><td>Track, notify client proactively</td><td>PM</td></tr>
+        <tr><td>R-02</td><td>Additional boreholes required</td><td>Low (20%)</td><td>$8,000</td><td>$1,600</td><td>Contract allowance clause</td><td>Geotech Lead</td></tr>
+        <tr><td>R-03</td><td>Key staff unavailable during crunch</td><td>Medium (35%)</td><td>$4,000</td><td>$1,400</td><td>Pre-identify backup staff</td><td>PM</td></tr>
+        <tr><td colspan="4"><strong>Total Expected Value (Contingency Basis)</strong></td><td><strong>$4,400</strong></td><td colspan="2"></td></tr>
+      </tbody>
+    </table>
+    <div class="callout">
+      <div class="callout-label">Sizing Contingency</div>
+      <p>Sum the expected values of your top risks as a minimum contingency. Add a buffer for unknown risks based on project complexity and your firm's history on similar work. On a lump-sum project, contingency protects your margin. Don't give it away in scope creep.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Risk Response Strategies</div>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">🚫</div>
+        <div class="card-title">Avoid</div>
+        <div class="card-body">Change the plan to eliminate the risk entirely. Example: don't subcontract to a firm with a history of delays.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📤</div>
+        <div class="card-title">Transfer</div>
+        <div class="card-body">Shift the risk to another party — insurance, subconsultant contract clauses, client assumption of risk.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⬇️</div>
+        <div class="card-title">Mitigate</div>
+        <div class="card-body">Reduce probability or impact. Example: get client data early to reduce the risk of rework from outdated inputs.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">Accept</div>
+        <div class="card-body">Acknowledge the risk and set aside contingency to deal with it if it occurs. Appropriate for low-impact or unavoidable risks.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Tracking Contingency Usage</div>
+    <p>Contingency is a controlled budget. Every time it's used, it should be logged. A simple contingency log:</p>
+    <ul class="bullet-list">
+      <li>Track each drawdown: date, amount, reason (which risk occurred), approval</li>
+      <li>Report contingency remaining in all status reports</li>
+      <li>When contingency drops below 50% of original, flag to management</li>
+      <li>Never use contingency for scope creep — that's what change orders are for</li>
+    </ul>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m6', document.querySelector('[data-target=m6]'))">← Module 06</button>
+    <button class="btn primary" onclick="showPage('m8', document.querySelector('[data-target=m8]'))">Module 08 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 8 ══════════════ -->
+<div id="m8" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">08</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Eight</div>
+      <div class="mod-title">Reporting &amp; Forecasting</div>
+      <div class="mod-intro">A project status report is a management tool, not a diary entry. This module covers what to include, how to say it, and how to make it credible.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">What a Status Report Must Answer</div>
+    <p>Every status report — regardless of format — must answer these questions for the reader:</p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">💰</div>
+        <div class="card-title">Where Are We Financially?</div>
+        <div class="card-body">Budget vs. actual vs. forecast. Is the project projected to finish within budget? By how much?</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📅</div>
+        <div class="card-title">Where Are We on Schedule?</div>
+        <div class="card-body">Are we on track for the committed completion date? What milestones are complete or upcoming?</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">⚠️</div>
+        <div class="card-title">What Are the Risks?</div>
+        <div class="card-body">What is threatening cost or schedule? What actions are being taken?</div>
+      </div>
+      <div class="card">
+        <div class="card-icon">✅</div>
+        <div class="card-title">What's Needed from the Client?</div>
+        <div class="card-body">Outstanding decisions, approvals, or data from the client that are blocking or at-risk.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Standard Cost Report Table</div>
+    <p>This is the core table every project controls professional must be able to produce. Format varies, but the data is universal:</p>
+    <table class="data-table">
+      <thead><tr><th>WBS Element</th><th>Budget (BAC)</th><th>Actuals (AC)</th><th>% Complete</th><th>EV</th><th>ETC</th><th>Forecast (EAC)</th><th>Variance (VAC)</th></tr></thead>
+      <tbody>
+        <tr><td>1.1 Project Mgmt</td><td>$19,200</td><td>$12,400</td><td>60%</td><td>$11,520</td><td>$7,200</td><td>$19,600</td><td class="hl-red">−$400</td></tr>
+        <tr><td>1.2 Prelim Design</td><td>$49,500</td><td>$51,000</td><td>100%</td><td>$49,500</td><td>$0</td><td>$51,000</td><td class="hl-red">−$1,500</td></tr>
+        <tr><td>1.3 Detailed Design</td><td>$94,000</td><td>$42,000</td><td>40%</td><td>$37,600</td><td>$58,000</td><td>$100,000</td><td class="hl-red">−$6,000</td></tr>
+        <tr><td>1.4 Client Review</td><td>$14,500</td><td>$0</td><td>0%</td><td>$0</td><td>$14,500</td><td>$14,500</td><td>$0</td></tr>
+        <tr><td>1.5 Const. Support</td><td>$22,800</td><td>$0</td><td>0%</td><td>$0</td><td>$22,800</td><td>$22,800</td><td>$0</td></tr>
+        <tr><td><strong>TOTAL</strong></td><td><strong>$200,000</strong></td><td><strong>$105,400</strong></td><td><strong>49%</strong></td><td><strong>$98,620</strong></td><td><strong>$102,500</strong></td><td><strong>$207,900</strong></td><td class="hl-red"><strong>−$7,900</strong></td></tr>
+      </tbody>
+    </table>
+    <p>This report shows a <span class="hl-red">projected overrun of $7,900 (3.95%)</span> driven primarily by WBS 1.3. The PM needs to either recover $7,900 in remaining scope or issue a change order if the overrun is client-caused.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Writing the Narrative</div>
+    <p>Numbers need context. The written narrative in a status report should follow this structure:</p>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Overall Status (RAG)</div>
+          <div class="step-body">State the project status: <span class="hl-green">Green</span> (on track), <span class="highlight">Amber</span> (at-risk, action in progress), <span class="hl-red">Red</span> (off track, significant intervention required). Be honest.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Accomplishments This Period</div>
+          <div class="step-body">Specific deliverables completed, milestones achieved. Not "the team worked hard on design" — something measurable was done.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Issues &amp; Variances</div>
+          <div class="step-body">What is off-plan, why, and what the impact is. No blame — just facts and causality.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Actions &amp; Decisions Needed</div>
+          <div class="step-body">What you are doing to address issues. What you need from the client to keep the project moving.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Look Ahead</div>
+          <div class="step-body">What will happen next period. Key upcoming milestones and expected deliveries.</div>
+        </div>
+      </div>
+    </div>
+    <div class="callout green">
+      <div class="callout-label">Golden Rule of Reporting</div>
+      <p>Never let a client be surprised by a report. If the project is going red, you should have already told them verbally before the report lands. Reports confirm — they don't break news.</p>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m7', document.querySelector('[data-target=m7]'))">← Module 07</button>
+    <button class="btn primary" onclick="showPage('m9', document.querySelector('[data-target=m9]'))">Module 09 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 9 ══════════════ -->
+<div id="m9" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">09</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Nine</div>
+      <div class="mod-title">Stakeholder Communication</div>
+      <div class="mod-intro">Technical accuracy is not enough. The way you communicate project status can protect or destroy client relationships. This module covers the craft of difficult conversations.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Know Your Audience</div>
+    <p>Different stakeholders need different information at different levels of detail. Calibrate before every communication:</p>
+    <table class="data-table">
+      <thead><tr><th>Stakeholder</th><th>Primary Interest</th><th>Format</th><th>Frequency</th></tr></thead>
+      <tbody>
+        <tr><td>Client Executive / Owner</td><td>Will it be done on time and on budget?</td><td>1-page summary, RAG status</td><td>Monthly or milestone-driven</td></tr>
+        <tr><td>Client PM / Technical Lead</td><td>Detailed cost, schedule, and scope performance</td><td>Full status report + data tables</td><td>Bi-weekly or monthly</td></tr>
+        <tr><td>Your Firm's PM</td><td>Revenue, margin, risk, client satisfaction</td><td>Internal cost report + issues log</td><td>Weekly or bi-weekly</td></tr>
+        <tr><td>Your Technical Team</td><td>What do I do next? What's my deadline?</td><td>Task assignments + schedule</td><td>Weekly</td></tr>
+        <tr><td>Subconsultants</td><td>Scope, deliverables, payment, schedule</td><td>Scope-of-work + schedule + invoicing</td><td>As needed</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Delivering Bad News</div>
+    <p>This is the most important communication skill a project controls professional can develop. Follow these principles:</p>
+    <div class="callout red">
+      <div class="callout-label">Non-Negotiable</div>
+      <p>Tell them early, tell them the truth, and come with a plan. Clients can accept problems. They cannot accept surprises, dishonesty, or passivity.</p>
+    </div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Lead with the headline</div>
+          <div class="step-body">"We are projecting a cost overrun of approximately $8,000 on WBS 1.3." Don't bury it. Don't spend three paragraphs explaining before you get to the point.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Explain the cause clearly</div>
+          <div class="step-body">"The overrun is driven by unanticipated complexity in the geotechnical model, requiring additional analysis iterations." Be specific. Vague causes feel like excuses.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">State the impact</div>
+          <div class="step-body">Quantify cost and schedule impact clearly. "This adds $8,000 and 2 weeks to the current forecast."</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Offer options</div>
+          <div class="step-body">Present 2–3 paths forward. Never present a problem without at least one solution. This keeps you in the role of advisor, not bearer of bad news.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Get a decision and document it</div>
+          <div class="step-body">Whatever the client decides, confirm it in writing (email is fine). "As discussed, you have authorized Option 2 — we will proceed accordingly."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Communication Log</div>
+    <p>Maintain a brief log of all significant project communications — especially decisions, approvals, and scope discussions. This protects both parties and reduces disputes.</p>
+    <div class="callout blue">
+      <div class="callout-label">Cover Yourself</div>
+      <p>If a client tells you verbally to proceed with out-of-scope work, follow up with an email: "Confirming our conversation — we will proceed with X as discussed. This work falls outside our original scope and will be tracked as a potential change order pending your formal authorization." This is not aggressive; it's professional.</p>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m8', document.querySelector('[data-target=m8]'))">← Module 08</button>
+    <button class="btn primary" onclick="showPage('m10', document.querySelector('[data-target=m10]'))">Module 10 →</button>
+  </div>
+</div>
+
+<!-- ══════════════ MODULE 10 ══════════════ -->
+<div id="m10" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number">10</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Module Ten</div>
+      <div class="mod-title">Surviving the Project Handoff</div>
+      <div class="mod-intro">Closeout is where firms leave money on the table, accumulate unbilled costs, and damage relationships. This module covers how to close cleanly.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Why Closeout Goes Wrong</div>
+    <p>Most project failures don't happen in the middle — they happen at the end. The reasons are almost always the same:</p>
+    <ul class="bullet-list">
+      <li>Unbilled change orders that were never formalized</li>
+      <li>Retainage held by clients because deliverables are technically incomplete</li>
+      <li>Hours continuing to be charged after the scope is done</li>
+      <li>No defined "done" — deliverables with no acceptance criteria</li>
+      <li>Lessons learned never captured, so the same problems recur</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">The Project Closeout Checklist</div>
+    <div class="step-list">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <div class="step-title">Confirm Deliverable Acceptance</div>
+          <div class="step-body">Get written (or email) confirmation from the client that all deliverables are accepted. If there are outstanding comments, define what "complete" looks like and a deadline.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <div class="step-title">Process All Change Orders</div>
+          <div class="step-body">Identify any work done outside the original scope that hasn't been formalized. Issue change orders or document write-offs with management approval.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <div class="step-title">Final Invoice and Accounts Receivable</div>
+          <div class="step-body">Issue the final invoice promptly upon acceptance. Follow up on any outstanding invoices. Release of retainage (if applicable) requires formal written acceptance.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <div class="step-title">Close the Project in Your Systems</div>
+          <div class="step-body">Mark the project closed in your accounting system to stop timesheet charges. Archive project files according to your firm's retention policy and contract requirements.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <div class="step-title">Final Cost Report</div>
+          <div class="step-body">Produce a final budget vs. actual report. Document variances. This becomes the basis for estimating similar future projects.</div>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-content">
+          <div class="step-title">Lessons Learned</div>
+          <div class="step-body">Brief session with the team: what went well, what didn't, what would we do differently? Document key findings and link them to the final cost report.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Protecting Your Firm's Interests</div>
+    <div class="callout red">
+      <div class="callout-label">Common Mistake</div>
+      <p>Technical staff continue charging hours to a project after their scope is done, simply because the project hasn't been formally closed. This destroys margin. Once your deliverable is complete and accepted, stop charging — or get an explicit authorization to continue.</p>
+    </div>
+    <div class="callout green">
+      <div class="callout-label">Best Practice</div>
+      <p>On projects with retainage (typically 5–10% held until final acceptance), proactively drive toward completion criteria. Every month of retainage outstanding is cash withheld from your firm with no benefit to you. Define "done" early in the project and hold to it.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Congratulations — You're Done</div>
+    <p>You've completed all 10 modules of <span class="highlight">Project Controls for Consultants</span>. Use the Glossary for quick reference, and revisit any module when a project situation demands it. Good project controls isn't about bureaucracy — it's about giving yourself and your clients honest information so better decisions get made.</p>
+    <div class="callout">
+      <div class="callout-label">Your Toolkit</div>
+      <p>The vocabulary to speak confidently in PM conversations. The formulas to quantify performance. The processes to control scope, cost, and schedule. The communication skills to deliver truth without losing relationships. That's project controls.</p>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m9', document.querySelector('[data-target=m9]'))">← Module 09</button>
+    <button class="btn primary" onclick="showPage('glossary', document.querySelector('[data-target=glossary]'))">Reference Glossary →</button>
+  </div>
+</div>
+
+<!-- ══════════════ GLOSSARY ══════════════ -->
+<div id="glossary" class="module-page">
+  <div class="mod-header">
+    <div class="mod-number" style="font-size:52px">REF</div>
+    <div class="mod-header-text">
+      <div class="mod-eyebrow">Quick Reference</div>
+      <div class="mod-title">Glossary &amp; Formula Sheet</div>
+      <div class="mod-intro">Everything you need in one place. Bookmark this page.</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">EVM Formula Sheet</div>
+    <div class="formula"><div class="formula-label">Earned Value</div><div class="eq">EV = BAC × % Complete</div></div>
+    <div class="formula"><div class="formula-label">Cost Variance</div><div class="eq">CV = EV − AC</div><div class="sub">Positive = under budget</div></div>
+    <div class="formula"><div class="formula-label">Schedule Variance</div><div class="eq">SV = EV − PV</div><div class="sub">Positive = ahead of schedule</div></div>
+    <div class="formula"><div class="formula-label">Cost Performance Index</div><div class="eq">CPI = EV ÷ AC</div><div class="sub">&gt;1.0 = under budget</div></div>
+    <div class="formula"><div class="formula-label">Schedule Performance Index</div><div class="eq">SPI = EV ÷ PV</div><div class="sub">&gt;1.0 = ahead of schedule</div></div>
+    <div class="formula"><div class="formula-label">Estimate at Completion (Trend)</div><div class="eq">EAC = BAC ÷ CPI</div></div>
+    <div class="formula"><div class="formula-label">Estimate at Completion (Revised)</div><div class="eq">EAC = AC + ETC</div></div>
+    <div class="formula"><div class="formula-label">Variance at Completion</div><div class="eq">VAC = BAC − EAC</div><div class="sub">Negative = projected overrun</div></div>
+    <div class="formula"><div class="formula-label">To-Complete Performance Index (TCPI)</div><div class="eq">TCPI = (BAC − EV) ÷ (BAC − AC)</div><div class="sub">Efficiency required to complete within budget. &gt;1.2 = unrealistic</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Key Terms A–Z</div>
+    <div class="def-list">
+      <div class="def-item"><div class="def-term">AC (Actual Cost)</div><div class="def-desc">The cost actually incurred for work performed to date.</div></div>
+      <div class="def-item"><div class="def-term">BAC (Budget at Completion)</div><div class="def-desc">Total authorized budget for the project. Your cost baseline.</div></div>
+      <div class="def-item"><div class="def-term">Baseline</div><div class="def-desc">Approved scope, schedule, and cost plan. Formally changed only through change control.</div></div>
+      <div class="def-item"><div class="def-term">CBS (Cost Breakdown Structure)</div><div class="def-desc">Hierarchical breakdown of project costs by category (labor, materials, subs, expenses).</div></div>
+      <div class="def-item"><div class="def-term">Change Order</div><div class="def-desc">A formal document authorizing a change to scope, cost, or schedule. Required before performing out-of-scope work.</div></div>
+      <div class="def-item"><div class="def-term">Contingency</div><div class="def-desc">Budget for identified risks that may occur. Released by the PM. Not for scope creep.</div></div>
+      <div class="def-item"><div class="def-term">Control Account</div><div class="def-desc">The management unit at which cost and schedule performance are measured.</div></div>
+      <div class="def-item"><div class="def-term">CPI (Cost Performance Index)</div><div class="def-desc">EV ÷ AC. Measures cost efficiency. Below 1.0 = over budget per unit of work.</div></div>
+      <div class="def-item"><div class="def-term">Critical Path</div><div class="def-desc">The longest duration sequence of dependent activities. Determines the project end date.</div></div>
+      <div class="def-item"><div class="def-term">EAC (Estimate at Completion)</div><div class="def-desc">Projected total cost at project completion. Updated periodically.</div></div>
+      <div class="def-item"><div class="def-term">ETC (Estimate to Complete)</div><div class="def-desc">Expected cost to finish the remaining work. A forward-looking judgment, not a formula.</div></div>
+      <div class="def-item"><div class="def-term">EV (Earned Value)</div><div class="def-desc">Budgeted cost of work actually completed. BAC × % complete.</div></div>
+      <div class="def-item"><div class="def-term">Float / Slack</div><div class="def-desc">Time an activity can be delayed without delaying the project end date.</div></div>
+      <div class="def-item"><div class="def-term">Forecast</div><div class="def-desc">A projection of future performance based on current data. EAC is the primary cost forecast.</div></div>
+      <div class="def-item"><div class="def-term">Lump Sum Contract</div><div class="def-desc">Fixed price for a defined scope. Cost risk borne by the consultant.</div></div>
+      <div class="def-item"><div class="def-term">Management Reserve</div><div class="def-desc">Budget for unknown unknowns. Held above the project level.</div></div>
+      <div class="def-item"><div class="def-term">Milestone</div><div class="def-desc">A significant point in the schedule. Zero duration. Marks completion of a phase or major deliverable.</div></div>
+      <div class="def-item"><div class="def-term">PV (Planned Value)</div><div class="def-desc">Budgeted cost of work planned to be done by the status date. The schedule baseline in cost terms.</div></div>
+      <div class="def-item"><div class="def-term">RAG Status</div><div class="def-desc">Red/Amber/Green traffic light system for project health reporting.</div></div>
+      <div class="def-item"><div class="def-term">Retainage</div><div class="def-desc">A percentage of contract value held by the client until final completion. Typically 5–10%.</div></div>
+      <div class="def-item"><div class="def-term">Risk Register</div><div class="def-desc">A log of identified project risks with probability, impact, expected value, and response plans.</div></div>
+      <div class="def-item"><div class="def-term">Scope Creep</div><div class="def-desc">Unauthorized expansion of project scope without adjustment to budget or schedule.</div></div>
+      <div class="def-item"><div class="def-term">SPI (Schedule Performance Index)</div><div class="def-desc">EV ÷ PV. Measures schedule efficiency. Below 1.0 = behind schedule.</div></div>
+      <div class="def-item"><div class="def-term">T&amp;M (Time &amp; Materials)</div><div class="def-desc">Contract type billed at actual rates. Cost risk borne by client.</div></div>
+      <div class="def-item"><div class="def-term">VAC (Variance at Completion)</div><div class="def-desc">BAC − EAC. Projected final variance. Negative = projected overrun.</div></div>
+      <div class="def-item"><div class="def-term">WBS (Work Breakdown Structure)</div><div class="def-desc">Hierarchical decomposition of total project scope into manageable components.</div></div>
+    </div>
+  </div>
+
+  <div class="mod-nav">
+    <button class="btn" onclick="showPage('m10', document.querySelector('[data-target=m10]'))">← Module 10</button>
+    <button class="btn primary" onclick="showPage('home', document.querySelector('[data-target=home]'))">↑ Back to Top</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+  const pages = ['home','m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','glossary'];
+  const completed = new Set();
+
+  function toggleStory(id) {
+    const block = document.getElementById(id);
+    block.classList.toggle('collapsed');
+  }
+
+  function showPage(id, navEl) {
+    // hide all pages
+    document.querySelectorAll('.module-page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    // update nav
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if (navEl) navEl.classList.add('active');
+
+    // mark completed
+    completed.add(id);
+    updateProgress();
+
+    // scroll main to top
+    document.getElementById('main').scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function updateProgress() {
+    const total = pages.length;
+    const done = completed.size;
+    const pct = Math.round((done / total) * 100);
+    document.getElementById('pct').textContent = pct + '%';
+    document.getElementById('prog-fill').style.width = pct + '%';
+
+    // mark nav items completed
+    completed.forEach(id => {
+      const nav = document.querySelector(`[data-target="${id}"]`);
+      if (nav && id !== getCurrentPage()) {
+        nav.classList.add('completed');
+        nav.querySelector('.nav-check').style.opacity = '1';
+      }
+    });
+  }
+
+  function getCurrentPage() {
+    const active = document.querySelector('.module-page.active');
+    return active ? active.id : '';
+  }
+
+  // Mark home as completed on load
+  completed.add('home');
+  updateProgress();
+
+  // Quiz logic
+  function checkQuiz(qid, el, correct) {
+    const block = document.getElementById(qid);
+    const opts = block.querySelectorAll('.quiz-opt');
+    const fb = document.getElementById(qid + '-fb');
+
+    opts.forEach(o => {
+      o.classList.add('disabled');
+      o.onclick = null;
+    });
+
+    if (correct) {
+      el.classList.add('correct');
+      fb.className = 'quiz-feedback show ok';
+      fb.textContent = '✓ Correct! ' + getExplanation(qid, true);
+    } else {
+      el.classList.add('wrong');
+      fb.className = 'quiz-feedback show no';
+      fb.textContent = '✗ Not quite. ' + getExplanation(qid, false);
+      // highlight correct
+      opts.forEach(o => { if (!o.classList.contains('wrong') && getCorrect(qid, o)) o.classList.add('correct'); });
+    }
+  }
+
+  function getCorrect(qid, el) { return false; } // visual only
+
+  function getExplanation(qid, correct) {
+    const explanations = {
+      q1: correct ? "On a fixed-price contract, 90% of budget spent with only 70% work done means you're tracking to overrun. Budget × % complete (EV) = $140k, but you've spent $180k." : "On lump sum, spending 90% to complete 70% is a serious warning. Your efficiency (CPI) is 0.78.",
+      q2: correct ? "A WBS work package should have a defined deliverable, an estimable scope, and verifiable completion. 'Draft Report — Structural Assessment' meets all three." : "The lowest WBS level should be a specific deliverable or task, not a phase or resource list.",
+      q3: correct ? "The 50/50 rule awards credit at a defined gate — in this case, when the first draft is issued. No gate = no credit. EV = $0, regardless of how many hours have been spent. This is exactly the point of rules of credit: they prevent subjective progress claims." : "Rules of credit are mechanical — credit is only earned when the pre-agreed gate is triggered. Spending money does not earn credit. Until the draft is issued, the 50% gate hasn't fired, so EV = $0.",
+      q4: correct ? "Trend EAC = $500,000 ÷ 0.942 = $530,786. The bottom-up EAC of $537,000 is more appropriate because the overrun is caused by a specific, isolated issue — extra boreholes from changed site conditions — not a systemic efficiency problem across the whole project. When the cause is known and contained, a bottom-up estimate is always more defensible than a trend extrapolation." : "Trend EAC = BAC ÷ CPI = $500,000 ÷ 0.942 = $530,786. The correct answer explains why the bottom-up method is better here: the overrun has a specific, documented cause. CPI trend forecasting assumes the whole project is inefficient — but here, only the drilling sub is the problem.",
+      q5: correct ? "Float is what determines schedule risk, not duration. Activity A is on the critical path — any slip directly delays the project." : "Duration without float context is meaningless for schedule risk. Float is the key variable.",
+      q6: correct ? "Always document scope changes and get written approval before proceeding. Even 8 hours of unrecovered time adds up — and doing it once without documentation sets a precedent." : "Doing out-of-scope work without authorization exposes your firm to unrecovered costs and sets a precedent that scope boundaries don't matter.",
+    };
+    return explanations[qid] || '';
+  }
+</script>
+</body>
+</html>
