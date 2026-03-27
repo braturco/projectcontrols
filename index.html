@@ -428,6 +428,78 @@
   .gantt-milestone-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:#e05a4e;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e05a4e;z-index:3;}
   .email-attachment{cursor:pointer;transition:background 0.12s,border-color 0.12s;}
   .email-attachment:hover{background:#e8eef8;border-color:#99aacc;}
+  /* Excel-style estimate */
+  .xls-titlebar{background:#217346;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .xls-titlebar-left{display:flex;align-items:center;gap:8px;}
+  .xls-filename{color:#fff;font-size:12.5px;font-weight:600;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .xls-close-btn{background:none;border:none;color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}.xls-close-btn:hover{color:#fff;}
+  .xls-ribbon{background:#f3f2f1;border-bottom:1px solid #c8c6c4;padding:2px 12px;display:flex;gap:4px;}
+  .xls-ribbon-item{font-size:11px;color:#605e5c;padding:4px 10px;border-radius:2px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;cursor:default;}
+  .xls-ribbon-item.active{background:#edebe9;color:#201f1e;}
+  .xls-namebar{background:#fff;border-bottom:1px solid #c8c6c4;display:flex;align-items:stretch;}
+  .xls-namebox{width:72px;border-right:1px solid #c8c6c4;padding:3px 8px;font-size:12px;font-family:'Calibri',Arial,sans-serif;color:#333;flex-shrink:0;display:flex;align-items:center;}
+  .xls-fx{padding:3px 10px;font-size:12px;font-family:'Calibri',Arial,sans-serif;color:#333;flex:1;display:flex;align-items:center;gap:8px;}
+  .xls-fx-icon{color:#217346;font-weight:700;font-size:14px;flex-shrink:0;}
+  .xls-body{overflow-x:auto;border-bottom:1px solid #c8c6c4;}
+  .xls-tbl{border-collapse:collapse;font-family:'Calibri',Arial,sans-serif;font-size:13px;white-space:nowrap;}
+  .xls-tbl .col-hdr{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;font-weight:400;padding:2px 12px;}
+  .xls-tbl .row-num{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;padding:2px 10px;min-width:32px;}
+  .xls-tbl td.xc{border:1px solid #d0d0d0;padding:2px 10px;}
+  .xls-tbl td.xc.hdr{background:#217346;color:#fff;font-weight:700;}
+  .xls-tbl td.xc.total{background:#e2efda;font-weight:700;border-top:2px solid #375623;}
+  .xls-tbl td.xc.ctg{color:#888;font-style:italic;background:#fafafa;}
+  .xls-tbl td.xc.grand{background:#c6efce;font-weight:700;color:#375623;border-top:2px solid #375623;}
+  .xls-tbl td.xc.sub{background:#fafafa;color:#999;font-size:11.5px;}
+  .xls-tbl td.xc.drill{background:#fde8e6;color:#c0392b;font-weight:600;}
+  .xls-tbl td.xc.r{text-align:right;}
+  .xls-tbl td.xc.sel{background:#d9e8fb;}
+  .xls-tabs{background:#f2f2f2;border-top:1px solid #c8c6c4;padding:4px 10px 0;display:flex;align-items:flex-end;}
+  .xls-tab{padding:3px 16px;font-size:11px;font-family:'Calibri',Arial,sans-serif;border:1px solid #c8c6c4;border-bottom:none;border-radius:3px 3px 0 0;cursor:default;margin-right:2px;}
+  .xls-tab.on{background:#fff;color:#217346;font-weight:700;}
+  .xls-tab.off{background:#e0e0e0;color:#999;}
+  .xls-notes{padding:14px 18px 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  /* Word-style brief */
+  .word-titlebar{background:#2b579a;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .word-titlebar-left{display:flex;align-items:center;gap:8px;}
+  .word-filename{color:#fff;font-size:12.5px;font-weight:600;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-close-btn{background:none;border:none;color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}.word-close-btn:hover{color:#fff;}
+  .word-ribbon{background:#2b579a;border-bottom:3px solid #185abd;padding:0 12px;display:flex;gap:2px;align-items:flex-end;}
+  .word-ribbon-tab{font-size:11px;color:rgba(255,255,255,0.75);padding:6px 12px;border-radius:3px 3px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;cursor:default;}
+  .word-ribbon-tab.active{background:#fff;color:#2b579a;font-weight:600;}
+  .word-ribbon-tools{background:#f3f3f3;border-bottom:1px solid #d0d0d0;padding:4px 14px;display:flex;gap:14px;align-items:center;}
+  .word-tool{font-size:11px;color:#444;font-family:-apple-system,'Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:default;padding:2px 6px;border-radius:2px;}
+  .word-tool:hover{background:#e8e8e8;}
+  .word-tool-icon{font-size:14px;}
+  .word-tool-label{font-size:9px;color:#666;}
+  .word-tool-sep{width:1px;height:32px;background:#d0d0d0;margin:0 4px;}
+  .word-page-area{background:#c8c8c8;padding:20px 24px;min-height:100px;}
+  .word-page{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);padding:36px 48px 40px;font-family:'Calibri',Georgia,serif;color:#1a1a1a;position:relative;}
+  .word-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #2b579a;}
+  .word-org{font-size:11px;color:#2b579a;text-transform:uppercase;letter-spacing:0.1em;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;}
+  .word-doc-type{font-size:10px;color:#888;font-family:-apple-system,'Segoe UI',Arial,sans-serif;margin-top:2px;}
+  .word-ref{text-align:right;font-size:10.5px;color:#666;font-family:-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.7;}
+  .word-title{font-size:22px;font-weight:700;color:#2b579a;margin-bottom:3px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-subtitle{font-size:12px;color:#888;font-family:-apple-system,'Segoe UI',Arial,sans-serif;margin-bottom:18px;}
+  .word-h2{font-size:13px;font-weight:700;color:#2b579a;margin:16px 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;border-bottom:1px solid #c5d8f0;padding-bottom:3px;}
+  .word-p{font-size:13px;line-height:1.75;color:#222;margin-bottom:8px;font-family:'Calibri',Arial,sans-serif;}
+  .word-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 12px;font-family:'Calibri',Arial,sans-serif;}
+  .word-tbl th{background:#2b579a;color:#fff;padding:6px 10px;text-align:left;font-size:11px;font-weight:600;}
+  .word-tbl td{padding:6px 10px;border-bottom:1px solid #dce6f1;color:#333;vertical-align:top;}
+  .word-tbl tr:nth-child(even) td{background:#f0f6ff;}
+  .word-risk-box{background:#fff4f4;border-left:3px solid #c0392b;padding:8px 12px;margin:6px 0 10px;border-radius:0 3px 3px 0;}
+  .word-risk-box.amber{background:#fffbf0;border-left-color:#e8a04a;}
+  .word-risk-title{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c0392b;margin-bottom:4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-risk-box.amber .word-risk-title{color:#b8860b;}
+  .word-risk-text{font-size:12.5px;line-height:1.7;color:#333;font-family:'Calibri',Arial,sans-serif;}
+  .word-footer{margin-top:20px;padding-top:10px;border-top:1px solid #dce6f1;font-size:10.5px;color:#999;font-family:-apple-system,'Segoe UI',Arial,sans-serif;display:flex;justify-content:space-between;}
+  .word-statusbar{background:#2b579a;padding:3px 14px;display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.7);font-family:-apple-system,'Segoe UI',Arial,sans-serif;border-radius:0 0 4px 4px;}
+  /* Landscape schedule */
+  .doc-window.landscape{max-width:960px;}
+  .doc-window.landscape .gantt-lbl{width:180px;min-width:180px;}
+  .doc-window.landscape .gantt-months-row{margin-left:180px;}
+  .doc-window.landscape .gantt-track{height:22px;}
+  .doc-window.landscape .gantt-bar-label{font-size:10.5px;}
+  .doc-window.landscape .gantt-row{margin-bottom:6px;}
 </style>
 </head>
 <body>
@@ -1536,49 +1608,166 @@
 
 <div class="doc-overlay" id="doc-estimate" onclick="if(event.target===this)closeDoc(this)">
   <div class="doc-window">
-    <div class="doc-topbar">
-      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
-      <span class="doc-topbar-name">Ridgeline_Estimate_v3.xlsx</span>
-      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-estimate'))">✕</button>
-    </div>
-    <div class="doc-content">
-      <div class="doc-letterhead">
-        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Project Estimate — Internal Use Only</div></div>
-        <div class="doc-ref-block">Project: Ridgeline EA<br>Estimate: v3 — Final for Contract<br>Prepared: December 2024</div>
+    <div class="xls-titlebar">
+      <div class="xls-titlebar-left">
+        <span style="font-size:18px">🟩</span>
+        <span class="xls-filename">Ridgeline_Estimate_v3.xlsx — Northern Environmental Consulting Group</span>
       </div>
-      <div class="doc-h1">Budget Estimate — Summary by Discipline</div>
-      <div class="doc-highlight-box">📊 All labour rates are selling rates (cost + overhead + margin). <strong>Note 1:</strong> Field technician rates use standard straight-time selling rate only — overtime provisions not included in this estimate. Confirm OT rate codes in Oracle before first timesheet posting.</div>
-
-      <table class="doc-tbl">
-        <thead><tr><th>WBS</th><th>Description</th><th>Hours</th><th style="text-align:right">Rate ($/hr)</th><th class="amt">Amount</th></tr></thead>
+      <button class="xls-close-btn" onclick="closeDoc(document.getElementById('doc-estimate'))">✕</button>
+    </div>
+    <div class="xls-ribbon">
+      <div class="xls-ribbon-item active">Home</div>
+      <div class="xls-ribbon-item">Insert</div>
+      <div class="xls-ribbon-item">Formulas</div>
+      <div class="xls-ribbon-item">Data</div>
+      <div class="xls-ribbon-item">View</div>
+    </div>
+    <div class="xls-namebar">
+      <div class="xls-namebox">E13</div>
+      <div class="xls-fx"><span class="xls-fx-icon">fx</span>=SUM(E3:E13)</div>
+    </div>
+    <div class="xls-body">
+      <table class="xls-tbl">
+        <thead>
+          <tr>
+            <td class="row-num"></td>
+            <td class="col-hdr">A</td>
+            <td class="col-hdr">B</td>
+            <td class="col-hdr">C</td>
+            <td class="col-hdr">D</td>
+            <td class="col-hdr">E</td>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>1.1</td><td>Project Management</td><td>900</td><td style="text-align:right">$200</td><td class="amt">$180,000</td></tr>
-          <tr><td>1.2a</td><td>Env. Baseline — Field Surveys</td><td>1,190</td><td style="text-align:right">$185</td><td class="amt">$220,150</td></tr>
-          <tr class="sub-row"><td></td><td>↳ Field technicians (42 field days × avg 2.5 staff)</td><td>840</td><td style="text-align:right">$185</td><td class="amt">$155,400</td></tr>
-          <tr><td>1.2b</td><td>Env. Baseline — Analysis &amp; Report</td><td>1,080</td><td style="text-align:right">$185</td><td class="amt">$199,800</td></tr>
-          <tr><td>1.3a</td><td>Geotech — Internal (oversight, reporting)</td><td>520</td><td style="text-align:right">$210</td><td class="amt">$109,200</td></tr>
-          <tr><td style="color:#c0392b;font-weight:600">1.3b</td><td style="color:#c0392b;font-weight:600">Ridgeline Drilling Inc. — PO (45 boreholes)</td><td style="color:#999">PO</td><td style="text-align:right;color:#c0392b;font-weight:600">$60,000/hole</td><td class="amt hl-red">$2,700,000</td></tr>
-          <tr><td>1.4</td><td>HRIA — Ray Callahan Archaeology (PO)</td><td style="color:#999">PO</td><td style="text-align:right;color:#999">Lump</td><td class="amt">$280,000</td></tr>
-          <tr><td>1.5</td><td>Traditional Land Use</td><td>750</td><td style="text-align:right">$200</td><td class="amt">$150,000</td></tr>
-          <tr><td>1.6</td><td>First Nations Consultation</td><td>1,100</td><td style="text-align:right">$200</td><td class="amt">$220,000</td></tr>
-          <tr><td>1.7</td><td>Hydrotechnical</td><td>900</td><td style="text-align:right">$200</td><td class="amt">$180,000</td></tr>
-          <tr><td>1.8</td><td>Impact Assessment &amp; Reporting</td><td>1,850</td><td style="text-align:right">$200</td><td class="amt">$370,000</td></tr>
-          <tr class="total-row"><td colspan="4"><strong>Total BAC (excl. contingency)</strong></td><td class="amt"><strong>$4,500,000</strong></td></tr>
-          <tr><td colspan="4" style="color:#999;font-size:12px">Project Contingency — PM-held, outside WBS</td><td class="amt" style="color:#999">$225,000</td></tr>
-          <tr class="total-row"><td colspan="4"><strong>Total Contract Value</strong></td><td class="amt"><strong>$4,725,000</strong></td></tr>
+          <tr>
+            <td class="row-num">1</td>
+            <td class="xc hdr">WBS</td>
+            <td class="xc hdr">Description</td>
+            <td class="xc hdr r">Hours</td>
+            <td class="xc hdr r">Rate ($/hr)</td>
+            <td class="xc hdr r">Amount</td>
+          </tr>
+          <tr>
+            <td class="row-num">2</td>
+            <td class="xc">1.1</td>
+            <td class="xc">Project Management</td>
+            <td class="xc r">900</td>
+            <td class="xc r">$200</td>
+            <td class="xc r">$180,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">3</td>
+            <td class="xc">1.2a</td>
+            <td class="xc">Env. Baseline — Field Surveys</td>
+            <td class="xc r">1,190</td>
+            <td class="xc r">$185 ⚠</td>
+            <td class="xc r">$220,150</td>
+          </tr>
+          <tr>
+            <td class="row-num">4</td>
+            <td class="xc sub"></td>
+            <td class="xc sub">↳ Field technicians (42 field days × avg 2.5 staff)</td>
+            <td class="xc sub r">840</td>
+            <td class="xc sub r">$185</td>
+            <td class="xc sub r">$155,400</td>
+          </tr>
+          <tr>
+            <td class="row-num">5</td>
+            <td class="xc">1.2b</td>
+            <td class="xc">Env. Baseline — Analysis &amp; Report</td>
+            <td class="xc r">1,080</td>
+            <td class="xc r">$185</td>
+            <td class="xc r">$199,800</td>
+          </tr>
+          <tr>
+            <td class="row-num">6</td>
+            <td class="xc">1.3a</td>
+            <td class="xc">Geotech — Internal (oversight, reporting)</td>
+            <td class="xc r">520</td>
+            <td class="xc r">$210</td>
+            <td class="xc r">$109,200</td>
+          </tr>
+          <tr>
+            <td class="row-num">7</td>
+            <td class="xc drill">1.3b</td>
+            <td class="xc drill">Ridgeline Drilling Inc. — PO (45 boreholes)</td>
+            <td class="xc drill r">PO</td>
+            <td class="xc drill r">$60,000/hole</td>
+            <td class="xc drill r">$2,700,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">8</td>
+            <td class="xc">1.4</td>
+            <td class="xc">HRIA — Ray Callahan Archaeology (PO)</td>
+            <td class="xc r" style="color:#999">PO</td>
+            <td class="xc r" style="color:#999">Lump</td>
+            <td class="xc r">$280,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">9</td>
+            <td class="xc">1.5</td>
+            <td class="xc">Traditional Land Use</td>
+            <td class="xc r">750</td>
+            <td class="xc r">$200</td>
+            <td class="xc r">$150,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">10</td>
+            <td class="xc">1.6</td>
+            <td class="xc">First Nations Consultation</td>
+            <td class="xc r">1,100</td>
+            <td class="xc r">$200</td>
+            <td class="xc r">$220,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">11</td>
+            <td class="xc">1.7</td>
+            <td class="xc">Hydrotechnical</td>
+            <td class="xc r">900</td>
+            <td class="xc r">$200</td>
+            <td class="xc r">$180,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">12</td>
+            <td class="xc">1.8</td>
+            <td class="xc">Impact Assessment &amp; Reporting</td>
+            <td class="xc r">1,850</td>
+            <td class="xc r">$200</td>
+            <td class="xc r">$370,000</td>
+          </tr>
+          <tr>
+            <td class="row-num">13</td>
+            <td class="xc total" colspan="4"><strong>Total BAC (excl. contingency)</strong></td>
+            <td class="xc total r sel"><strong>$4,500,000</strong></td>
+          </tr>
+          <tr>
+            <td class="row-num">14</td>
+            <td class="xc ctg" colspan="4"><em>Project Contingency — PM-held, outside WBS</em></td>
+            <td class="xc ctg r"><em>$225,000</em></td>
+          </tr>
+          <tr>
+            <td class="row-num">15</td>
+            <td class="xc grand" colspan="4"><strong>Total Contract Value</strong></td>
+            <td class="xc grand r"><strong>$4,725,000</strong></td>
+          </tr>
         </tbody>
       </table>
-
-      <div class="doc-h2">Notes</div>
-      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 1 — OT Risk:</strong> Field technicians are hourly employees. This estimate uses straight-time selling rates only. If field season requires extended hours (&gt;8 hrs/day or &gt;44 hrs/wk), actual costs will exceed estimate. Ensure Oracle OT rate codes are loaded for all hourly field staff before project starts.</div>
-      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 2 — Drilling Risk:</strong> Ridgeline PO ($2,700,000) is 60% of total BAC. Borehole count (45) is based on preliminary methodology report using dated soil mapping. Program expansion is covered by the changed conditions clause (contract Section 4.2) but requires timely field documentation and written notice.</div>
-      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 3 — Non-Billable Costs:</strong> Not included: travel time to/from field (~2 hrs/person/day, not billable per contract), principal oversight (~2 hrs/month), proposal write-off (~$3,200). Track in a separate register outside Oracle — these are real firm costs that affect margin.</div>
+    </div>
+    <div class="xls-tabs">
+      <div class="xls-tab on">Budget Summary</div>
+      <div class="xls-tab off">Assumptions</div>
+      <div class="xls-tab off">Risk Register</div>
+    </div>
+    <div class="xls-notes">
+      <div class="doc-p" style="font-size:12px;color:#555;"><strong>⚠ Note 1 — OT Risk:</strong> Field technicians are hourly. This estimate uses straight-time selling rates only ($185/hr). If field season requires extended hours (&gt;8 hrs/day or &gt;44 hrs/wk), actual costs will exceed estimate. Confirm Oracle OT rate codes are loaded for all hourly staff before first timesheet.</div>
+      <div class="doc-p" style="font-size:12px;color:#555;"><strong>Note 2 — Drilling Risk:</strong> Ridgeline PO ($2,700,000) = 60% of total BAC. Borehole count (45) based on preliminary methodology report using dated soil mapping. Program expansion covered by changed conditions clause (contract §4.2) — requires timely field documentation.</div>
+      <div class="doc-p" style="font-size:12px;color:#555;"><strong>Note 3 — Non-Billable Costs Not Included:</strong> Travel time (~2 hrs/person/day), principal oversight (~2 hrs/month), proposal write-off (~$3,200). Track in a separate register outside Oracle.</div>
     </div>
   </div>
 </div>
 
 <div class="doc-overlay" id="doc-schedule" onclick="if(event.target===this)closeDoc(this)">
-  <div class="doc-window">
+  <div class="doc-window landscape">
     <div class="doc-topbar">
       <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
       <span class="doc-topbar-name">Ridgeline_Baseline_Schedule.pdf</span>
@@ -1662,61 +1851,96 @@
 
 <div class="doc-overlay" id="doc-brief" onclick="if(event.target===this)closeDoc(this)">
   <div class="doc-window">
-    <div class="doc-topbar">
-      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
-      <span class="doc-topbar-name">Ridgeline_Project_Brief.docx</span>
-      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-brief'))">✕</button>
+    <div class="word-titlebar">
+      <div class="word-titlebar-left">
+        <span style="font-size:18px">🔵</span>
+        <span class="word-filename">Ridgeline_Project_Brief.docx</span>
+      </div>
+      <button class="word-close-btn" onclick="closeDoc(document.getElementById('doc-brief'))">✕</button>
     </div>
-    <div class="doc-content">
-      <div class="doc-letterhead">
-        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Project Brief — Internal Distribution Only</div></div>
-        <div class="doc-ref-block">Project No. 2025-0147<br>Issued: January 2025</div>
+    <div class="word-ribbon">
+      <div class="word-ribbon-tab active">Home</div>
+      <div class="word-ribbon-tab">Insert</div>
+      <div class="word-ribbon-tab">Layout</div>
+      <div class="word-ribbon-tab">References</div>
+      <div class="word-ribbon-tab">Review</div>
+    </div>
+    <div class="word-ribbon-tools">
+      <div class="word-tool"><span class="word-tool-icon">📋</span><span class="word-tool-label">Paste</span></div>
+      <div class="word-tool-sep"></div>
+      <div class="word-tool"><span class="word-tool-icon"><strong>B</strong></span><span class="word-tool-label">Bold</span></div>
+      <div class="word-tool"><span class="word-tool-icon"><em>I</em></span><span class="word-tool-label">Italic</span></div>
+      <div class="word-tool"><span class="word-tool-icon" style="text-decoration:underline">U</span><span class="word-tool-label">Underline</span></div>
+      <div class="word-tool-sep"></div>
+      <div class="word-tool"><span class="word-tool-icon">¶</span><span class="word-tool-label">Styles</span></div>
+      <div class="word-tool"><span class="word-tool-icon">🔍</span><span class="word-tool-label">Find</span></div>
+    </div>
+    <div class="word-page-area">
+      <div class="word-page">
+        <div class="word-page-header">
+          <div>
+            <div class="word-org">Northern Environmental Consulting Group</div>
+            <div class="word-doc-type">Project Brief — Internal Distribution Only</div>
+          </div>
+          <div class="word-ref">Project No. 2025-0147<br>Issued: January 2025<br>CONFIDENTIAL</div>
+        </div>
+
+        <div class="word-title">Ridgeline Pipeline EA — Project Brief</div>
+        <div class="word-subtitle">30km Boreal Corridor · AER Environmental Assessment · $4.5M · 12 Months</div>
+
+        <div class="word-h2">Project Overview</div>
+        <div class="word-p"><strong>Client:</strong> Northern Corridor Pipeline Ltd. — a mid-size pipeline developer proposing a new natural gas transmission line through boreal terrain northeast of Grande Prairie, Alberta.</div>
+        <div class="word-p"><strong>Scope:</strong> Full Environmental and Socio-Economic Assessment (ESEA) for a proposed 30km pipeline corridor. AER regulatory submission required before client may receive construction approval. Our submission becomes part of the regulatory record.</div>
+        <div class="word-p"><strong>Study area:</strong> 30km linear corridor in boreal mixed-wood forest. Terrain includes wetlands, 7 significant watercourse crossings, and variable soil conditions. <strong>Preliminary soil mapping is dated — geotech conditions should be treated as uncertain until confirmed by drilling.</strong></div>
+
+        <div class="word-h2">Project Team</div>
+        <table class="word-tbl">
+          <thead><tr><th>Role</th><th>Name</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Project Manager</td><td>Sarah Chen, P.Eng.</td><td>Client-facing; contract authority</td></tr>
+            <tr><td>Project Controller</td><td>Jamie Okafor</td><td>First PC role — Dan Reyes (BC) available by phone</td></tr>
+            <tr><td>Geotech Lead</td><td>Marcus Webb, P.Geo.</td><td>Oversees Ridgeline program; weekly field logs</td></tr>
+            <tr><td>Sr. Env. Technician</td><td>Brad Kohut</td><td>Field access, permitting, MBCA compliance</td></tr>
+            <tr><td>Client PM</td><td>Dale Fortis</td><td>Northern Corridor; experienced and fair</td></tr>
+            <tr><td>Drilling Subconsultant</td><td>Ridgeline Drilling Inc.</td><td>$2.7M PO — 45 boreholes; key cost risk</td></tr>
+            <tr><td>Archaeology Sub (HRIA)</td><td>Ray Callahan Archaeology</td><td>$280K PO; Stages 1–2</td></tr>
+          </tbody>
+        </table>
+
+        <div class="word-h2">Scope — 7 Study Components → 1 AER Submission</div>
+        <table class="word-tbl">
+          <thead><tr><th>#</th><th>Study Component</th><th>Lead</th><th>Key Output</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Environmental Baseline Surveys</td><td>Brad + field team</td><td>Baseline report — vegetation, wildlife, soils, water</td></tr>
+            <tr><td>2</td><td>Geotechnical Investigation</td><td>Marcus / Ridgeline</td><td>Borehole logs + geotech report</td></tr>
+            <tr><td>3</td><td>Historical Resources Impact Assessment</td><td>Ray Callahan (sub)</td><td>HRIA report — AER + Alberta Culture required</td></tr>
+            <tr><td>4</td><td>Traditional Land Use Study</td><td>Internal TLU team</td><td>TLU report — supports consultation record</td></tr>
+            <tr><td>5</td><td>First Nations Consultation</td><td>Internal consult team</td><td>What We Heard report; engagement record</td></tr>
+            <tr><td>6</td><td>Hydrotechnical Assessments</td><td>Internal hydrotechnical</td><td>7 crossing assessment reports</td></tr>
+            <tr><td>7</td><td>Integrated Assessment Report</td><td>Sarah + senior team</td><td>Final AER submission package</td></tr>
+          </tbody>
+        </table>
+
+        <div class="word-h2">Key Risks</div>
+        <div class="word-risk-box">
+          <div class="word-risk-title">R-01 · Primary Risk — Drilling Program</div>
+          <div class="word-risk-text">The geotech drilling program is the largest cost item (60% of BAC) and the highest-uncertainty element. Preliminary soil mapping is outdated. If actual conditions require additional boreholes, impact is <strong>$60,000 per hole</strong>. Changed conditions clause (§4.2) provides recovery — requires field documentation and written notice within 5 business days. <strong>Monitor Marcus's weekly field logs without fail.</strong></div>
+        </div>
+        <div class="word-risk-box amber">
+          <div class="word-risk-title">R-02 · Secondary Risk — April 1 Clearing Constraint</div>
+          <div class="word-risk-text">All clearing must be complete before April 1 (MBCA breeding season restriction). If client routing changes require new clearing after this date, cost recovery is available under §8.4 (client-caused delay). Brad Kohut leads MBCA compliance monitoring.</div>
+        </div>
+
+        <div class="word-footer">
+          <span>Prepared by: Sarah Chen, P.Eng. — January 2025</span>
+          <span>For internal project team use only · Do not distribute to client</span>
+        </div>
       </div>
-      <div class="doc-h1">Ridgeline Pipeline EA — Project Brief</div>
-
-      <div class="doc-h2">Project Overview</div>
-      <div class="doc-p"><strong>Client:</strong> Northern Corridor Pipeline Ltd. — a mid-size pipeline developer proposing a new natural gas transmission line through boreal terrain northeast of Grande Prairie, Alberta.</div>
-      <div class="doc-p"><strong>What we're doing:</strong> Full Environmental and Socio-Economic Assessment (ESEA) for a proposed 30km pipeline corridor. A regulatory submission to the AER is required before the client may receive construction approval. Our submission becomes part of the regulatory record.</div>
-      <div class="doc-p"><strong>Study area:</strong> 30km linear corridor in boreal mixed-wood forest, NE of Grande Prairie, AB. Terrain includes wetlands, watercourse crossings (7 significant), and areas with variable soil conditions. <strong>Preliminary soil mapping is dated — geotech conditions should be treated as uncertain until confirmed by drilling.</strong></div>
-
-      <div class="doc-h2">Project Team</div>
-      <table class="doc-tbl">
-        <thead><tr><th>Role</th><th>Name</th><th>Notes</th></tr></thead>
-        <tbody>
-          <tr><td>Project Manager</td><td>Sarah Chen, P.Eng.</td><td>Client-facing; contract authority; tight ship</td></tr>
-          <tr><td>Project Controller</td><td>Jamie Okafor</td><td>First PC role — supported by Dan Reyes (BC, by phone)</td></tr>
-          <tr><td>Geotech Lead</td><td>Marcus Webb, P.Geo.</td><td>Oversees Ridgeline program; authoritative field log</td></tr>
-          <tr><td>Sr. Env. Technician</td><td>Brad Kohut</td><td>Field access, permitting, MBCA compliance lead</td></tr>
-          <tr><td>Client PM</td><td>Dale Fortis</td><td>Northern Corridor; experienced; professional; fair</td></tr>
-          <tr><td>Drilling Sub</td><td>Ridgeline Drilling Inc.</td><td>$2.7M PO — 45 boreholes; the key schedule and cost risk</td></tr>
-          <tr><td>Archaeology Sub</td><td>Ray Callahan Archaeology</td><td>$280K PO; HRIA Stages 1–2</td></tr>
-        </tbody>
-      </table>
-
-      <div class="doc-h2">Scope Summary — 7 Components → 1 Submission</div>
-      <table class="doc-tbl">
-        <thead><tr><th>#</th><th>Study Component</th><th>Lead</th><th>Key Output</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>Environmental Baseline Surveys</td><td>Brad + field team</td><td>Baseline report — vegetation, wildlife, soils, water</td></tr>
-          <tr><td>2</td><td>Geotechnical Investigation</td><td>Marcus / Ridgeline</td><td>Borehole logs + geotech report</td></tr>
-          <tr><td>3</td><td>Historical Resources Impact Assessment</td><td>Ray Callahan (sub)</td><td>HRIA report — AER + Alberta Culture required</td></tr>
-          <tr><td>4</td><td>Traditional Land Use Study</td><td>Internal TLU team</td><td>TLU report — supports consultation record</td></tr>
-          <tr><td>5</td><td>First Nations Consultation</td><td>Internal consult team</td><td>What We Heard report; engagement record</td></tr>
-          <tr><td>6</td><td>Hydrotechnical Assessments</td><td>Internal hydrotechnical</td><td>7 crossing assessment reports</td></tr>
-          <tr><td>7</td><td>Integrated Assessment Report</td><td>Sarah + senior team</td><td>Final AER submission package</td></tr>
-        </tbody>
-      </table>
-
-      <div class="doc-h2">Key Risks — As Identified at Proposal</div>
-      <div class="doc-clause-box">
-        <div class="clause-num">Primary Risk — Drilling Program (R-01)</div>
-        <div class="clause-text">The geotech drilling program is the largest cost item (60% of BAC) and the highest-uncertainty element. Preliminary soil mapping is outdated. If actual conditions require additional boreholes, impact is <strong>$60,000 per hole</strong>. The changed conditions clause (Section 4.2) provides a recovery mechanism — but it requires timely field documentation and written notice within 5 business days. <strong>Monitor Marcus's weekly field logs without fail.</strong></div>
-      </div>
-      <div class="doc-clause-box">
-        <div class="clause-num">Secondary Risk — April 1 Clearing Constraint (R-02)</div>
-        <div class="clause-text">All clearing must be done before April 1 (MBCA). If the client requests routing changes that require new clearing after this date, cost recovery is available under Section 8.4. Brad Kohut is responsible for monitoring access compliance and flagging any routing issues immediately.</div>
-      </div>
-      <div class="doc-p" style="color:#888;font-size:12px;margin-top:16px;">Prepared by: Sarah Chen — January 2025. For internal project team use only. Do not distribute to client.</div>
+    </div>
+    <div class="word-statusbar">
+      <span>Page 1 of 1 · 487 words</span>
+      <span>Ridgeline_Project_Brief.docx · Saved</span>
+      <span>🔍 100%</span>
     </div>
   </div>
 </div>
