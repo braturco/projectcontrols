@@ -379,6 +379,55 @@
 
   ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:var(--bg);}
   ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;} ::-webkit-scrollbar-thumb:hover{background:var(--teal);}
+
+  /* ── DOCUMENT VIEWER MODALS ── */
+  .doc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:flex-start;justify-content:center;padding:32px 20px;overflow-y:auto;}
+  .doc-overlay.open{display:flex;}
+  .doc-window{background:#fff;border-radius:4px;width:100%;max-width:760px;box-shadow:0 12px 50px rgba(0,0,0,0.6);font-family:-apple-system,'Segoe UI',Arial,sans-serif;color:#1a1a1a;position:relative;margin:auto;}
+  .doc-topbar{background:#e8e8e8;border-bottom:1px solid #ccc;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .doc-topbar-dots{display:flex;gap:6px;}
+  .doc-topbar-dot{width:11px;height:11px;border-radius:50%;}
+  .doc-topbar-dot.r{background:#ff5f56;}.doc-topbar-dot.y{background:#ffbd2e;}.doc-topbar-dot.g{background:#27c93f;}
+  .doc-topbar-name{font-size:12px;color:#555;font-weight:500;}
+  .doc-close-btn{background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:0 4px;line-height:1;}.doc-close-btn:hover{color:#111;}
+  .doc-content{padding:30px 34px 36px;}
+  .doc-letterhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #1a2744;}
+  .doc-logo-name{font-size:14px;font-weight:700;color:#1a2744;}
+  .doc-logo-sub{font-size:11px;color:#888;margin-top:2px;}
+  .doc-ref-block{text-align:right;font-size:11px;color:#666;line-height:1.7;}
+  .doc-h1{font-size:17px;font-weight:700;color:#1a2744;margin-bottom:4px;}
+  .doc-h2{font-size:11px;font-weight:700;color:#1a2744;margin:18px 0 7px;text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;}
+  .doc-p{font-size:13px;line-height:1.75;color:#333;margin-bottom:10px;}
+  .doc-clause-box{background:#f7f8fa;border-left:3px solid #1a2744;padding:10px 14px;margin:6px 0 10px;border-radius:0 3px 3px 0;}
+  .doc-clause-box .clause-num{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#3eb8b8;margin-bottom:4px;}
+  .doc-clause-box .clause-text{font-size:13px;line-height:1.72;color:#333;}
+  .doc-clause-box .clause-text strong{color:#1a2744;}
+  .doc-highlight-box{background:#fff8e6;border:1px solid #f0c040;border-radius:3px;padding:8px 12px;margin:10px 0;font-size:12.5px;color:#7a5800;line-height:1.6;}
+  .doc-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 12px;}
+  .doc-tbl th{background:#1a2744;color:#fff;padding:7px 11px;text-align:left;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;}
+  .doc-tbl td{padding:7px 11px;border-bottom:1px solid #eee;color:#333;vertical-align:top;}
+  .doc-tbl tr.total-row td{background:#f0f4fa;font-weight:700;color:#1a2744;border-top:2px solid #1a2744;border-bottom:none;}
+  .doc-tbl tr.sub-row td{color:#999;font-size:11.5px;padding-top:3px;padding-bottom:3px;}
+  .doc-tbl .amt{text-align:right;font-family:monospace;}
+  .doc-tbl .hl-red{color:#c0392b;font-weight:600;}
+  .doc-sig{margin-top:24px;padding-top:16px;border-top:1px solid #e0e0e0;display:flex;gap:40px;}
+  .doc-sig-block{flex:1;}
+  .doc-sig-line{border-bottom:1px solid #333;height:32px;margin-bottom:4px;}
+  .doc-sig-name{font-size:11px;color:#666;}
+  /* Gantt */
+  .gantt-wrap{margin:10px 0 16px;}
+  .gantt-months-row{display:flex;margin-left:148px;margin-bottom:3px;}
+  .gantt-month-lbl{flex:1;font-size:9px;text-align:center;color:#aaa;letter-spacing:0.04em;text-transform:uppercase;}
+  .gantt-row{display:flex;align-items:center;margin-bottom:5px;}
+  .gantt-lbl{width:148px;min-width:148px;font-size:11.5px;color:#444;padding-right:8px;line-height:1.3;}
+  .gantt-track{flex:1;height:18px;background:#f0f0f0;border-radius:2px;position:relative;}
+  .gantt-bar{position:absolute;height:100%;border-radius:2px;}
+  .gantt-bar-label{position:absolute;inset:0;display:flex;align-items:center;padding:0 6px;font-size:9px;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;}
+  .gantt-constraint-line{position:absolute;top:-5px;bottom:-5px;width:2px;background:#e05a4e;z-index:2;}
+  .gantt-constraint-label{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:8px;color:#e05a4e;white-space:nowrap;font-weight:700;letter-spacing:0.04em;}
+  .gantt-milestone-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:#e05a4e;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e05a4e;z-index:3;}
+  .email-attachment{cursor:pointer;transition:background 0.12s,border-color 0.12s;}
+  .email-attachment:hover{background:#e8eef8;border-color:#99aacc;}
 </style>
 </head>
 <body>
@@ -499,10 +548,10 @@
         <p>See you Friday.</p>
       </div>
       <div class="email-attachment-bar">
-        <div class="email-attachment"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
-        <div class="email-attachment"><span class="email-attachment-icon">📊</span> Ridgeline_Estimate_v3.xlsx</div>
-        <div class="email-attachment"><span class="email-attachment-icon">📅</span> Ridgeline_Baseline_Schedule.pdf</div>
-        <div class="email-attachment"><span class="email-attachment-icon">📋</span> Ridgeline_Project_Brief.docx</div>
+        <div class="email-attachment" onclick="openDoc('doc-contract')"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
+        <div class="email-attachment" onclick="openDoc('doc-estimate')"><span class="email-attachment-icon">📊</span> Ridgeline_Estimate_v3.xlsx</div>
+        <div class="email-attachment" onclick="openDoc('doc-schedule')"><span class="email-attachment-icon">📅</span> Ridgeline_Baseline_Schedule.pdf</div>
+        <div class="email-attachment" onclick="openDoc('doc-brief')"><span class="email-attachment-icon">📋</span> Ridgeline_Project_Brief.docx</div>
       </div>
       <div class="email-sig">
         <span class="sig-name">Sarah Chen, P.Eng.</span><br>
@@ -1410,7 +1459,273 @@
 </main>
 </div>
 
+<!-- ══ DOCUMENT MODALS ══ -->
+
+<div class="doc-overlay" id="doc-contract" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window">
+    <div class="doc-topbar">
+      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
+      <span class="doc-topbar-name">Ridgeline_Contract_Signed.pdf — Selected Excerpts</span>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-contract'))">✕</button>
+    </div>
+    <div class="doc-content">
+      <div class="doc-letterhead">
+        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Professional Services Agreement</div></div>
+        <div class="doc-ref-block">Contract No. 2025-NECG-0147<br>Effective: January 6, 2025<br>Project: Ridgeline EA — Northern Corridor</div>
+      </div>
+      <div class="doc-h1">Professional Services Agreement — Selected Excerpts</div>
+      <div class="doc-p">Between <strong>Northern Environmental Consulting Group</strong> ("Consultant") and <strong>Northern Corridor Pipeline Ltd.</strong> ("Client") for environmental assessment services in connection with the proposed Ridgeline Pipeline Corridor, Alberta.</div>
+
+      <div class="doc-h2">Section 2 — Scope of Services</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">2.1 — Scope</div>
+        <div class="clause-text">The Consultant shall provide a full Environmental and Socio-Economic Assessment for approximately 30 kilometres of proposed pipeline corridor northeast of Grande Prairie, Alberta, as required for submission to the Alberta Energy Regulator (AER). Services include: environmental baseline surveys, geotechnical investigation program, Historical Resources Impact Assessment (HRIA), Traditional Land Use study, First Nations consultation support, hydrotechnical crossing assessments, and a final Integrated Assessment Report.</div>
+      </div>
+
+      <div class="doc-h2">Section 3 — Fees &amp; Payment</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">3.1 — Lump Sum Fee</div>
+        <div class="clause-text">The Client shall pay the Consultant a lump sum fee of <strong>$4,725,000 CAD</strong>, inclusive of all professional fees, subconsultant costs, and a project contingency allowance of <strong>$225,000</strong>. The contingency is held by the Consultant's project manager and is not available for routine scope expenditure without PM authorization.</div>
+      </div>
+      <div class="doc-clause-box">
+        <div class="clause-num">3.2 — Milestone Billing &amp; Retainage</div>
+        <div class="clause-text">Invoices shall be issued upon achievement of the milestones below. Retainage of 10% shall be held on all milestone invoices until final written deliverable acceptance by the Client.</div>
+      </div>
+      <table class="doc-tbl">
+        <thead><tr><th>Milestone</th><th>Trigger</th><th class="amt">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>M1 — Mobilization</td><td>Signed contract + project kickoff complete</td><td class="amt">$472,500</td></tr>
+          <tr><td>M2 — Field Program Complete</td><td>All field surveys and drilling confirmed complete</td><td class="amt">$1,890,000</td></tr>
+          <tr><td>M3 — Draft IA Report</td><td>Client draft issued for review</td><td class="amt">$1,181,250</td></tr>
+          <tr><td>M4 — Final AER Submission</td><td>Regulatory submission filed</td><td class="amt">$708,750</td></tr>
+          <tr><td>M5 — Retainage Release</td><td>Written client acceptance of all deliverables</td><td class="amt">$472,500</td></tr>
+          <tr class="total-row"><td colspan="2"><strong>Total Contract Value</strong></td><td class="amt"><strong>$4,725,000</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-h2">Section 4 — Changed Conditions</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">4.2 — Geotechnical Changed Conditions</div>
+        <div class="clause-text">Where actual subsurface conditions encountered during the geotechnical investigation are <strong>materially different</strong> from those assumed in the Consultant's Methodology Report (the "Baseline"), and where such conditions necessitate a material change to the scope, quantity, or methodology of the investigation program, the Consultant shall provide written notice to the Client within five (5) business days of identifying the condition. The Client shall authorize any resulting scope change via written Change Order prior to the Consultant proceeding with additional work. Costs associated with approved changed conditions are recoverable from the Client and shall not be absorbed against the Contract Value or contingency.</div>
+      </div>
+      <div class="doc-highlight-box">⚠ <strong>Note:</strong> "Materially different" requires documentation of both the assumed baseline condition (from the methodology report) and the actual encountered condition. This clause does not apply to minor variations expected within normal site variability.</div>
+
+      <div class="doc-h2">Section 7 — Change Orders</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">7.3 — Authorization Thresholds</div>
+        <div class="clause-text">Change Orders with a value up to <strong>$50,000 CAD</strong> may be authorized in writing by the Client's Project Manager (<strong>Dale Fortis</strong>). Change Orders exceeding $50,000 CAD require written authorization from the Client's Vice President of Projects prior to the Consultant commencing work. The Consultant shall not proceed with out-of-scope work absent written authorization at the applicable threshold.</div>
+      </div>
+
+      <div class="doc-h2">Section 8 — Schedule &amp; Delays</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">8.1 — Schedule Constraint</div>
+        <div class="clause-text">All vegetation clearing and access construction activities shall be <strong>completed no later than April 1</strong> of the project year, to comply with the Migratory Birds Convention Act (MBCA) breeding season restrictions (April 1 – July 31). This is a hard project constraint.</div>
+      </div>
+      <div class="doc-clause-box">
+        <div class="clause-num">8.4 — Client-Caused Delay</div>
+        <div class="clause-text">Where a delay to the Consultant's work is caused by a Client decision, direction, or failure to provide required information or access, and where such delay results in demonstrable additional cost to the Consultant (including remobilization, standby, or rescheduling costs), the Client shall compensate the Consultant for such costs under a Change Order, subject to the authorization thresholds in Section 7.3.</div>
+      </div>
+
+      <div class="doc-sig">
+        <div class="doc-sig-block"><div class="doc-sig-line"></div><div class="doc-sig-name">Sarah Chen, P.Eng. — Project Manager, NECG</div></div>
+        <div class="doc-sig-block"><div class="doc-sig-line"></div><div class="doc-sig-name">Dale Fortis — Project Manager, Northern Corridor Pipeline Ltd.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-overlay" id="doc-estimate" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window">
+    <div class="doc-topbar">
+      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
+      <span class="doc-topbar-name">Ridgeline_Estimate_v3.xlsx</span>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-estimate'))">✕</button>
+    </div>
+    <div class="doc-content">
+      <div class="doc-letterhead">
+        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Project Estimate — Internal Use Only</div></div>
+        <div class="doc-ref-block">Project: Ridgeline EA<br>Estimate: v3 — Final for Contract<br>Prepared: December 2024</div>
+      </div>
+      <div class="doc-h1">Budget Estimate — Summary by Discipline</div>
+      <div class="doc-highlight-box">📊 All labour rates are selling rates (cost + overhead + margin). <strong>Note 1:</strong> Field technician rates use standard straight-time selling rate only — overtime provisions not included in this estimate. Confirm OT rate codes in Oracle before first timesheet posting.</div>
+
+      <table class="doc-tbl">
+        <thead><tr><th>WBS</th><th>Description</th><th>Hours</th><th style="text-align:right">Rate ($/hr)</th><th class="amt">Amount</th></tr></thead>
+        <tbody>
+          <tr><td>1.1</td><td>Project Management</td><td>900</td><td style="text-align:right">$200</td><td class="amt">$180,000</td></tr>
+          <tr><td>1.2a</td><td>Env. Baseline — Field Surveys</td><td>1,190</td><td style="text-align:right">$185</td><td class="amt">$220,150</td></tr>
+          <tr class="sub-row"><td></td><td>↳ Field technicians (42 field days × avg 2.5 staff)</td><td>840</td><td style="text-align:right">$185</td><td class="amt">$155,400</td></tr>
+          <tr><td>1.2b</td><td>Env. Baseline — Analysis &amp; Report</td><td>1,080</td><td style="text-align:right">$185</td><td class="amt">$199,800</td></tr>
+          <tr><td>1.3a</td><td>Geotech — Internal (oversight, reporting)</td><td>520</td><td style="text-align:right">$210</td><td class="amt">$109,200</td></tr>
+          <tr><td style="color:#c0392b;font-weight:600">1.3b</td><td style="color:#c0392b;font-weight:600">Ridgeline Drilling Inc. — PO (45 boreholes)</td><td style="color:#999">PO</td><td style="text-align:right;color:#c0392b;font-weight:600">$60,000/hole</td><td class="amt hl-red">$2,700,000</td></tr>
+          <tr><td>1.4</td><td>HRIA — Ray Callahan Archaeology (PO)</td><td style="color:#999">PO</td><td style="text-align:right;color:#999">Lump</td><td class="amt">$280,000</td></tr>
+          <tr><td>1.5</td><td>Traditional Land Use</td><td>750</td><td style="text-align:right">$200</td><td class="amt">$150,000</td></tr>
+          <tr><td>1.6</td><td>First Nations Consultation</td><td>1,100</td><td style="text-align:right">$200</td><td class="amt">$220,000</td></tr>
+          <tr><td>1.7</td><td>Hydrotechnical</td><td>900</td><td style="text-align:right">$200</td><td class="amt">$180,000</td></tr>
+          <tr><td>1.8</td><td>Impact Assessment &amp; Reporting</td><td>1,850</td><td style="text-align:right">$200</td><td class="amt">$370,000</td></tr>
+          <tr class="total-row"><td colspan="4"><strong>Total BAC (excl. contingency)</strong></td><td class="amt"><strong>$4,500,000</strong></td></tr>
+          <tr><td colspan="4" style="color:#999;font-size:12px">Project Contingency — PM-held, outside WBS</td><td class="amt" style="color:#999">$225,000</td></tr>
+          <tr class="total-row"><td colspan="4"><strong>Total Contract Value</strong></td><td class="amt"><strong>$4,725,000</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-h2">Notes</div>
+      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 1 — OT Risk:</strong> Field technicians are hourly employees. This estimate uses straight-time selling rates only. If field season requires extended hours (&gt;8 hrs/day or &gt;44 hrs/wk), actual costs will exceed estimate. Ensure Oracle OT rate codes are loaded for all hourly field staff before project starts.</div>
+      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 2 — Drilling Risk:</strong> Ridgeline PO ($2,700,000) is 60% of total BAC. Borehole count (45) is based on preliminary methodology report using dated soil mapping. Program expansion is covered by the changed conditions clause (contract Section 4.2) but requires timely field documentation and written notice.</div>
+      <div class="doc-p" style="font-size:12.5px;color:#555;"><strong>Note 3 — Non-Billable Costs:</strong> Not included: travel time to/from field (~2 hrs/person/day, not billable per contract), principal oversight (~2 hrs/month), proposal write-off (~$3,200). Track in a separate register outside Oracle — these are real firm costs that affect margin.</div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-overlay" id="doc-schedule" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window">
+    <div class="doc-topbar">
+      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
+      <span class="doc-topbar-name">Ridgeline_Baseline_Schedule.pdf</span>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-schedule'))">✕</button>
+    </div>
+    <div class="doc-content">
+      <div class="doc-letterhead">
+        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Project Baseline Schedule — Level 2 Summary</div></div>
+        <div class="doc-ref-block">Ridgeline EA — Contract Baseline<br>Issued: January 2025<br><strong style="color:#27c93f">LOCKED — CONTRACT BASIS</strong></div>
+      </div>
+      <div class="doc-h1">Baseline Schedule — Summary Gantt</div>
+      <div class="doc-highlight-box">🔴 <strong>April 1 — Hard Constraint:</strong> All vegetation clearing and access construction must be complete by April 1 (MBCA breeding season restriction). Zero float on all clearing predecessor activities.</div>
+
+      <div class="gantt-wrap">
+        <div class="gantt-months-row">
+          <div class="gantt-month-lbl">Jan</div><div class="gantt-month-lbl">Feb</div><div class="gantt-month-lbl">Mar</div><div class="gantt-month-lbl">Apr</div><div class="gantt-month-lbl">May</div><div class="gantt-month-lbl">Jun</div><div class="gantt-month-lbl">Jul</div><div class="gantt-month-lbl">Aug</div><div class="gantt-month-lbl">Sep</div><div class="gantt-month-lbl">Oct</div><div class="gantt-month-lbl">Nov</div><div class="gantt-month-lbl">Dec</div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">Project Management</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:0;width:100%;background:#1a2744;opacity:0.75;"><div class="gantt-bar-label">PM Oversight</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl" style="color:#c0392b;font-weight:600">▸ Clearing &amp; Access</div>
+          <div class="gantt-track">
+            <div class="gantt-bar" style="left:0;width:25%;background:#e05a4e;"><div class="gantt-bar-label">Jan – Mar</div></div>
+            <div class="gantt-constraint-line" style="left:25%"><div class="gantt-constraint-label">APR 1 HARD STOP</div></div>
+          </div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">Env. Baseline (Field)</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:8.33%;width:50%;background:#3eb8b8;"><div class="gantt-bar-label">Field Surveys (Feb – Jul)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">Env. Baseline (Report)</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:58.33%;width:25%;background:#3eb8b8;opacity:0.65;"><div class="gantt-bar-label">Analysis &amp; Report</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl" style="color:#c0392b">⚠ Geotech Drilling</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:16.67%;width:58.33%;background:#e8a04a;"><div class="gantt-bar-label">Ridgeline — 45 holes (Mar – Sep)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">HRIA (Archaeology)</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:8.33%;width:66.67%;background:#7b68ee;"><div class="gantt-bar-label">Stages 1 &amp; 2 (Feb – Sep)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">Traditional Land Use</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:16.67%;width:50%;background:#4caf82;"><div class="gantt-bar-label">TLU Field + Study (Mar – Aug)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">FN Consultation</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:0;width:91.67%;background:#5b9bd5;"><div class="gantt-bar-label">Consultation Program (Jan – Nov)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">Hydrotechnical</div>
+          <div class="gantt-track"><div class="gantt-bar" style="left:16.67%;width:33.33%;background:#3eb8b8;opacity:0.8;"><div class="gantt-bar-label">Crossing Assessments (Mar – Jun)</div></div></div>
+        </div>
+        <div class="gantt-row">
+          <div class="gantt-lbl">IA Report</div>
+          <div class="gantt-track">
+            <div class="gantt-bar" style="left:66.67%;width:33.33%;background:#1a2744;"><div class="gantt-bar-label">Draft → AER Submission (Sep – Dec)</div></div>
+            <div class="gantt-milestone-dot" style="left:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-h2">Key Milestones &amp; Constraints</div>
+      <table class="doc-tbl">
+        <thead><tr><th>Date</th><th>Event</th><th>Type</th></tr></thead>
+        <tbody>
+          <tr><td>Jan 6, 2025</td><td>Contract effective / project kickoff</td><td>Milestone</td></tr>
+          <tr style="color:#c0392b"><td><strong>Apr 1, 2025</strong></td><td><strong>All clearing &amp; access construction complete — MBCA hard constraint</strong></td><td><strong>Hard Constraint</strong></td></tr>
+          <tr><td>Sep 30, 2025</td><td>All field programs complete</td><td>Milestone</td></tr>
+          <tr><td>Oct 31, 2025</td><td>Client draft IA Report issued</td><td>Milestone</td></tr>
+          <tr><td>Dec 12, 2025</td><td>AER regulatory submission filed</td><td>Target — Contract End</td></tr>
+        </tbody>
+      </table>
+      <div class="doc-p" style="font-size:12px;color:#999;margin-top:8px;">This schedule is locked as the contract baseline. All variances are measured against these dates. Approved by: Sarah Chen (PM) and Dale Fortis (Client PM) — January 6, 2025.</div>
+    </div>
+  </div>
+</div>
+
+<div class="doc-overlay" id="doc-brief" onclick="if(event.target===this)closeDoc(this)">
+  <div class="doc-window">
+    <div class="doc-topbar">
+      <div class="doc-topbar-dots"><div class="doc-topbar-dot r"></div><div class="doc-topbar-dot y"></div><div class="doc-topbar-dot g"></div></div>
+      <span class="doc-topbar-name">Ridgeline_Project_Brief.docx</span>
+      <button class="doc-close-btn" onclick="closeDoc(document.getElementById('doc-brief'))">✕</button>
+    </div>
+    <div class="doc-content">
+      <div class="doc-letterhead">
+        <div><div class="doc-logo-name">Northern Environmental Consulting Group</div><div class="doc-logo-sub">Project Brief — Internal Distribution Only</div></div>
+        <div class="doc-ref-block">Project No. 2025-0147<br>Issued: January 2025</div>
+      </div>
+      <div class="doc-h1">Ridgeline Pipeline EA — Project Brief</div>
+
+      <div class="doc-h2">Project Overview</div>
+      <div class="doc-p"><strong>Client:</strong> Northern Corridor Pipeline Ltd. — a mid-size pipeline developer proposing a new natural gas transmission line through boreal terrain northeast of Grande Prairie, Alberta.</div>
+      <div class="doc-p"><strong>What we're doing:</strong> Full Environmental and Socio-Economic Assessment (ESEA) for a proposed 30km pipeline corridor. A regulatory submission to the AER is required before the client may receive construction approval. Our submission becomes part of the regulatory record.</div>
+      <div class="doc-p"><strong>Study area:</strong> 30km linear corridor in boreal mixed-wood forest, NE of Grande Prairie, AB. Terrain includes wetlands, watercourse crossings (7 significant), and areas with variable soil conditions. <strong>Preliminary soil mapping is dated — geotech conditions should be treated as uncertain until confirmed by drilling.</strong></div>
+
+      <div class="doc-h2">Project Team</div>
+      <table class="doc-tbl">
+        <thead><tr><th>Role</th><th>Name</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Project Manager</td><td>Sarah Chen, P.Eng.</td><td>Client-facing; contract authority; tight ship</td></tr>
+          <tr><td>Project Controller</td><td>Jamie Okafor</td><td>First PC role — supported by Dan Reyes (BC, by phone)</td></tr>
+          <tr><td>Geotech Lead</td><td>Marcus Webb, P.Geo.</td><td>Oversees Ridgeline program; authoritative field log</td></tr>
+          <tr><td>Sr. Env. Technician</td><td>Brad Kohut</td><td>Field access, permitting, MBCA compliance lead</td></tr>
+          <tr><td>Client PM</td><td>Dale Fortis</td><td>Northern Corridor; experienced; professional; fair</td></tr>
+          <tr><td>Drilling Sub</td><td>Ridgeline Drilling Inc.</td><td>$2.7M PO — 45 boreholes; the key schedule and cost risk</td></tr>
+          <tr><td>Archaeology Sub</td><td>Ray Callahan Archaeology</td><td>$280K PO; HRIA Stages 1–2</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-h2">Scope Summary — 7 Components → 1 Submission</div>
+      <table class="doc-tbl">
+        <thead><tr><th>#</th><th>Study Component</th><th>Lead</th><th>Key Output</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Environmental Baseline Surveys</td><td>Brad + field team</td><td>Baseline report — vegetation, wildlife, soils, water</td></tr>
+          <tr><td>2</td><td>Geotechnical Investigation</td><td>Marcus / Ridgeline</td><td>Borehole logs + geotech report</td></tr>
+          <tr><td>3</td><td>Historical Resources Impact Assessment</td><td>Ray Callahan (sub)</td><td>HRIA report — AER + Alberta Culture required</td></tr>
+          <tr><td>4</td><td>Traditional Land Use Study</td><td>Internal TLU team</td><td>TLU report — supports consultation record</td></tr>
+          <tr><td>5</td><td>First Nations Consultation</td><td>Internal consult team</td><td>What We Heard report; engagement record</td></tr>
+          <tr><td>6</td><td>Hydrotechnical Assessments</td><td>Internal hydrotechnical</td><td>7 crossing assessment reports</td></tr>
+          <tr><td>7</td><td>Integrated Assessment Report</td><td>Sarah + senior team</td><td>Final AER submission package</td></tr>
+        </tbody>
+      </table>
+
+      <div class="doc-h2">Key Risks — As Identified at Proposal</div>
+      <div class="doc-clause-box">
+        <div class="clause-num">Primary Risk — Drilling Program (R-01)</div>
+        <div class="clause-text">The geotech drilling program is the largest cost item (60% of BAC) and the highest-uncertainty element. Preliminary soil mapping is outdated. If actual conditions require additional boreholes, impact is <strong>$60,000 per hole</strong>. The changed conditions clause (Section 4.2) provides a recovery mechanism — but it requires timely field documentation and written notice within 5 business days. <strong>Monitor Marcus's weekly field logs without fail.</strong></div>
+      </div>
+      <div class="doc-clause-box">
+        <div class="clause-num">Secondary Risk — April 1 Clearing Constraint (R-02)</div>
+        <div class="clause-text">All clearing must be done before April 1 (MBCA). If the client requests routing changes that require new clearing after this date, cost recovery is available under Section 8.4. Brad Kohut is responsible for monitoring access compliance and flagging any routing issues immediately.</div>
+      </div>
+      <div class="doc-p" style="color:#888;font-size:12px;margin-top:16px;">Prepared by: Sarah Chen — January 2025. For internal project team use only. Do not distribute to client.</div>
+    </div>
+  </div>
+</div>
+
 <script>
+  function openDoc(id) { document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeDoc(el) { el.classList.remove('open'); document.body.style.overflow=''; }
+  document.addEventListener('keydown', e => { if(e.key==='Escape') document.querySelectorAll('.doc-overlay.open').forEach(closeDoc); });
+
   function go(id, navEl) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
     if (navEl) navEl.classList.add('active');
