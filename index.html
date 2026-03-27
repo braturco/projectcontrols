@@ -41,6 +41,7 @@
   .nav-item{display:flex;align-items:flex-start;gap:10px;padding:7px 20px;cursor:pointer;border-left:3px solid transparent;font-size:13px;color:var(--text-dim);transition:all 0.15s;line-height:1.4;}
   .nav-item:hover{background:var(--teal-glow);color:var(--text);}
   .nav-item.active{border-left-color:var(--teal);background:var(--teal-glow);color:var(--teal);}
+  .nav-item.nav-locked{opacity:0.35;cursor:default;pointer-events:none;}
   .nav-num{font-family:var(--mono);font-size:10px;min-width:20px;color:var(--text-dim);padding-top:1px;}
 
   /* MAIN */
@@ -97,15 +98,62 @@
   .grid-note-footer{background:rgba(26,39,68,0.06);border-top:1px solid rgba(26,39,68,0.1);padding:6px 18px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:rgba(26,39,68,0.4);}
 
   /* DIALOGUE */
-  .dialogue{margin:22px 0;display:flex;flex-direction:column;gap:14px;max-width:740px;}
-  .line{display:flex;gap:14px;align-items:flex-start;}
-  .line-speaker{font-family:var(--mono);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--purple);min-width:130px;padding-top:3px;line-height:1.4;flex-shrink:0;}
+  .dialogue{margin:24px 0;display:flex;flex-direction:column;max-width:740px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px 20px 14px;}
+  .dialogue-scroll{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .dialogue-scroll::-webkit-scrollbar{width:4px;}
+  .dialogue-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .line{display:flex;flex-direction:column;gap:4px;align-items:flex-start;}
+  .line-speaker{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;display:flex;align-items:center;gap:5px;padding:0 6px;}
+  .line-speaker::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
   .line-speaker.pm{color:var(--amber);}
   .line-speaker.client{color:var(--blue);}
   .line-speaker.geotech{color:#e8a04a;}
   .line-speaker.internal{color:var(--green);}
   .line-speaker.jamie{color:var(--teal);}
-  .line-text{font-style:italic;font-size:14.5px;color:#c8cfe0;background:rgba(0,0,0,0.2);padding:10px 14px;border-radius:0 4px 4px 4px;border-left:2px solid #2a3048;flex:1;line-height:1.7;}
+  .line-text{font-style:italic;font-size:14px;color:#c8cfe0;padding:10px 16px;border-radius:4px 18px 18px 18px;line-height:1.72;max-width:86%;border:1px solid rgba(255,255,255,0.06);}
+  /* dialogue click-through controls */
+  .line{transition:opacity 0.35s ease;}
+  .line.line-hidden{opacity:0;pointer-events:none;user-select:none;}
+  .dialogue-controls{display:flex;align-items:center;gap:12px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+  .dlg-next{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:6px 18px;background:var(--teal);color:var(--bg);border:none;border-radius:3px;cursor:pointer;font-weight:700;}
+  .dlg-next:hover:not(:disabled){background:#4dd0d0;}
+  .dlg-next:disabled{background:var(--border);color:var(--text-dim);cursor:default;}
+  .dlg-progress{font-family:var(--mono);font-size:10px;color:var(--text-dim);flex:1;}
+  .dlg-showall{font-family:var(--mono);font-size:10px;color:var(--text-dim);background:none;border:none;cursor:pointer;text-decoration:underline;letter-spacing:0.05em;padding:0;}
+  .dlg-showall:hover{color:var(--text);}
+
+  /* STORY MODE — scene-by-scene reveal */
+  .scene-block.scene-hidden{display:none;}
+  .story-nav{display:flex;align-items:center;gap:14px;margin:28px 0 0;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 6px 6px;max-width:740px;}
+  .story-next-btn{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:7px 22px;background:var(--teal);color:var(--bg);border:none;border-radius:3px;cursor:pointer;font-weight:700;white-space:nowrap;transition:background 0.15s;}
+  .story-next-btn:hover:not(:disabled){background:#4dd0d0;}
+  .story-next-btn:disabled{background:var(--border);color:var(--text-dim);cursor:default;}
+  .story-progress-label{font-family:var(--mono);font-size:10px;color:var(--text-dim);flex:1;}
+  .story-hint{font-family:var(--mono);font-size:10px;color:var(--amber);font-style:italic;}
+  .doc-hint{font-family:var(--mono);font-size:10px;color:var(--text-dim);margin-top:10px;padding:8px 12px;border:1px dashed var(--border);border-radius:3px;text-align:center;letter-spacing:0.04em;}
+  .doc-hint.docs-done{color:var(--teal);border-color:var(--teal);border-style:solid;}
+  /* Beat locking */
+  .beat-locked{display:none;}
+  .beat-advance{display:flex;align-items:center;gap:14px;margin:36px 0 0;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 6px 6px;max-width:740px;}
+  .beat-advance-btn{font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;padding:7px 22px;background:var(--teal);color:var(--bg);border:none;border-radius:3px;cursor:pointer;font-weight:700;transition:background 0.15s;}
+  .beat-advance-btn:hover{background:#4dd0d0;}
+
+  /* NOTE CAPTURE TOAST */
+  .note-toast{position:fixed;bottom:32px;right:32px;background:#f4f1e8;border-radius:4px;padding:14px 18px 14px 16px;box-shadow:3px 5px 24px rgba(0,0,0,0.55),0 0 0 1px rgba(0,0,0,0.12);z-index:9000;max-width:290px;transform:translateX(340px);transition:transform 0.38s cubic-bezier(0.34,1.4,0.64,1);pointer-events:none;background-image:linear-gradient(rgba(165,185,210,0.25) 1px,transparent 1px),linear-gradient(90deg,rgba(165,185,210,0.25) 1px,transparent 1px);background-size:18px 18px;}
+  .note-toast.toast-show{transform:translateX(0);}
+  .note-toast-header{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+  .note-toast-icon{font-size:15px;line-height:1;}
+  .note-toast-label{font-family:var(--mono);font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#2a6049;font-weight:700;}
+  .note-toast-doc{font-family:var(--mono);font-size:9px;color:#666;margin-bottom:5px;}
+  .note-toast-text{font-family:'Kalam',cursive;font-size:13.5px;color:#2c3a3a;line-height:1.45;}
+  /* per-speaker bubble tint */
+  .line:has(.line-speaker.pm) .line-text{background:rgba(240,165,0,0.08);border-color:rgba(240,165,0,0.18);}
+  .line:has(.line-speaker.client) .line-text{background:rgba(91,155,213,0.08);border-color:rgba(91,155,213,0.18);}
+  .line:has(.line-speaker.geotech) .line-text{background:rgba(232,160,74,0.08);border-color:rgba(232,160,74,0.18);}
+  .line:has(.line-speaker.internal) .line-text{background:rgba(76,175,130,0.08);border-color:rgba(76,175,130,0.18);}
+  /* Jamie — right aligned */
+  .line:has(.line-speaker.jamie){align-items:flex-end;}
+  .line:has(.line-speaker.jamie) .line-text{background:rgba(62,184,184,0.12);border-color:rgba(62,184,184,0.28);border-radius:18px 4px 18px 18px;}
 
   /* JAMIE'S WORK — the spreadsheet / system view */
   .work-block{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 4px 4px;padding:18px 22px;margin:22px 0;max-width:960px;}
@@ -579,9 +627,13 @@
     </div>
   </div>
 
-  <div class="prose">
-    <p>Jamie Okafor had been with the firm for four years as a project coordinator — supporting project teams with scheduling, document control, invoicing, subconsultant tracking, and client reporting. Organized, systematic, and good at following a process through to completion. When the Ridgeline project came in, the firm's senior project controller, Dan Reyes, was already committed to a major infrastructure project in BC and couldn't be pulled. Maya Okonkwo, the resource manager, ran it by Dan over text.</p>
+  <div class="scene-block">
+    <div class="prose">
+      <p>Jamie Okafor had been with the firm for four years as a project coordinator — supporting project teams with scheduling, document control, invoicing, subconsultant tracking, and client reporting. Organized, systematic, and good at following a process through to completion. When the Ridgeline project came in, the firm's senior project controller, Dan Reyes, was already committed to a major infrastructure project in BC and couldn't be pulled. Maya Okonkwo, the resource manager, ran it by Dan over text.</p>
+    </div>
+  </div>
 
+  <div class="scene-block">
     <div class="sms-card">
       <div class="sms-contact-header">
         <div class="sms-contact-avatar">DR</div>
@@ -603,9 +655,15 @@
         </div>
       </div>
     </div>
+  </div>
 
-    <p>It was a vote of confidence with a caveat — and Jamie knew it. The project controls layer was newer territory. When the assignment came through, an email arrived from Sarah Chen the same afternoon.</p>
+  <div class="scene-block">
+    <div class="prose">
+      <p>It was a vote of confidence with a caveat — and Jamie knew it. The project controls layer was newer territory. When the assignment came through, an email arrived from Sarah Chen the same afternoon.</p>
+    </div>
+  </div>
 
+  <div class="scene-block" id="scene-email">
     <div class="email-card">
       <div class="email-topbar">
         <div class="email-dot red"></div>
@@ -633,10 +691,10 @@
         <p>See you Friday.</p>
       </div>
       <div class="email-attachment-bar">
-        <div class="email-attachment" onclick="openDoc('doc-contract')"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
-        <div class="email-attachment" onclick="openDoc('doc-estimate')"><span class="email-attachment-icon">📊</span> Ridgeline_Estimate_v3.xlsx</div>
-        <div class="email-attachment" onclick="openDoc('doc-schedule')"><span class="email-attachment-icon">📅</span> Ridgeline_Baseline_Schedule.pdf</div>
-        <div class="email-attachment" onclick="openDoc('doc-brief')"><span class="email-attachment-icon">📋</span> Ridgeline_Project_Brief.docx</div>
+        <div class="email-attachment" onclick="trackDocOpen('beat1','doc-contract')"><span class="email-attachment-icon">📄</span> Ridgeline_Contract_Signed.pdf</div>
+        <div class="email-attachment" onclick="trackDocOpen('beat1','doc-estimate')"><span class="email-attachment-icon">📊</span> Ridgeline_Estimate_v3.xlsx</div>
+        <div class="email-attachment" onclick="trackDocOpen('beat1','doc-schedule')"><span class="email-attachment-icon">📅</span> Ridgeline_Baseline_Schedule.pdf</div>
+        <div class="email-attachment" onclick="trackDocOpen('beat1','doc-brief')"><span class="email-attachment-icon">📋</span> Ridgeline_Project_Brief.docx</div>
       </div>
       <div class="email-sig">
         <span class="sig-name">Sarah Chen, P.Eng.</span><br>
@@ -644,8 +702,10 @@
         <span class="sig-firm">Northern Environmental Consulting Group</span>
       </div>
     </div>
+    <div class="doc-hint" id="doc-hint-beat1">Open all 4 attachments — your kickoff notes will appear when you're done.</div>
   </div>
 
+  <div class="scene-block" data-require-docs="doc-contract,doc-estimate,doc-schedule,doc-brief" data-beat="beat1">
   <div class="grid-note">
     <div class="grid-note-header">
       <div class="logo-mark">
@@ -693,11 +753,15 @@
       <span>Page 1 of 1</span>
     </div>
   </div>
-
-  <div class="prose">
-    <p>The Friday meeting with Sarah lasted ninety minutes. Jamie came with the grid paper notes. Sarah came with coffee. It was a working session, not an orientation.</p>
   </div>
 
+  <div class="scene-block">
+    <div class="prose">
+      <p>The Friday meeting with Sarah lasted ninety minutes. Jamie came with the grid paper notes. Sarah came with coffee. It was a working session, not an orientation.</p>
+    </div>
+  </div>
+
+  <div class="scene-block">
   <div class="dialogue">
     <div class="line">
       <span class="line-speaker jamie">Jamie</span>
@@ -772,11 +836,15 @@
       <span class="line-text">"Marcus filed a pre-drilling methodology report that documents the baseline soil assumption — what the existing mapping shows we should find. If his field logs start showing material departures from that report, that's the trigger. You'll see it before I do because you're reconciling the logs weekly. If something looks off against the methodology baseline, bring it to me immediately, not at month-end."</span>
     </div>
   </div>
-
-  <div class="prose">
-    <p>Sarah then pulled up a rough risks list she'd been keeping in her notes since the proposal stage — five items, mostly just a line each. Old soil mapping uncertainty. Bird breeding season window. Archaeology discovery. TLU scope. Regulatory guidance changes. She had the probability and impact in her head, none of it written down in any structured way.</p>
   </div>
 
+  <div class="scene-block">
+    <div class="prose">
+      <p>Sarah then pulled up a rough risks list she'd been keeping in her notes since the proposal stage — five items, mostly just a line each. Old soil mapping uncertainty. Bird breeding season window. Archaeology discovery. TLU scope. Regulatory guidance changes. She had the probability and impact in her head, none of it written down in any structured way.</p>
+    </div>
+  </div>
+
+  <div class="scene-block">
   <div class="dialogue">
     <div class="line">
       <span class="line-speaker pm">Sarah Chen</span>
@@ -794,7 +862,6 @@
       <span class="line-speaker jamie">Jamie</span>
       <span class="line-text">"Got it. I'll send you a draft register by end of day tomorrow — you verify the numbers and I'll lock it in as the baseline."</span>
     </div>
-  </div>
     <div class="line">
       <span class="line-speaker jamie">Jamie</span>
       <span class="line-text">"One more thing I want to set up before we go live — a change log. Every change request, every CO, every in-scope/out-of-scope determination gets logged with a date, a description, a cost estimate, and a status. That way we have a running record of every scope conversation from day one."</span>
@@ -804,53 +871,121 @@
       <span class="line-text">"Yes. And send Dale the change log template at kickoff so he knows it exists. Clients behave better about scope when they know it's being tracked systematically."</span>
     </div>
   </div>
+  </div>
 
+  <div class="scene-block">
   <div class="inner-voice">
     <div class="inner-voice-label">Jamie's thinking</div>
-    <p>The OT question started as a rate check and became a system setup task. The travel time question I almost skipped — 42 field days, 3 people, 2 hours each: 250+ hours of real cost with nowhere to live. The risk register was Sarah's knowledge, finally written down. Good meeting.</p>
+    <p>The OT question started as a rate check and became a system setup task. The travel time question I almost skipped — 
+      2 field days, 3 people, 2 hours each: 250+ hours of real cost with nowhere to live. The risk register was Sarah's knowledge, 
+      finally written down.  I am a bit overwhelmed with how i'm going to deal with all this information, I should send Dan a message 
+      to see if he has any tips</p>
+  </div>
   </div>
 
-  <div class="callout teal">
-    <div class="callout-label">What This Illustrates</div>
-    <p>The most valuable thing a project controller does in Week 1 is not build a spreadsheet — it's ask the right questions before the spreadsheet exists. <span class="concept teal">Setup decisions made in the first week govern data quality for the entire project.</span> A PO that isn't in the system means invoices can't be processed correctly. Contingency sitting inside the base budget means it gets spent without authorization. A change log that starts in Month 6 has no record of the first five months of scope conversations. These problems are trivial to prevent and expensive to fix.</p>
-  </div>
 
-  <div class="setup-checklist">
-    <span class="wb-label">Project Controller Setup Checklist — Pre-Project (Weeks 1–2)</span>
-    <div class="setup-checklist-intro">Everything that must be in place before the first timesheet is posted. Developed in Week 1 as the plan of action — executed in Week 2.</div>
-    <div class="setup-grid">
 
-      <div class="setup-group">
-        <div class="setup-group-title">Contract &amp; Documents</div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Read the contract — scope section, fee structure, and key clauses (changed conditions, CO authorization, delay)</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm contingency is PM-held and outside WBS budgets — not visible to the team as spendable budget</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Map milestone billing triggers to WBS elements so billing events are tracked and initiated on time</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm subconsultant PO status — issued, in procurement, or pending (Ridgeline, HRIA, TLU)</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Lock baseline schedule as contract document — file signed copy, confirm it's not a working draft</span></div>
+  <div class="scene-block">
+      <div class="sms-card">
+        <div class="sms-contact-header">
+          <div class="sms-contact-avatar">DR</div>
+          <div class="sms-contact-name">Dan Reyes</div>
+          <div class="sms-contact-sub">Senior Project Controller · Kelowna BC</div>
+        </div>
+        <div class="sms-messages">
+          <div class="sms-row sent">
+            <div class="sms-bubble">Hey Dan, its Jamie.  Week 1 has been a bit overwhelming, any tips?</div>
+            <div class="sms-time">Jamie · Sun 9:27 PM</div>
+          </div>
+          <div class="sms-row received">
+            <div class="sms-bubble">Hi Jamie, glad to hear from you.  Getting started on your first big job can seem difficult, but if you can keep yourself organized and stick to a plan you will be alright.</div>
+            <div class="sms-time">Dan · Sun 9:45 PM</div>
+          </div>
+          <div class="sms-row received">
+            <div class="sms-bubble">I will send you an email in the morning with a checklist I put together to help myself keep organized.</div>
+            <div class="sms-time">Dan · Sun 9:46 PM</div>
+          </div>
+          <div class="sms-row sent">
+            <div class="sms-bubble">Thank you Dan!  Appreciated!</div>
+            <div class="sms-time">Jamie · Sun 9:50 PM</div>
+          </div>
+        </div>
       </div>
+    </div>
 
-      <div class="setup-group">
-        <div class="setup-group-title">WBS, Budget &amp; Oracle</div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Review proposal WBS — align structure to estimate so budget vs. actual comparisons are meaningful</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Build WBS in Oracle by discipline — subconsultants in their own elements, contingency excluded</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Load approved budgets by WBS element — verify totals match contract BAC</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Verify OT rate codes for all hourly field staff — straight-time rates are not sufficient if OT is expected</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Create nonchargeable cost register — travel time, principal oversight, QC, proposal write-off</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Confirm system access for all team members who will charge to the project</span></div>
-      </div>
-
-      <div class="setup-group">
-        <div class="setup-group-title">EVM, Reporting &amp; PC Plan</div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Define rules of credit for each WBS element with PM — units complete, milestone gates, weighted steps, % complete</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Document completion triggers: what evidence confirms progress (field logs, client acceptance, internal sign-off)</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Set up monthly EV tracking — EV, AC, PV, CV, SV, CPI, SPI, EAC per WBS element</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Formalize risk register — probability, impact, expected value, owner, response strategy</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Draft and issue Project Controls Plan — cadence, EVM method, change process, escalation thresholds</span></div>
-        <div class="setup-item"><div class="setup-check">✓</div><span>Set up change log and cost report template — share with client PM as part of first report package</span></div>
-      </div>
-
+      <div class="scene-block">
+    <div class="prose">
+      <p>Jamie opened up his computer on Monday morning to find the promised checklist from Dan.</p>
     </div>
   </div>
+
+
+
+  <div class="scene-block" id="scene-email">
+      <div class="email-card">
+        <div class="email-topbar">
+          <div class="email-dot red"></div>
+          <div class="email-dot yellow"></div>
+          <div class="email-dot green"></div>
+          <span class="email-topbar-label">Email</span>
+        </div>
+        <div class="email-header">
+          <div class="email-subject">Project Controls Checklist</div>
+          <div class="email-meta">
+            <div class="email-meta-row"><span class="email-meta-label">From:</span><span class="email-meta-value">Dan Reyes &lt;d.reyes@firm.ca&gt;</span></div>
+            <div class="email-meta-row"><span class="email-meta-label">To:</span><span class="email-meta-value">Jamie Okafor &lt;j.okafor@firm.ca&gt;</span></div>
+            <div class="email-meta-row"><span class="email-meta-label">Date:</span><span class="email-meta-value">Monday, January 20</span></div>
+          </div>
+        </div>
+        <div class="email-body">
+          <p>Hi Jamie,</p>
+          <p>As discussed please see below my checklist.  This has helped me on several projects.</p>
+          <p></p>
+          <ul>
+            <div class="setup-group-title">Contract &amp; Documents</div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Read the contract — scope section, fee structure, and key clauses (changed conditions, CO authorization, delay)</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Confirm contingency is PM-held and outside WBS budgets — not visible to the team as spendable budget</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Map milestone billing triggers to WBS elements so billing events are tracked and initiated on time</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Confirm subconsultant PO status — issued, in procurement, or pending (Ridgeline, HRIA, TLU)</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Lock baseline schedule as contract document — file signed copy, confirm it's not a working draft</span></div>
+            <div class="setup-group-title">WBS, Budget &amp; Oracle</div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Review proposal WBS — align structure to estimate so budget vs. actual comparisons are meaningful</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Build WBS in Oracle by discipline — subconsultants in their own elements, contingency excluded</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Load approved budgets by WBS element — verify totals match contract BAC</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Verify OT rate codes for all hourly field staff — straight-time rates are not sufficient if OT is expected</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Confirm system access for all team members who will charge to the project</span></div>
+              <div class="setup-group-title">EVM, Reporting &amp; PC Plan</div>
+            <div class="setup-item"><div class="setup-check">✓</div><span>Define rules of credit for each WBS element with PM — units complete, milestone gates, weighted steps, % complete</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Document completion triggers: what evidence confirms progress (field logs, client acceptance, internal sign-off)</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Set up monthly EV tracking — EV, AC, PV, CV, SV, CPI, SPI, EAC per WBS element</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Formalize risk register — probability, impact, expected value, owner, response strategy</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Draft and issue Project Controls Plan — cadence, EVM method, change process, escalation thresholds</span></div>
+              <div class="setup-item"><div class="setup-check">✓</div><span>Set up change log and cost report template — share with client PM as part of first report package</span></div>
+          </ul>
+          <p>Any questions let me know.</p>
+        </div>
+        <div class="email-sig">
+          <span class="sig-name">Dan Reyes, PMP</span><br>
+          <span class="sig-title">Snr Project Control Manager</span><br>
+          <span class="sig-firm">Northern Environmental Consulting Group</span>
+        </div>
+      </div>
+  </div>
+  
+  <div class="scene-block">
+  <div class="callout teal">
+    <div class="callout-label">What did we learn about Project Controls Kick Off?</div>
+    <p>The most valuable thing a project controller does in Week 1 is not build a spreadsheet — it's asking the right questions before the spreadsheet exists. 
+      <span class="concept teal">Setup decisions made in the first week govern data quality for the entire project.</span> 
+      A PO that isn't in the system means invoices can't be processed correctly, it means that we might forget about outstanding costs when we go to close out project. 
+      Contingency sitting inside the base budget means it gets spent without authorization. 
+      Known, unbudgeted costs could impact how your accounting system recognizes revenue.  
+      A change log that starts in Month 6 has no record of the first five months of scope conversations. 
+      These problems are trivial to prevent but expensive to fix.</p>
+  </div>
+  </div>
+
+   <div class="scene-block"></div>
 
 </div>
 
@@ -861,40 +996,65 @@
     <div class="beat-header-text">
       <div class="beat-eyebrow">Pre-Project · Week 2</div>
       <div class="beat-title">Setting Up the System</div>
-      <div class="beat-context">Building the WBS, loading budgets, defining rules of credit, and writing the PC Plan — the document that governs everything that follows</div>
+      <div class="beat-context">Building the WBS, loading budgets, defining rules of credit, and writing the PC Plan —
+        the document that governs everything that follows</div>
     </div>
   </div>
 
-  <div class="prose">
-    <p>With the kickoff questions answered, Jamie spent Week 2 building the project controls infrastructure. The WBS in Oracle was first. Jamie had set up project codes before for administrative purposes — this was the same logic, applied more deliberately. The WBS needed to mirror the estimate structure closely enough that budget vs. actual comparisons were meaningful, but not be so granular that every minor task became its own reporting burden.</p>
-    <p>Nine WBS elements, matching the estimate's major discipline groupings. Each subconsultant — Ridgeline, Ray Callahan's archaeology firm, the TLU firm — in its own element so their costs could be tracked and reported separately from internal labor. The contingency, as agreed, outside the Oracle budget entirely.</p>
-    <p>The rules of credit conversation happened on Wednesday. Jamie had drafted proposals for each element based on the nature of the work — then walked them through with Sarah to confirm.</p>
+  <div class="scene-block">
+    <div class="prose">
+      <p>With the kickoff questions answered, Jamie spent Week 2 building the project controls infrastructure. The WBS
+        in
+        Oracle was first. Jamie had set up project codes before for administrative purposes — this was the same logic,
+        applied more deliberately. The WBS needed to mirror the estimate structure closely enough that budget vs. actual
+        comparisons were meaningful, but not be so granular that every minor task became its own reporting burden.</p>
+      <p>Nine WBS elements, matching the estimate's major discipline groupings. Each subconsultant — Ridgeline, Ray
+        Callahan's archaeology firm, the TLU firm — in its own element so their costs could be tracked and reported
+        separately from internal labor. The contingency, as agreed, outside the Oracle budget entirely.</p>
+      <p>The rules of credit conversation happened on Wednesday. Jamie had drafted proposals for each element based on
+        the
+        nature of the work — then walked them through with Sarah to confirm.</p>
+    </div>
   </div>
 
-  <div class="dialogue">
-    <div class="line">
-      <span class="line-speaker jamie">Jamie</span>
-      <span class="line-text">"I've drafted the rules of credit for each WBS element. For the drilling PO I'm proposing units complete — confirmed holes divided by 45, using Marcus's field log as the authoritative source, not Ridgeline's invoices. My reasoning is that this is the most objective measure available and it removes any reliance on either party's estimate of progress."</span>
-    </div>
-    <div class="line">
-      <span class="line-speaker pm">Sarah Chen</span>
-      <span class="line-text">"Correct. And that distinction — field log, not invoice — matters most precisely when there's a dispute. If Ridgeline ever invoices ahead of confirmed completions, I need to know. Keep it clean."</span>
-    </div>
-    <div class="line">
-      <span class="line-speaker jamie">Jamie</span>
-      <span class="line-text">"For the IA report — WBS 1.8 — I've proposed weighted steps rather than a straight percentage. The report has five distinct phases with very different effort levels. If I use a flat percentage, someone saying '50% done' might mean the outline is written — which is maybe 10% of the actual effort. The weighted steps force the percentage to reflect where the work actually sits in the effort curve."</span>
-    </div>
-    <div class="line">
-      <span class="line-speaker pm">Sarah Chen</span>
-      <span class="line-text">"Right. What weights did you assign?"</span>
-    </div>
-    <div class="line">
-      <span class="line-speaker jamie">Jamie</span>
-      <span class="line-text">"Outline at 5%, data compilation 15%, draft sections 45%, internal QC 65%, client draft 85%, regulatory submission 100%. The draft sections step is the biggest weight because that's where the bulk of the writing work lives."</span>
-    </div>
-    <div class="line">
-      <span class="line-speaker pm">Sarah Chen</span>
-      <span class="line-text">"Agreed. Lock those in."</span>
+  <div class="scene-block">
+    <div class="dialogue">
+      <div class="line">
+        <span class="line-speaker jamie">Jamie</span>
+        <span class="line-text">"I've drafted the rules of credit for each WBS element. For the drilling PO I'm
+          proposing
+          units complete — confirmed holes divided by 45, using Marcus's field log as the authoritative source, not
+          Ridgeline's invoices. My reasoning is that this is the most objective measure available and it removes any
+          reliance on either party's estimate of progress."</span>
+      </div>
+      <div class="line">
+        <span class="line-speaker pm">Sarah Chen</span>
+        <span class="line-text">"Correct. And that distinction — field log, not invoice — matters most precisely when
+          there's a dispute. If Ridgeline ever invoices ahead of confirmed completions, I need to know. Keep it
+          clean."</span>
+      </div>
+      <div class="line">
+        <span class="line-speaker jamie">Jamie</span>
+        <span class="line-text">"For the IA report — WBS 1.8 — I've proposed weighted steps rather than a straight
+          percentage. The report has five distinct phases with very different effort levels. If I use a flat percentage,
+          someone saying '50% done' might mean the outline is written — which is maybe 10% of the actual effort. The
+          weighted steps force the percentage to reflect where the work actually sits in the effort curve."</span>
+      </div>
+      <div class="line">
+        <span class="line-speaker pm">Sarah Chen</span>
+        <span class="line-text">"Right. What weights did you assign?"</span>
+      </div>
+      <div class="line">
+        <span class="line-speaker jamie">Jamie</span>
+        <span class="line-text">"Outline at 5%, data compilation 15%, draft sections 45%, internal QC 65%, client draft
+          85%, regulatory submission 100%. The draft sections step is the biggest weight because that's where the bulk
+          of
+          the writing work lives."</span>
+      </div>
+      <div class="line">
+        <span class="line-speaker pm">Sarah Chen</span>
+        <span class="line-text">"Agreed. Lock those in."</span>
+      </div>
     </div>
   </div>
 
@@ -902,26 +1062,99 @@
     <span class="wb-label">WBS &amp; Rules of Credit — Final Setup (End of Week 2)</span>
     <table class="data-table" style="margin:0;">
       <thead>
-        <tr><th>WBS</th><th>Element</th><th>Budget</th><th>Rule of Credit</th><th>Completion Trigger</th></tr>
+        <tr>
+          <th>WBS</th>
+          <th>Element</th>
+          <th>Budget</th>
+          <th>Rule of Credit</th>
+          <th>Completion Trigger</th>
+        </tr>
       </thead>
       <tbody>
-        <tr><td>1.1</td><td>Project Management</td><td>$180,000</td><td>% Complete (capped 80%)</td><td>PM judgment against milestone log; 100% at regulatory submission accepted</td></tr>
-        <tr><td>1.2a</td><td>Env. Baseline — Field Work</td><td>$220,000</td><td>Units Complete</td><td>Completed field days ÷ 42 planned; verified against signed daily field logs</td></tr>
-        <tr><td>1.2b</td><td>Env. Baseline — Analysis &amp; Report</td><td>$200,000</td><td>Milestone Gates</td><td>0% → 40% draft issued for internal QC → 100% client-accepted report</td></tr>
-        <tr><td>1.3b</td><td>Ridgeline Drilling PO</td><td>$2,700,000</td><td>Units Complete</td><td>Confirmed holes ÷ 45; completion confirmed by Marcus's field log only</td></tr>
-        <tr><td>1.4</td><td>HRIA (Ray Callahan sub)</td><td>$280,000</td><td>Milestone Gates</td><td>0% → 30% Stage 1 complete → 70% Stage 2 fieldwork → 100% report accepted by Alberta Culture</td></tr>
-        <tr><td>1.5</td><td>Traditional Land Use</td><td>$150,000</td><td>Milestone Gates</td><td>0% → 35% field sessions complete → 75% draft → 100% final accepted</td></tr>
-        <tr><td>1.6</td><td>Consultation</td><td>$220,000</td><td>Milestone Gates</td><td>0% → 20% intro meetings → 55% community sessions → 85% draft What We Heard → 100% final</td></tr>
-        <tr><td>1.7</td><td>Hydrotechnical</td><td>$180,000</td><td>Milestone Gates</td><td>0% → 50% draft crossing reports issued → 100% final accepted</td></tr>
-        <tr><td>1.8</td><td>Impact Assessment &amp; Reporting</td><td>$370,000</td><td>Weighted Steps</td><td>Outline 5% / Data compilation 15% / Draft sections 45% / Internal QC 65% / Client draft 85% / Submission 100%</td></tr>
-        <tr class="total"><td colspan="2"><strong>TOTAL BAC</strong></td><td><strong>$4,500,000</strong></td><td colspan="2">Contingency $225,000 — PM-held, outside Oracle budget</td></tr>
+        <tr>
+          <td>1.1</td>
+          <td>Project Management</td>
+          <td>$180,000</td>
+          <td>% Complete (capped 80%)</td>
+          <td>PM judgment against milestone log; 100% at regulatory submission accepted</td>
+        </tr>
+        <tr>
+          <td>1.2a</td>
+          <td>Env. Baseline — Field Work</td>
+          <td>$220,000</td>
+          <td>Units Complete</td>
+          <td>Completed field days ÷ 42 planned; verified against signed daily field logs</td>
+        </tr>
+        <tr>
+          <td>1.2b</td>
+          <td>Env. Baseline — Analysis &amp; Report</td>
+          <td>$200,000</td>
+          <td>Milestone Gates</td>
+          <td>0% → 40% draft issued for internal QC → 100% client-accepted report</td>
+        </tr>
+        <tr>
+          <td>1.3b</td>
+          <td>Ridgeline Drilling PO</td>
+          <td>$2,700,000</td>
+          <td>Units Complete</td>
+          <td>Confirmed holes ÷ 45; completion confirmed by Marcus's field log only</td>
+        </tr>
+        <tr>
+          <td>1.4</td>
+          <td>HRIA (Ray Callahan sub)</td>
+          <td>$280,000</td>
+          <td>Milestone Gates</td>
+          <td>0% → 30% Stage 1 complete → 70% Stage 2 fieldwork → 100% report accepted by Alberta Culture</td>
+        </tr>
+        <tr>
+          <td>1.5</td>
+          <td>Traditional Land Use</td>
+          <td>$150,000</td>
+          <td>Milestone Gates</td>
+          <td>0% → 35% field sessions complete → 75% draft → 100% final accepted</td>
+        </tr>
+        <tr>
+          <td>1.6</td>
+          <td>Consultation</td>
+          <td>$220,000</td>
+          <td>Milestone Gates</td>
+          <td>0% → 20% intro meetings → 55% community sessions → 85% draft What We Heard → 100% final</td>
+        </tr>
+        <tr>
+          <td>1.7</td>
+          <td>Hydrotechnical</td>
+          <td>$180,000</td>
+          <td>Milestone Gates</td>
+          <td>0% → 50% draft crossing reports issued → 100% final accepted</td>
+        </tr>
+        <tr>
+          <td>1.8</td>
+          <td>Impact Assessment &amp; Reporting</td>
+          <td>$370,000</td>
+          <td>Weighted Steps</td>
+          <td>Outline 5% / Data compilation 15% / Draft sections 45% / Internal QC 65% / Client draft 85% / Submission
+            100%</td>
+        </tr>
+        <tr class="total">
+          <td colspan="2"><strong>TOTAL BAC</strong></td>
+          <td><strong>$4,500,000</strong></td>
+          <td colspan="2">Contingency $225,000 — PM-held, outside Oracle budget</td>
+        </tr>
       </tbody>
     </table>
-    <p class="wb-note">Jamie also confirmed: Ridgeline PO in system ✓ | Ray Callahan PO issued and in procurement ✓ | TLU firm PO drafted, awaiting Sarah's approval ✓ | Baseline schedule PDF locked and filed ✓ | Change log created and shared with Sarah ✓ | Oracle OT rate codes verified and loaded for hourly field staff ✓ | Nonchargeable register created — travel time (2hrs/day/person), principal oversight, QC sign-offs, proposal write-off ✓ | Risk register formalized from Sarah's proposal notes — 5 risks, expected value $315,500 (R-01 tail risk covered by contract clause, not contingency) ✓</p>
+    <p class="wb-note">Jamie also confirmed: Ridgeline PO in system ✓ | Ray Callahan PO issued and in procurement ✓ |
+      TLU firm PO drafted, awaiting Sarah's approval ✓ | Baseline schedule PDF locked and filed ✓ | Change log created
+      and shared with Sarah ✓ | Oracle OT rate codes verified and loaded for hourly field staff ✓ | Nonchargeable
+      register created — travel time (2hrs/day/person), principal oversight, QC sign-offs, proposal write-off ✓ | Risk
+      register formalized from Sarah's proposal notes — 5 risks, expected value $315,500 (R-01 tail risk covered by
+      contract clause, not contingency) ✓</p>
   </div>
 
   <div class="prose">
-    <p>On Friday of Week 2, Jamie sent Sarah the Project Controls Plan — a single page that documented how the project would be tracked, reported, and controlled for the next twelve months. It wasn't a long document. It didn't need to be. Its purpose was to create a shared, written understanding between Jamie and Sarah of exactly how controls would work — so that when something went wrong at Month 5, neither of them would be arguing about process.</p>
+    <p>On Friday of Week 2, Jamie sent Sarah the Project Controls Plan — a single page that documented how the project
+      would be tracked, reported, and controlled for the next twelve months. It wasn't a long document. It didn't need
+      to be. Its purpose was to create a shared, written understanding between Jamie and Sarah of exactly how controls
+      would work — so that when something went wrong at Month 5, neither of them would be arguing about process.</p>
   </div>
 
   <div class="work-block">
@@ -929,23 +1162,36 @@
     <div style="font-family:var(--sans);font-size:13px;line-height:1.9;color:var(--text);">
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Reporting Cadence</div>
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Reporting Cadence</div>
         Weekly: Timesheet coding review; Ridgeline field log reconciliation; change log update.<br>
-        Monthly (last Friday): Full EV calculation; cost report pack prepared for Sarah's review; status report issued to client within 3 business days of Sarah's approval.
+        Monthly (last Friday): Full EV calculation; cost report pack prepared for Sarah's review; status report issued
+        to client within 3 business days of Sarah's approval.
       </div>
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Earned Value Method</div>
-        All WBS elements tracked per agreed rules of credit (see WBS table). EV calculated monthly using Oracle actuals + field-confirmed completion data. CPI and SPI reported at WBS element level and project total. EAC updated every month using bottom-up ETC; trend-based EAC (BAC÷CPI) reported as secondary reference only.
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Earned Value Method</div>
+        All WBS elements tracked per agreed rules of credit (see WBS table). EV calculated monthly using Oracle actuals
+        + field-confirmed completion data. CPI and SPI reported at WBS element level and project total. EAC updated
+        every month using bottom-up ETC; trend-based EAC (BAC÷CPI) reported as secondary reference only.
       </div>
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Change Management</div>
-        All scope changes logged in the change log on the day identified. No out-of-scope work proceeds without written authorization. Change orders set up as separate WBS elements — never merged with original scope. Change log shared with client PM (Dale Fortis) as part of monthly report package.
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Change Management</div>
+        All scope changes logged in the change log on the day identified. No out-of-scope work proceeds without written
+        authorization. Change orders set up as separate WBS elements — never merged with original scope. Change log
+        shared with client PM (Dale Fortis) as part of monthly report package.
       </div>
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Escalation Thresholds</div>
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Escalation Thresholds</div>
         Any WBS element with CPI &lt; 0.90 for two consecutive months: escalate to Sarah with cause analysis.<br>
         Any WBS element forecast to exceed budget by &gt; 10%: escalate immediately.<br>
         Any contingency drawdown: document against specific risk event; report remaining balance every month.<br>
@@ -953,100 +1199,152 @@
       </div>
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Overtime Cost Accuracy</div>
-        Field technicians are hourly and OT-eligible (1.5x over 8hrs/day or 44hrs/week). Oracle OT rate codes verified and loaded for all hourly field staff before first timesheet posting. If OT accumulates materially during field season, flagged to Sarah for resourcing decision. Primary concern is cost accuracy in the system — not just tracking hours.
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Overtime Cost Accuracy</div>
+        Field technicians are hourly and OT-eligible (1.5x over 8hrs/day or 44hrs/week). Oracle OT rate codes verified
+        and loaded for all hourly field staff before first timesheet posting. If OT accumulates materially during field
+        season, flagged to Sarah for resourcing decision. Primary concern is cost accuracy in the system — not just
+        tracking hours.
       </div>
 
       <div style="margin-bottom:16px;">
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">Nonchargeable Cost Register</div>
-        Known non-billable costs tracked in a parallel register outside Oracle — client will not pay these but they are real firm costs:<br>
-        • <strong>Travel time:</strong> ~2 hrs/day per field staff member during active field seasons (not billable per contract)<br>
+        <div
+          style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:6px;">
+          Nonchargeable Cost Register</div>
+        Known non-billable costs tracked in a parallel register outside Oracle — client will not pay these but they are
+        real firm costs:<br>
+        • <strong>Travel time:</strong> ~2 hrs/day per field staff member during active field seasons (not billable per
+        contract)<br>
         • <strong>Principal oversight:</strong> Tom Briggs ~2 hrs/month<br>
-        • <strong>Deliverable QC sign-offs:</strong> senior review time absorbed in estimates — actual hours monitored<br>
+        • <strong>Deliverable QC sign-offs:</strong> senior review time absorbed in estimates — actual hours
+        monitored<br>
         • <strong>Proposal write-off:</strong> ~$3,200 estimated<br>
         Reported to Sarah monthly. At closeout, provides true firm cost vs. billed revenue — the real margin picture.
       </div>
-        Ridgeline Drilling: weekly field log from Marcus Webb is authoritative completion record. Invoices reconciled against field log before payment approval. Discrepancies flagged to Sarah before invoice processing.<br>
-        All other subs: invoices reconciled against milestone completion records. PO balances tracked monthly.
-      </div>
-
-      <div>
-        <div style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;">Risk Register — Formalized from Sarah's Proposal Notes</div>
-        <table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--sans);">
-          <thead>
-            <tr style="border-bottom:1px solid var(--border);">
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">ID</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Risk</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Prob</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Impact</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Exp. Value</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Owner</th>
-              <th style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">Response</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-01</td>
-              <td style="padding:6px 8px;color:var(--text);">Borehole program expansion — old soil mapping; changed conditions</td>
-              <td style="padding:6px 8px;color:var(--amber);">Medium (35%)</td>
-              <td style="padding:6px 8px;color:var(--text);">$600K–$900K</td>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$262,500</td>
-              <td style="padding:6px 8px;color:var(--text);">Marcus / Sarah</td>
-              <td style="padding:6px 8px;color:var(--text-dim);">Monitor field logs weekly; changed conditions clause in contract; CO if triggered</td>
-            </tr>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-02</td>
-              <td style="padding:6px 8px;color:var(--text);">Bird breeding season clearing delay — MBCA April 1–July 31</td>
-              <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
-              <td style="padding:6px 8px;color:var(--text);">$40K–$80K</td>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$9,000</td>
-              <td style="padding:6px 8px;color:var(--text);">Brad / Sarah</td>
-              <td style="padding:6px 8px;color:var(--text-dim);">Clearing contractor booked; contract delay clause in place; LOC submitted</td>
-            </tr>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-03</td>
-              <td style="padding:6px 8px;color:var(--text);">HRIA Stage 3 discovery — significant archaeological site</td>
-              <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
-              <td style="padding:6px 8px;color:var(--text);">$100K–$200K + schedule</td>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$22,500</td>
-              <td style="padding:6px 8px;color:var(--text);">Ray / Sarah</td>
-              <td style="padding:6px 8px;color:var(--text-dim);">Stage 1 early delivery; CO pass-through clause in Ray's sub agreement</td>
-            </tr>
-            <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-04</td>
-              <td style="padding:6px 8px;color:var(--text);">TLU scope expansion — additional First Nation engagement sessions</td>
-              <td style="padding:6px 8px;color:var(--amber);">Medium (30%)</td>
-              <td style="padding:6px 8px;color:var(--text);">$20K–$50K</td>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$10,500</td>
-              <td style="padding:6px 8px;color:var(--text);">Priya / Sarah</td>
-              <td style="padding:6px 8px;color:var(--text-dim);">TLU sub on unit-rate for additional sessions; client notified as client-directed risk</td>
-            </tr>
-            <tr>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-05</td>
-              <td style="padding:6px 8px;color:var(--text);">Regulatory guidance change affecting IA report scope post-contract</td>
-              <td style="padding:6px 8px;color:var(--amber);">Low (20%)</td>
-              <td style="padding:6px 8px;color:var(--text);">$30K–$80K</td>
-              <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$11,000</td>
-              <td style="padding:6px 8px;color:var(--text);">Sarah / Jamie</td>
-              <td style="padding:6px 8px;color:var(--text-dim);">Monitor AER guidance releases monthly; CO if triggered post-contract</td>
-            </tr>
-          </tbody>
-        </table>
-        <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--amber);">Total expected value: $315,500 &nbsp;|&nbsp; Contingency funded: $225,000 &nbsp;|&nbsp; <span style="color:var(--red);">Gap: $90,500 — discussed with Sarah; R-01 is the tail risk and is covered by the changed conditions clause rather than contingency</span></div>
-      </div>
+      Ridgeline Drilling: weekly field log from Marcus Webb is authoritative completion record. Invoices reconciled
+      against field log before payment approval. Discrepancies flagged to Sarah before invoice processing.<br>
+      All other subs: invoices reconciled against milestone completion records. PO balances tracked monthly.
     </div>
-    <p class="wb-note">Sarah reviewed the PC Plan and sent back two words: "Looks good." Jamie filed the signed version and sent a copy to Dale Fortis with a cover note explaining that the change log would be included in every monthly report package. Dale replied: "Appreciated — good to know how this is being tracked."</p>
-  </div>
 
-  <div class="inner-voice">
-    <div class="inner-voice-label">Jamie's thinking</div>
-    <p>The PC Plan took about three hours to write. Most of that time wasn't writing — it was thinking through the logic. What am I actually going to do every week? What am I going to look for? What do I escalate and when? What does Sarah need from me that she doesn't have time to produce herself? Once I had answers to those questions, the document was easy. And having it written down meant that in Month 5, when I needed to escalate the drilling situation, I wasn't inventing a process on the fly. The process was already agreed. I was just following it.</p>
+    <div>
+      <div
+        style="font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);margin-bottom:8px;">
+        Risk Register — Formalized from Sarah's Proposal Notes</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px;font-family:var(--sans);">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border);">
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              ID</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Risk</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Prob</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Impact</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Exp. Value</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Owner</th>
+            <th
+              style="text-align:left;padding:5px 8px;color:var(--teal);font-family:var(--mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;">
+              Response</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-01</td>
+            <td style="padding:6px 8px;color:var(--text);">Borehole program expansion — old soil mapping; changed
+              conditions</td>
+            <td style="padding:6px 8px;color:var(--amber);">Medium (35%)</td>
+            <td style="padding:6px 8px;color:var(--text);">$600K–$900K</td>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$262,500</td>
+            <td style="padding:6px 8px;color:var(--text);">Marcus / Sarah</td>
+            <td style="padding:6px 8px;color:var(--text-dim);">Monitor field logs weekly; changed conditions clause in
+              contract; CO if triggered</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-02</td>
+            <td style="padding:6px 8px;color:var(--text);">Bird breeding season clearing delay — MBCA April 1–July 31
+            </td>
+            <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
+            <td style="padding:6px 8px;color:var(--text);">$40K–$80K</td>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$9,000</td>
+            <td style="padding:6px 8px;color:var(--text);">Brad / Sarah</td>
+            <td style="padding:6px 8px;color:var(--text-dim);">Clearing contractor booked; contract delay clause in
+              place; LOC submitted</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-03</td>
+            <td style="padding:6px 8px;color:var(--text);">HRIA Stage 3 discovery — significant archaeological site</td>
+            <td style="padding:6px 8px;color:var(--amber);">Low (15%)</td>
+            <td style="padding:6px 8px;color:var(--text);">$100K–$200K + schedule</td>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$22,500</td>
+            <td style="padding:6px 8px;color:var(--text);">Ray / Sarah</td>
+            <td style="padding:6px 8px;color:var(--text-dim);">Stage 1 early delivery; CO pass-through clause in Ray's
+              sub agreement</td>
+          </tr>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.06);">
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-04</td>
+            <td style="padding:6px 8px;color:var(--text);">TLU scope expansion — additional First Nation engagement
+              sessions</td>
+            <td style="padding:6px 8px;color:var(--amber);">Medium (30%)</td>
+            <td style="padding:6px 8px;color:var(--text);">$20K–$50K</td>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$10,500</td>
+            <td style="padding:6px 8px;color:var(--text);">Priya / Sarah</td>
+            <td style="padding:6px 8px;color:var(--text-dim);">TLU sub on unit-rate for additional sessions; client
+              notified as client-directed risk</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">R-05</td>
+            <td style="padding:6px 8px;color:var(--text);">Regulatory guidance change affecting IA report scope
+              post-contract</td>
+            <td style="padding:6px 8px;color:var(--amber);">Low (20%)</td>
+            <td style="padding:6px 8px;color:var(--text);">$30K–$80K</td>
+            <td style="padding:6px 8px;color:var(--amber);font-family:var(--mono);">$11,000</td>
+            <td style="padding:6px 8px;color:var(--text);">Sarah / Jamie</td>
+            <td style="padding:6px 8px;color:var(--text-dim);">Monitor AER guidance releases monthly; CO if triggered
+              post-contract</td>
+          </tr>
+        </tbody>
+      </table>
+      <div style="margin-top:10px;font-family:var(--mono);font-size:11px;color:var(--amber);">Total expected value:
+        $315,500 &nbsp;|&nbsp; Contingency funded: $225,000 &nbsp;|&nbsp; <span style="color:var(--red);">Gap: $90,500 —
+          discussed with Sarah; R-01 is the tail risk and is covered by the changed conditions clause rather than
+          contingency</span></div>
+    </div>
   </div>
+  <p class="wb-note">Sarah reviewed the PC Plan and sent back two words: "Looks good." Jamie filed the signed version
+    and sent a copy to Dale Fortis with a cover note explaining that the change log would be included in every monthly
+    report package. Dale replied: "Appreciated — good to know how this is being tracked."</p>
+</div>
 
-  <div class="callout teal">
-    <div class="callout-label">What This Illustrates</div>
-    <p>The PC Plan is not bureaucratic paperwork — it's a <span class="concept teal">set of decisions made in advance</span> about how you will handle situations you haven't encountered yet. Loading correct OT rates before the first timesheet posts is a five-minute task that protects twelve months of cost accuracy. Identifying travel time as a non-billable cost means 250+ hours of real firm expenditure has somewhere to live rather than quietly eroding margin. Formalizing Sarah's rough risk notes into a structured register with expected values means the contingency balance can be defended — and the gap between R-01's tail risk and the contingency is explained by the contract clause that covers it, not hidden. None of these are complicated. They're just the things that need to be right before the project starts moving.</p>
-  </div>
+<div class="inner-voice">
+  <div class="inner-voice-label">Jamie's thinking</div>
+  <p>The PC Plan took about three hours to write. Most of that time wasn't writing — it was thinking through the logic.
+    What am I actually going to do every week? What am I going to look for? What do I escalate and when? What does Sarah
+    need from me that she doesn't have time to produce herself? Once I had answers to those questions, the document was
+    easy. And having it written down meant that in Month 5, when I needed to escalate the drilling situation, I wasn't
+    inventing a process on the fly. The process was already agreed. I was just following it.</p>
+</div>
+
+<div class="callout teal">
+  <div class="callout-label">What This Illustrates</div>
+  <p>The PC Plan is not bureaucratic paperwork — it's a <span class="concept teal">set of decisions made in
+      advance</span> about how you will handle situations you haven't encountered yet. Loading correct OT rates before
+    the first timesheet posts is a five-minute task that protects twelve months of cost accuracy. Identifying travel
+    time as a non-billable cost means 250+ hours of real firm expenditure has somewhere to live rather than quietly
+    eroding margin. Formalizing Sarah's rough risk notes into a structured register with expected values means the
+    contingency balance can be defended — and the gap between R-01's tail risk and the contingency is explained by the
+    contract clause that covers it, not hidden. None of these are complicated. They're just the things that need to be
+    right before the project starts moving.</p>
+</div>
 </div>
 
 <!-- ══ BEAT 3: FIRST MONTHLY REPORT ══ -->
@@ -2009,6 +2307,201 @@
   }
   const main = document.getElementById('main');
   const beats = ['beat1','beat2','beat3','beat4','beat5','beat6','beat7','beat8'];
+  function initDialogues() {
+    document.querySelectorAll('.dialogue').forEach(dl => {
+      const lines = Array.from(dl.querySelectorAll('.line'));
+      if (lines.length <= 1) return;
+      // Wrap all lines in a scrollable area
+      const scroll = document.createElement('div');
+      scroll.className = 'dialogue-scroll';
+      lines.forEach(l => scroll.appendChild(l));
+      dl.insertBefore(scroll, dl.firstChild);
+      lines.slice(1).forEach(l => l.classList.add('line-hidden'));
+      const ctrl = document.createElement('div');
+      ctrl.className = 'dialogue-controls';
+      ctrl.innerHTML = `<button class="dlg-next" onclick="dlgNext(this)">Next ›</button><span class="dlg-progress">1 / ${lines.length}</span><button class="dlg-showall" onclick="dlgShowAll(this)">show all</button>`;
+      dl.appendChild(ctrl);
+    });
+  }
+  function dlgNext(btn) {
+    const dl = btn.closest('.dialogue');
+    const lines = Array.from(dl.querySelectorAll('.line'));
+    const hidden = dl.querySelector('.line.line-hidden');
+    if (!hidden) return;
+    hidden.classList.remove('line-hidden');
+    const scrollEl = dl.querySelector('.dialogue-scroll');
+    if (scrollEl) setTimeout(() => {
+      const lineBottom = hidden.offsetTop + hidden.offsetHeight;
+      const visibleBottom = scrollEl.scrollTop + scrollEl.clientHeight;
+      if (lineBottom > visibleBottom) {
+        scrollEl.scrollTo({ top: lineBottom - scrollEl.clientHeight, behavior: 'smooth' });
+      }
+    }, 50);
+    const revealed = lines.filter(l => !l.classList.contains('line-hidden')).length;
+    dl.querySelector('.dlg-progress').textContent = `${revealed} / ${lines.length}`;
+    if (!dl.querySelector('.line.line-hidden')) { btn.textContent = 'Done ✓'; btn.disabled = true; }
+  }
+  function dlgShowAll(btn) {
+    const dl = btn.closest('.dialogue');
+    const lines = Array.from(dl.querySelectorAll('.line'));
+    dl.querySelectorAll('.line.line-hidden').forEach(l => l.classList.remove('line-hidden'));
+    dl.querySelector('.dlg-progress').textContent = `${lines.length} / ${lines.length}`;
+    dl.querySelector('.dlg-next').textContent = 'Done ✓';
+    dl.querySelector('.dlg-next').disabled = true;
+  }
+  initDialogues();
+
+  // --- STORY BEAT SCENE SYSTEM ---
+  const beatDocsReviewed = {};
+  const beatDocRequirements = { beat1: ['doc-contract','doc-estimate','doc-schedule','doc-brief'] };
+
+  function navItemForBeat(beatId) {
+    return Array.from(document.querySelectorAll('.nav-item')).find(n => {
+      const m = n.getAttribute('onclick')?.match(/'([^']+)'/);
+      return m && m[1] === beatId;
+    });
+  }
+
+  function unlockBeat(beat) {
+    beat.classList.remove('beat-locked');
+    beat.style.opacity = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      beat.style.transition = 'opacity 0.5s ease';
+      beat.style.opacity = '1';
+    }));
+    setTimeout(() => beat.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    const navItem = navItemForBeat(beat.id);
+    if (navItem) navItem.classList.remove('nav-locked');
+  }
+
+  function unlockNextBeat(currentBeat) {
+    const allBeats = Array.from(document.querySelectorAll('.beat'));
+    const idx = allBeats.indexOf(currentBeat);
+    if (idx + 1 < allBeats.length) unlockBeat(allBeats[idx + 1]);
+  }
+
+  function initStoryBeats() {
+    const allBeats = Array.from(document.querySelectorAll('.beat'));
+    // Lock all beats after the first (content + sidebar nav)
+    allBeats.slice(1).forEach(b => {
+      b.classList.add('beat-locked');
+      const navItem = navItemForBeat(b.id);
+      if (navItem) navItem.classList.add('nav-locked');
+    });
+
+    allBeats.forEach((beat, beatIdx) => {
+      const scenes = Array.from(beat.querySelectorAll(':scope > .scene-block'));
+      const isLastBeat = beatIdx === allBeats.length - 1;
+
+      if (scenes.length) {
+        // Beat has scene system — add story-nav
+        scenes.slice(1).forEach(s => s.classList.add('scene-hidden'));
+        const nav = document.createElement('div');
+        nav.className = 'story-nav';
+        nav.id = beat.id + '-nav';
+        nav.dataset.current = '0';
+        nav.dataset.total = scenes.length;
+        nav.innerHTML = `<button class="story-next-btn" onclick="beatNext('${beat.id}')">Continue ›</button><span class="story-progress-label">Scene 1 of ${scenes.length}</span>`;
+        beat.appendChild(nav);
+      } else if (!isLastBeat) {
+        // Beat has no scene system — add a simple advance button
+        const adv = document.createElement('div');
+        adv.className = 'beat-advance';
+        adv.innerHTML = `<button class="beat-advance-btn" onclick="this.closest('.beat-advance').dataset.used='1';this.textContent='Done ✓';this.disabled=true;unlockNextBeat(this.closest('.beat'))">Continue to next section ›</button>`;
+        beat.appendChild(adv);
+      }
+    });
+  }
+
+  function beatNext(beatId) {
+    const beat = document.getElementById(beatId);
+    const nav = document.getElementById(beatId + '-nav');
+    const current = parseInt(nav.dataset.current);
+    const total = parseInt(nav.dataset.total);
+    const scenes = Array.from(beat.querySelectorAll(':scope > .scene-block'));
+    if (current + 1 >= total) return;
+    const nextScene = scenes[current + 1];
+
+    // Check if this scene requires all docs to be opened first
+    const reqs = nextScene.dataset.requireDocs;
+    if (reqs) {
+      const required = reqs.split(',');
+      const reviewed = beatDocsReviewed[nextScene.dataset.beat] || new Set();
+      const missing = required.filter(d => !reviewed.has(d));
+      if (missing.length > 0) {
+        const btn = nav.querySelector('.story-next-btn');
+        const orig = btn.textContent;
+        btn.textContent = `Open ${missing.length} more attachment${missing.length > 1 ? 's' : ''} first`;
+        setTimeout(() => { btn.textContent = orig; }, 2800);
+        return;
+      }
+    }
+
+    nextScene.classList.remove('scene-hidden');
+    nextScene.style.opacity = '0';
+    nextScene.style.transform = 'translateY(10px)';
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      nextScene.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+      nextScene.style.opacity = '1';
+      nextScene.style.transform = 'translateY(0)';
+    }));
+    setTimeout(() => nav.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
+
+    const newCurrent = current + 1;
+    nav.dataset.current = newCurrent;
+    nav.querySelector('.story-progress-label').textContent = `Scene ${newCurrent + 1} of ${total}`;
+    if (newCurrent + 1 >= total) {
+      nav.querySelector('.story-next-btn').textContent = 'Complete ✓';
+      nav.querySelector('.story-next-btn').disabled = true;
+      unlockNextBeat(beat);
+    }
+  }
+
+  function trackDocOpen(beatId, docId) {
+    if (!beatDocsReviewed[beatId]) beatDocsReviewed[beatId] = new Set();
+    beatDocsReviewed[beatId].add(docId);
+    showNoteToast(docId);
+    openDoc(docId);
+    // Update the hint bar once all docs for this beat are opened
+    const reqs = beatDocRequirements[beatId];
+    if (reqs) {
+      const reviewed = beatDocsReviewed[beatId];
+      const remaining = reqs.filter(d => !reviewed.has(d)).length;
+      const hint = document.getElementById('doc-hint-' + beatId);
+      if (hint) {
+        if (remaining === 0) {
+          hint.textContent = 'All documents reviewed — your kickoff notes are ready. Click Continue.';
+          hint.classList.add('docs-done');
+        } else {
+          hint.textContent = `${remaining} attachment${remaining > 1 ? 's' : ''} left to review.`;
+        }
+      }
+    }
+  }
+
+  function showNoteToast(docId) {
+    const info = {
+      'doc-contract':  { doc: 'Ridgeline_Contract_Signed.pdf', note: 'Changed conditions clause noted. CO threshold $50K client PM, above = VP sign-off.' },
+      'doc-estimate':  { doc: 'Ridgeline_Estimate_v3.xlsx',    note: 'Drilling at $2.7M — 60% of total. OT rates need verification before first timesheet.' },
+      'doc-schedule':  { doc: 'Ridgeline_Baseline_Schedule.pdf',note: 'Hard constraint: April 1. Bird breeding window. Permitting clock already running.' },
+      'doc-brief':     { doc: 'Ridgeline_Project_Brief.docx',   note: '7 study areas → 1 AER submission. Client PM: Dale Fortis. 12-month contract.' }
+    };
+    const entry = info[docId] || { doc: docId, note: 'Document reviewed.' };
+    let toast = document.getElementById('note-toast-el');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'note-toast';
+      toast.id = 'note-toast-el';
+      document.body.appendChild(toast);
+    }
+    toast.innerHTML = `<div class="note-toast-header"><span class="note-toast-icon">📝</span><span class="note-toast-label">Note Captured</span></div><div class="note-toast-doc">${entry.doc}</div><div class="note-toast-text">${entry.note}</div>`;
+    toast.classList.add('toast-show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => toast.classList.remove('toast-show'), 4000);
+  }
+
+  initStoryBeats();
+
   main.addEventListener('scroll', () => {
     const scrollPos = main.scrollTop + 120;
     let current = beats[0];
