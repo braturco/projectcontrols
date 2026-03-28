@@ -45,7 +45,7 @@ window.STORY = {
   docs: [
     {
       id: 'doc-contract',
-      icon: '📄',
+      icon: '📑',
       name: 'contract_extracts.pdf',
       sub: 'PDF - Signed',
       unlockKey: 'contract-docs',
@@ -54,9 +54,9 @@ window.STORY = {
     },
     {
       id: 'doc-training',
-      icon: '📄',
+      icon: '📚',
       name: 'Training Binder',
-      sub: 'PDF - Course Material',
+      sub: 'Course Material Binder',
       unlockKey: 'training-notes',
       folder: 'Training',
       binderId: 'scene-training-notes',
@@ -76,7 +76,6 @@ window.STORY = {
         },
         {
           type: 'sms-card',
-          folderUnlock: 'contract-docs',
           alertType: 'phone',
           contact: {
             avatar: 'SC',
