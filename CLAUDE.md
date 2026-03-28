@@ -49,12 +49,16 @@ Scenes are direct children of a beat with class `.scene-block`. JS (`initStoryBe
 | `data-beat="beatId"` | Used with `data-require-docs` to match the doc-hint element |
 
 ### Current folder-unlock keys & triggers
-| Key | Fires on leaving scene | Injects into folder |
+| Key | Fires on leaving scene / beat | Injects into folder |
 |---|---|---|
-| `handover-docs` | `#scene-email` (Sarah's kickoff email) | "Handover" subfolder under Documents |
+| `handover-docs` | `#scene-email` (Sarah's kickoff email) | "Handover" subfolder under Documents; also shows folder tab |
 | `kickoff-notes` | grid-note scene (line ~745) | "PC Kickoff Prep Notes" under Notes |
 | `meeting-notes` | inner-voice scene (line ~913) | "Kickoff Meeting Notes" under Notes |
-| `dan-email` | `#scene-dan-email` (line ~961) | "Project Controls" subfolder under Documents |
+| `dan-email` | `#scene-dan-email` (line ~961) | Creates "Project Controls" subfolder (`#folder-pc-controls` / `#folder-pc-contents`) |
+| `rules-of-credit` | beat2 scene 3 — WBS table scene | Adds WBS & Rules of Credit to Project Controls subfolder |
+| `pc-report` | beat3 advance button (`data-folder-unlock` on beat div) | Adds Month 1 PC Status Report to Project Controls subfolder |
+
+Note: `rules-of-credit` and `pc-report` use `ensurePCFolder()` helper to create the subfolder if not yet present. `dan-email` also creates it — ordering is beat1→beat2→beat3 so `dan-email` always fires first.
 
 `handover-docs` also makes the folder tab visible (`folder-tab-visible` class).
 
@@ -82,6 +86,8 @@ Scroll logic in `dlgNext`: only scrolls if the new line falls below the visible 
 | `doc-kickoff-notes` | Grid-paper notes — J. Okafor · Jan 16 |
 | `doc-meeting-notes` | Grid-paper meeting notes — Sarah Chen · Jan 17 |
 | `doc-dan-email` | Dan Reyes PC checklist email · Jan 20 |
+| `doc-rules-of-credit` | WBS & Rules of Credit — Excel style modal (same table as beat2 inline) |
+| `doc-pc-report` | Month 1 PC Status Report — Word style modal (blue heading, Calibri font, EV table) |
 
 Open/close: `openDoc(id)` / `closeDoc(el)`. Pattern: `.doc-overlay#doc-{name}` > `.doc-window`.
 
