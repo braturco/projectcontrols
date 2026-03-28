@@ -1,0 +1,144 @@
+/* ================================================================
+   alerts.css — Floating Notification Badges
+   ================================================================ */
+
+#alert-tray {
+  position: fixed;
+  right: 24px;
+  bottom: 100px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 18px;
+  z-index: 300;
+  pointer-events: none;
+}
+
+/* ── BADGE ─────────────────────────────────────────────────────── */
+.alert-badge {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #1a1e26;
+  border: 2.5px solid #f0a500;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.55), 0 0 0 0 rgba(240,165,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  pointer-events: all;
+
+  /* Entry pop */
+  animation:
+    alert-enter  0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both,
+    alert-pulse  2.2s ease-in-out 0.5s infinite;
+}
+
+.alert-badge:hover {
+  animation-play-state: paused;
+  border-color: #ffc133;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.6), 0 0 0 6px rgba(240,165,0,0.18);
+}
+
+/* Ripple ring behind the badge */
+.alert-badge::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 3px solid rgba(240,165,0,0.7);
+  animation: alert-ring 2.2s ease-out 0.5s infinite;
+  pointer-events: none;
+}
+
+.alert-badge:hover::before {
+  animation-play-state: paused;
+}
+
+.alert-badge-icon {
+  font-size: 30px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4));
+}
+
+.alert-badge-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #e05a4e;
+  color: #fff;
+  border-radius: 50%;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: 'IBM Plex Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0f1117;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+}
+
+/* Tooltip */
+.alert-badge-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1e26;
+  border: 1px solid #3a4060;
+  color: #d4dae8;
+  font-size: 12px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.45);
+}
+.alert-badge-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-left-color: #3a4060;
+}
+
+.alert-badge:hover .alert-badge-tooltip {
+  opacity: 1;
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────────── */
+
+/* Entry pop from bottom-right */
+@keyframes alert-enter {
+  from { opacity: 0; transform: scale(0.3) translateY(20px); }
+  to   { opacity: 1; transform: scale(1)   translateY(0); }
+}
+
+/* Gentle scale pulse */
+@keyframes alert-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.1); }
+}
+
+/* Expanding ripple ring */
+@keyframes alert-ring {
+  0%   { opacity: 0.75; transform: scale(1); }
+  70%  { opacity: 0;    transform: scale(1.5); }
+  100% { opacity: 0;    transform: scale(1.5); }
+}
+
+/* Dismiss shrink */
+.alert-badge.dismissing {
+  animation: alert-dismiss 0.22s ease-in forwards !important;
+}
+@keyframes alert-dismiss {
+  to { opacity: 0; transform: scale(0.2) translateY(12px); }
+}

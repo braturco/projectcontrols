@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Story Editor</title>
+<style>
+:root {
+  --bg:#f5f6f8; --surface:#ffffff; --surface2:#f0f1f4; --border:#d8dbe5;
+  --amber:#b87800; --teal:#1a7f7f; --green:#2e7d52; --blue:#2a6099;
+  --red:#c0392b; --purple:#5a48c8; --text:#1a1e2e; --dim:#6b7280;
+  --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* TOP BAR */
+#top-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 18px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+#top-bar h1{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--teal);letter-spacing:0.05em;}
+.top-actions{display:flex;gap:8px;}
+.btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-family:var(--mono);}
+.btn:hover{border-color:var(--teal);color:var(--teal);}
+.btn.primary{background:var(--teal);color:#fff;border-color:var(--teal);font-weight:700;}
+.btn.primary:hover{background:#145f5f;}
+
+/* MAIN LAYOUT */
+#layout{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT PANEL — beat list */
+#beat-panel{width:200px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;}
+#beat-panel-head{padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+#beat-list{flex:1;overflow-y:auto;}
+.beat-tab{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--border);padding:10px 14px;color:var(--dim);cursor:pointer;font-size:12px;font-family:var(--sans);}
+.beat-tab:hover{background:var(--surface2);color:var(--text);}
+.beat-tab.active{background:var(--surface2);color:var(--teal);border-left:2px solid var(--teal);}
+.beat-tab-num{font-family:var(--mono);font-size:10px;color:var(--dim);display:block;margin-bottom:2px;}
+#add-beat-btn{margin:10px;width:calc(100% - 20px);}
+
+/* CENTER PANEL — scene editor */
+#center-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* BEAT SETTINGS BAR */
+#beat-settings{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;flex-shrink:0;}
+#beat-settings input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 8px;font-size:12px;font-family:var(--sans);}
+#beat-settings input:focus{outline:none;border-color:var(--teal);}
+#beat-settings label{font-size:10px;color:var(--dim);font-family:var(--mono);letter-spacing:0.08em;text-transform:uppercase;white-space:nowrap;}
+.bs-group{display:flex;flex-direction:column;gap:3px;}
+.bs-group input{width:140px;}
+.bs-group.wide input{width:220px;}
+.bs-group.xwide input{width:340px;}
+
+/* SCENE LIST */
+#scene-area{flex:1;overflow-y:auto;padding:16px;}
+#beat-containers .beat-container{display:none;}
+#beat-containers .beat-container.active{display:block;}
+
+/* SCENE CARD */
+.scene-card{background:var(--surface);border:1px solid var(--border);border-radius:5px;margin-bottom:12px;}
+.scene-card:hover{border-color:#b0b8d0;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--surface2);border-radius:5px 5px 0 0;}
+.type-badge{font-family:var(--mono);font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.card-actions{display:flex;gap:4px;}
+.card-btn{background:none;border:1px solid transparent;color:var(--dim);padding:2px 7px;border-radius:3px;cursor:pointer;font-size:12px;}
+.card-btn:hover{border-color:var(--border);color:var(--text);}
+.card-btn.del:hover{border-color:var(--red);color:var(--red);}
+.card-btn.toggle{font-size:10px;min-width:20px;}
+.card-note{background:none;border:none;border-bottom:1px dashed var(--border);color:var(--dim);font-size:11px;font-family:var(--sans);padding:1px 4px;width:220px;outline:none;margin-left:10px;}
+.card-note:focus{border-bottom-color:var(--teal);color:var(--text);}
+.card-note::placeholder{color:var(--border);}
+.card-body{padding:12px;}
+.scene-card.collapsed .card-body{display:none;}
+.scene-card.collapsed .card-head{border-radius:5px;border-bottom:none;}
+
+/* FORM FIELDS */
+.field-row{display:grid;grid-template-columns:110px 1fr;gap:8px;align-items:start;margin-bottom:8px;}
+.field-row label{font-size:11px;color:var(--dim);font-family:var(--mono);padding-top:6px;text-align:right;}
+.field-row input,.field-row textarea,.field-row select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:5px 8px;font-size:12px;font-family:var(--sans);resize:vertical;}
+.field-row input:focus,.field-row textarea:focus,.field-row select:focus{outline:none;border-color:var(--teal);}
+.field-row select option{background:var(--surface);}
+.field-section{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);padding:8px 0 4px;border-top:1px solid var(--border);margin-top:4px;}
+.field-section:first-child{border-top:none;margin-top:0;padding-top:0;}
+
+/* ROWS (dialogue lines, sms messages, etc.) */
+.rows-list{display:flex;flex-direction:column;gap:6px;margin-bottom:6px;}
+.row-item{display:flex;gap:6px;align-items:flex-start;background:var(--surface2);padding:7px 8px;border-radius:4px;border:1px solid var(--border);}
+.row-item input,.row-item textarea,.row-item select{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--sans);}
+.row-item input:focus,.row-item textarea:focus,.row-item select:focus{outline:none;border-color:var(--teal);}
+.row-item textarea{resize:vertical;}
+.row-item select option{background:var(--surface);}
+.del-row-btn{background:none;border:1px solid transparent;color:var(--dim);padding:2px 6px;border-radius:3px;cursor:pointer;font-size:11px;flex-shrink:0;align-self:center;}
+.del-row-btn:hover{border-color:var(--red);color:var(--red);}
+.add-row-btn{background:none;border:1px dashed var(--border);color:var(--dim);padding:4px 12px;border-radius:3px;cursor:pointer;font-size:11px;font-family:var(--mono);width:100%;}
+.add-row-btn:hover{border-color:var(--teal);color:var(--teal);}
+.row-label{font-size:10px;color:var(--dim);font-family:var(--mono);padding-top:6px;white-space:nowrap;}
+
+/* SCENE ATTRIBUTES */
+.scene-attrs{margin-top:10px;border-top:1px solid var(--border);padding-top:8px;}
+.scene-attrs summary{font-family:var(--mono);font-size:10px;color:var(--dim);cursor:pointer;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:8px;}
+.scene-attrs summary:hover{color:var(--text);}
+.attr-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.attr-group{display:flex;flex-direction:column;gap:3px;}
+.attr-group label{font-size:10px;color:var(--dim);font-family:var(--mono);}
+.attr-group input{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--mono);}
+.attr-group input:focus{outline:none;border-color:var(--amber);}
+
+/* BINDER PAGE SPREAD — auto-number rows with 0-based Spread ID */
+.rows-list[data-list="pages"] { counter-reset: spread-id -1; }
+.rows-list[data-list="pages"] > .row-item { counter-increment: spread-id; }
+.rows-list[data-list="pages"] > .row-item::before {
+  content: "SPREAD ID: " counter(spread-id);
+  display: block;
+  font-size: 9px;
+  font-family: var(--mono, monospace);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--teal);
+  padding-bottom: 5px;
+  border-bottom: 1px dashed var(--border);
+  margin-bottom: 6px;
+}
+
+/* TYPE PICKER */
+#add-scene-bar{padding:12px 16px;border-top:1px solid var(--border);background:var(--surface);flex-shrink:0;}
+#type-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px;margin-bottom:10px;}
+.type-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:8px 10px;border-radius:4px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px;font-size:12px;font-family:var(--sans);}
+.type-btn:hover{border-color:var(--teal);color:var(--teal);}
+.type-icon{font-size:15px;flex-shrink:0;}
+.hidden{display:none!important;}
+
+/* META PANEL */
+#meta-panel{background:var(--surface);border-right:1px solid var(--border);width:420px;overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column;}
+#meta-panel-head{padding:10px 14px;font-family:var(--mono);font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--dim);border-bottom:1px solid var(--border);flex-shrink:0;}
+#meta-form{padding:12px 14px;flex:1;overflow-y:auto;}
+.meta-section{font-family:var(--mono);font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--teal);padding:10px 0 6px;border-top:1px solid var(--border);margin-top:6px;}
+.meta-section:first-child{border-top:none;margin-top:0;padding-top:0;}
+.meta-field{display:flex;flex-direction:column;gap:3px;margin-bottom:8px;}
+.meta-field label{font-size:10px;color:var(--dim);font-family:var(--mono);}
+.meta-field input,.meta-field textarea{background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:5px 8px;font-size:12px;font-family:var(--sans);width:100%;resize:vertical;}
+.meta-field input:focus,.meta-field textarea:focus{outline:none;border-color:var(--teal);}
+#cast-rows .row-item,#tag-rows .row-item{flex-wrap:wrap;}
+
+/* RICH TEXT EDITOR */
+.rte-wrap{border:1px solid var(--border);border-radius:3px;background:var(--bg);width:100%;}
+.rte-wrap:focus-within{border-color:var(--teal);}
+.rte-toolbar{display:none;flex-wrap:wrap;gap:2px;padding:4px 6px;border-bottom:1px solid var(--border);background:var(--surface2);}
+.rte-wrap:focus-within .rte-toolbar{display:flex;}
+.rte-btn{background:none;border:1px solid transparent;color:var(--dim);padding:2px 7px;border-radius:3px;cursor:pointer;font-size:12px;font-family:var(--mono);line-height:1.4;}
+.rte-btn:hover{background:var(--border);color:var(--text);}
+.rte-btn.sep{border-left:1px solid var(--border);margin-left:3px;padding-left:8px;}
+.rte-content{padding:5px 8px;font-size:12px;font-family:var(--sans);min-height:70px;outline:none;line-height:1.5;color:var(--text);}
+.rte-content:empty::before{content:attr(data-ph);color:var(--border);pointer-events:none;}
+.rte-content h3{font-size:13px;font-weight:700;margin:2px 0;}
+.rte-content ul,.rte-content ol{padding-left:18px;margin:2px 0;}
+.rte-content p{margin:2px 0;}
+
+/* TOAST */
+#copy-toast{position:fixed;bottom:24px;right:24px;background:var(--teal);color:#fff;padding:10px 20px;border-radius:5px;font-family:var(--mono);font-weight:700;font-size:13px;z-index:999;}
+</style>
+</head>
+<body>
+
+<input type="file" id="import-input"    accept=".json" style="display:none" onchange="importJson(this)">
+<input type="file" id="import-storyjs" accept=".js"   style="display:none" onchange="importStoryJs(this)">
+<div id="top-bar">
+  <h1>📖 Story Editor</h1>
+  <div class="top-actions">
+    <span id="save-indicator" style="font-family:var(--mono);font-size:11px;color:var(--dim);padding-right:6px;"></span>
+    <button class="btn" onclick="toggleMeta()">⚙ Meta</button>
+    <button class="btn" onclick="exportJson()" title="Save editor state to a .json file">💾 Export</button>
+    <button class="btn" onclick="document.getElementById('import-input').click()" title="Load a previously exported .json file">📂 Import</button>
+    <button class="btn" onclick="document.getElementById('import-storyjs').click()" title="Load directly from a story.js file">📂 Import story.js</button>
+    <button class="btn primary" onclick="copyStoryJs()">📋 Copy story.js</button>
+  </div>
+</div>
+
+<div id="layout">
+
+  <!-- META PANEL -->
+  <div id="meta-panel">
+    <div id="meta-panel-head">Story Meta</div>
+    <div id="meta-form">
+      <div class="meta-section">Sidebar</div>
+      <div class="meta-field"><label>Eyebrow</label><input id="m-eyebrow" placeholder="Case Study · Project Controller POV"></div>
+      <div class="meta-field"><label>Title</label><input id="m-title" placeholder="Ridgeline: A Project Controller's Story"></div>
+      <div class="meta-field"><label>Sub</label><input id="m-sub" placeholder="What the numbers look like from the inside"></div>
+      <div class="meta-field"><label>Disclaimer</label><textarea id="m-disclaimer" rows="3" placeholder="<strong>Training Note:</strong> …"></textarea></div>
+
+      <div class="meta-section">Hero</div>
+      <div class="meta-field"><label>Hero Eyebrow</label><input id="m-hero-eyebrow" placeholder="Project Controls for Consultants · Running Case Study"></div>
+      <div class="meta-field"><label>Hero Title</label><input id="m-hero-title" placeholder="Ridgeline:&lt;br&gt;A Project Controller's Story"></div>
+      <div class="meta-field"><label>Hero Sub</label><textarea id="m-hero-sub" rows="3" placeholder="You've been assigned to…"></textarea></div>
+
+      <div class="meta-section">Hero Tags</div>
+      <div id="tag-rows" class="rows-list"></div>
+      <button class="add-row-btn" onclick="addTagRow()">+ Add Tag</button>
+
+      <div class="meta-section">Cast</div>
+      <div id="cast-rows" class="rows-list"></div>
+      <button class="add-row-btn" onclick="addCastRow()" style="margin-top:6px">+ Add Cast Member</button>
+
+      <div class="meta-section">Project Folder — Documents</div>
+      <div style="font-size:10px;color:var(--dim);margin-bottom:6px;line-height:1.4;">Each entry appears in the sidebar folder when its <b>Unlock Key</b> fires (via a scene or beat's <code style="font-size:10px">folderUnlock</code> field). The <b>ID</b> must match a <code style="font-size:10px">#doc-*</code> modal in index.html.</div>
+      <div id="doc-rows" class="rows-list"></div>
+      <button class="add-row-btn" onclick="addDocRow()" style="margin-top:4px">+ Add Document</button>
+    </div>
+  </div>
+
+  <!-- BEAT PANEL -->
+  <div id="beat-panel">
+    <div id="beat-panel-head">
+      <span>Beats</span>
+    </div>
+    <div id="beat-list"></div>
+    <button class="btn add-row-btn" id="add-beat-btn" onclick="addBeat()" style="margin:10px;width:calc(100% - 20px);">+ Add Beat</button>
+  </div>
+
+  <!-- CENTER -->
+  <div id="center-panel">
+
+    <!-- BEAT SETTINGS -->
+    <div id="beat-settings">
+      <div class="bs-group"><label>ID</label><input id="bs-id" placeholder="beat1" onchange="saveBeatSettings()"></div>
+      <div class="bs-group"><label>Num</label><input id="bs-num" placeholder="01" onchange="saveBeatSettings()" style="width:50px"></div>
+      <div class="bs-group wide"><label>Title</label><input id="bs-title" placeholder="Beat Title" oninput="saveBeatSettings()"></div>
+      <div class="bs-group wide"><label>Eyebrow</label><input id="bs-eyebrow" placeholder="Phase · Time" onchange="saveBeatSettings()"></div>
+      <div class="bs-group xwide"><label>Context</label><input id="bs-context" placeholder="One-line description" onchange="saveBeatSettings()"></div>
+      <div class="bs-group"><label>folderUnlock</label><input id="bs-fu" placeholder="key" onchange="saveBeatSettings()" style="width:120px"></div>
+      <div class="bs-group"><label>docRequirements</label><input id="bs-dr" placeholder="doc-a,doc-b" onchange="saveBeatSettings()" style="width:150px"></div>
+    </div>
+
+    <!-- SCENE LIST -->
+    <div id="scene-area">
+      <div id="beat-containers"></div>
+    </div>
+
+    <!-- ADD SCENE -->
+    <div id="add-scene-bar">
+      <div id="type-grid" class="hidden"></div>
+      <button class="btn" onclick="toggleTypePicker()" style="width:100%">+ Add Scene</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="copy-toast" class="hidden">✓ Copied to clipboard</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────
+let currentBeatIdx = 0;
+let beatCount = 0;
+
+const SCENE_TYPES = [
+  { type:'prose',           label:'Prose',         icon:'¶'  },
+  { type:'dialogue',        label:'Dialogue',       icon:'💬' },
+  { type:'inner-voice',     label:'Inner Voice',    icon:'💭' },
+  { type:'sms-card',        label:'SMS Card',       icon:'📱' },
+  { type:'email-card',      label:'Email Card',     icon:'✉️' },
+  { type:'callout',         label:'Callout',        icon:'📢' },
+  { type:'status-row',      label:'Status Row',     icon:'📊' },
+  { type:'work-block',      label:'Work Block',     icon:'📋' },
+  { type:'grid-note',       label:'Grid Note',      icon:'📓' },
+  { type:'setup-checklist', label:'Checklist',      icon:'✅' },
+  { type:'timeline',        label:'Timeline',       icon:'📅' },
+  { type:'excel',           label:'Excel Mock',     icon:'🟢' },
+  { type:'html',            label:'Raw HTML',       icon:'</>'},
+  { type:'realbinder',      label:'Binder',         icon:'📒' },
+];
+
+// ── INIT ────────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  buildTypePicker();
+  const saved = localStorage.getItem('story-editor-state');
+  if (saved) {
+    try { restoreState(JSON.parse(saved)); showSaved('Auto-loaded'); }
+    catch(e) { console.warn('Could not restore saved state:', e); addBeat(); }
+  } else {
+    addBeat();
+  }
+  // Autosave on any input change
+  document.addEventListener('input',  () => debouncedSave());
+  document.addEventListener('change', () => debouncedSave());
+});
+
+// ── BEAT MANAGEMENT ─────────────────────────────────────────────
+function addBeat() {
+  const idx = beatCount++;
+  // Tab
+  const tab = document.createElement('button');
+  tab.className = 'beat-tab' + (beatCount === 1 ? ' active' : '');
+  tab.dataset.beatIdx = idx;
+  tab.innerHTML = `<span class="beat-tab-num">${String(idx+1).padStart(2,'0')}</span>Beat ${idx+1}`;
+  tab.onclick = () => switchBeat(idx);
+  document.getElementById('beat-list').appendChild(tab);
+  // Container
+  const c = document.createElement('div');
+  c.className = 'beat-container' + (beatCount === 1 ? ' active' : '');
+  c.dataset.beatIdx = idx;
+  c.dataset.id = `beat${idx+1}`;
+  c.dataset.num = String(idx+1).padStart(2,'0');
+  c.dataset.title = '';
+  c.dataset.eyebrow = '';
+  c.dataset.context = '';
+  c.dataset.fu = '';
+  c.dataset.dr = '';
+  document.getElementById('beat-containers').appendChild(c);
+  switchBeat(idx);
+}
+
+function switchBeat(idx) {
+  saveBeatSettings();
+  currentBeatIdx = idx;
+  document.querySelectorAll('.beat-tab').forEach(t =>
+    t.classList.toggle('active', parseInt(t.dataset.beatIdx) === idx));
+  document.querySelectorAll('.beat-container').forEach(c =>
+    c.classList.toggle('active', parseInt(c.dataset.beatIdx) === idx));
+  loadBeatSettings(idx);
+}
+
+function saveBeatSettings() {
+  const c = getBeatContainer(currentBeatIdx);
+  if (!c) return;
+  c.dataset.id    = document.getElementById('bs-id').value;
+  c.dataset.num   = document.getElementById('bs-num').value;
+  c.dataset.title = document.getElementById('bs-title').value;
+  c.dataset.eyebrow = document.getElementById('bs-eyebrow').value;
+  c.dataset.context = document.getElementById('bs-context').value;
+  c.dataset.fu    = document.getElementById('bs-fu').value;
+  c.dataset.dr    = document.getElementById('bs-dr').value;
+  // Update tab label
+  const tab = document.querySelector(`.beat-tab[data-beat-idx="${currentBeatIdx}"]`);
+  if (tab) tab.innerHTML = `<span class="beat-tab-num">${c.dataset.num || String(currentBeatIdx+1).padStart(2,'0')}</span>${c.dataset.title || `Beat ${currentBeatIdx+1}`}`;
+}
+
+function loadBeatSettings(idx) {
+  const c = getBeatContainer(idx);
+  if (!c) return;
+  document.getElementById('bs-id').value      = c.dataset.id || `beat${idx+1}`;
+  document.getElementById('bs-num').value     = c.dataset.num || String(idx+1).padStart(2,'0');
+  document.getElementById('bs-title').value   = c.dataset.title || '';
+  document.getElementById('bs-eyebrow').value = c.dataset.eyebrow || '';
+  document.getElementById('bs-context').value = c.dataset.context || '';
+  document.getElementById('bs-fu').value      = c.dataset.fu || '';
+  document.getElementById('bs-dr').value      = c.dataset.dr || '';
+}
+
+function getBeatContainer(idx) {
+  return document.querySelector(`.beat-container[data-beat-idx="${idx}"]`);
+}
+
+// ── TYPE PICKER ─────────────────────────────────────────────────
+function buildTypePicker() {
+  const grid = document.getElementById('type-grid');
+  SCENE_TYPES.forEach(({type, label, icon}) => {
+    const btn = document.createElement('button');
+    btn.className = 'type-btn';
+    btn.innerHTML = `<span class="type-icon">${icon}</span>${label}`;
+    btn.onclick = () => { addScene(type); toggleTypePicker(); };
+    grid.appendChild(btn);
+  });
+}
+
+function toggleTypePicker() {
+  document.getElementById('type-grid').classList.toggle('hidden');
+}
+
+// ── SCENE MANAGEMENT ────────────────────────────────────────────
+function addScene(type) {
+  const c = getBeatContainer(currentBeatIdx);
+  const card = document.createElement('div');
+  card.className = 'scene-card';
+  card.dataset.type = type;
+  const info = SCENE_TYPES.find(t => t.type === type);
+  card.innerHTML = `
+    <div class="card-head" onclick="toggleCard(event,this)" style="cursor:pointer;">
+      <span class="type-badge"><span class="card-toggle">▾</span> ${info.icon} ${info.label}</span>
+      <input class="card-note" data-field="_note" placeholder="add a note…" onclick="event.stopPropagation()">
+      <div class="card-actions">
+        <button class="card-btn" onclick="moveScene(this,-1)" title="Move up">↑</button>
+        <button class="card-btn" onclick="moveScene(this,1)"  title="Move down">↓</button>
+        <button class="card-btn del" onclick="deleteScene(this)" title="Delete">✕</button>
+      </div>
+    </div>
+    <div class="card-body">
+      ${buildSceneForm(type)}
+      <details class="scene-attrs">
+        <summary>Scene attributes (id · folderUnlock · alert · …)</summary>
+        <div class="attr-grid">
+          <div class="attr-group"><label>id</label><input data-attr="id" placeholder="e.g. scene-email"></div>
+          <div class="attr-group"><label>folderUnlock</label><input data-attr="folderUnlock" placeholder="e.g. handover-docs"></div>
+          <div class="attr-group"><label>requireDocs</label><input data-attr="requireDocs" placeholder="doc-a,doc-b"></div>
+          <div class="attr-group"><label>beat</label><input data-attr="beat" placeholder="e.g. beat1"></div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
+          <div style="font-size:9px;color:var(--teal);font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Alert — shown when this scene is revealed</div>
+          <div class="attr-grid">
+            <div class="attr-group">
+              <label>Alert Type</label>
+              <select data-attr="alertType" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--mono);">
+                <option value="">none</option>
+                <option value="phone">📱 Phone (SMS)</option>
+                <option value="email">✉️ Email</option>
+              </select>
+            </div>
+            <div class="attr-group"><label>Badge Count</label><input data-attr="alertCount" type="number" min="0" placeholder="1" style="width:70px"></div>
+            <div class="attr-group" style="grid-column:1/-1"><label>Tooltip Label</label><input data-attr="alertLabel" placeholder="e.g. New message from Sarah Chen"></div>
+          </div>
+        </div>
+      </details>
+    </div>`;
+  c.appendChild(card);
+  card.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function moveScene(btn, dir) {
+  const card = btn.closest('.scene-card');
+  const sibling = dir === -1 ? card.previousElementSibling : card.nextElementSibling;
+  if (sibling && sibling.classList.contains('scene-card')) {
+    dir === -1 ? card.parentElement.insertBefore(card, sibling) : card.parentElement.insertBefore(sibling, card);
+  }
+}
+
+function deleteScene(btn) {
+  if (confirm('Delete this scene?')) btn.closest('.scene-card').remove();
+}
+
+function toggleCard(event, head) {
+  // Ignore clicks on the action buttons
+  if (event.target.closest('.card-actions')) return;
+  const card = head.closest('.scene-card');
+  card.classList.toggle('collapsed');
+  head.querySelector('.card-toggle').textContent = card.classList.contains('collapsed') ? '▸' : '▾';
+  debouncedSave();
+}
+
+// ── SCENE FORM BUILDERS ─────────────────────────────────────────
+function frow(label, inputHtml) {
+  return `<div class="field-row"><label>${label}</label>${inputHtml}</div>`;
+}
+function fsec(label) {
+  return `<div class="field-section">${label}</div>`;
+}
+function ta(field, rows=4, ph='') {
+  return `<textarea data-field="${field}" rows="${rows}" placeholder="${esc(ph)}"></textarea>`;
+}
+function inp(field, ph='', style='') {
+  return `<input data-field="${field}" placeholder="${esc(ph)}" ${style?`style="${style}"`:''}">`;
+}
+function sel(field, opts) {
+  return `<select data-field="${field}">${opts.map(([v,l])=>`<option value="${v}">${l||v}</option>`).join('')}</select>`;
+}
+
+function rte(field, ph='') {
+  const b = (cmd,html,title,sep='') =>
+    `<button class="rte-btn${sep?' sep':''}" onmousedown="event.preventDefault()" onclick="rteCmd(this,'${cmd}')" title="${title}">${html}</button>`;
+  const btns =
+    b('bold',    '<b>B</b>',  'Bold') +
+    b('italic',  '<i>I</i>',  'Italic') +
+    b('insertUnorderedList', '• list', 'Bullet list', true) +
+    b('insertOrderedList',   '1. list','Numbered list') +
+    b('h3', 'H3', 'Heading', true) +
+    b('p',  '¶',  'Normal paragraph');
+  return `<div class="rte-wrap"><div class="rte-toolbar">${btns}</div><div class="rte-content" contenteditable="true" data-field="${field}" data-ph="${esc(ph)}"></div></div>`;
+}
+
+function rteSub(subfield, ph='') {
+  const f = rte('__sub__', ph);
+  return f.replace('data-field="__sub__"', `data-subfield="${subfield}"`);
+}
+
+function rteCmd(btn, cmd) {
+  const ed = btn.closest('.rte-wrap')?.querySelector('.rte-content');
+  if (ed) ed.focus();
+  if (cmd === 'h3' || cmd === 'p') document.execCommand('formatBlock', false, cmd);
+  else document.execCommand(cmd, false, null);
+}
+
+function buildSceneForm(type) {
+  switch(type) {
+
+    case 'prose':
+      return frow('Content', rte('html', 'Your text here.'));
+
+    case 'dialogue':
+      return frow('Lines',
+        `<div>
+          <div class="rows-list" data-list="lines">${dlgLine()}</div>
+          <button class="add-row-btn" onclick="addRow(this,'lines',dlgLine)">+ Add Line</button>
+        </div>`);
+
+    case 'inner-voice':
+      return frow('Label', inp('label','Jamie\'s thinking')) +
+        frow('Paragraphs',
+          `<div>
+            <div class="rows-list" data-list="paragraphs">${ivPara()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'paragraphs',ivPara)">+ Add Paragraph</button>
+          </div>`);
+
+    case 'sms-card':
+      return fsec('Contact') +
+        frow('Avatar', inp('contact.avatar','DR','width:60px')) +
+        frow('Name',   inp('contact.name','Dan Reyes')) +
+        frow('Sub',    inp('contact.sub','Senior PC · Kelowna BC')) +
+        fsec('Messages') +
+        frow('',
+          `<div>
+            <div class="rows-list" data-list="messages">${smsRow()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'messages',smsRow)">+ Add Message</button>
+          </div>`);
+
+    case 'email-card':
+      return fsec('Email') +
+        frow('Subject', inp('email.subject','Subject line')) +
+        frow('From',    inp('email.from','Sarah Chen &lt;s.chen@firm.ca&gt;')) +
+        frow('To',      inp('email.to','Jamie Okafor &lt;j.okafor@firm.ca&gt;')) +
+        frow('Date',    inp('email.date','Tuesday, January 14')) +
+        frow('Body',    rte('email.body', 'Email body…')) +
+        fsec('Attachments (optional)') +
+        frow('',
+          `<div>
+            <div class="rows-list" data-list="email.attachments"></div>
+            <button class="add-row-btn" onclick="addRow(this,'email.attachments',attachRow)">+ Add Attachment</button>
+          </div>`) +
+        fsec('Signature (optional)') +
+        frow('Name',  inp('email.sig.name','Sarah Chen, P.Eng.')) +
+        frow('Title', inp('email.sig.title','Project Manager')) +
+        frow('Firm',  inp('email.sig.firm','Firm Name')) +
+        fsec('Doc Hint (optional)') +
+        frow('Beat ID', inp('docHint.beatId','beat1','width:80px')) +
+        frow('Text',    inp('docHint.text','Open all attachments to continue.'));
+
+    case 'callout':
+      return frow('Color', sel('color',[['teal'],['amber'],['red'],['','default']])) +
+        frow('Label',    inp('label','What This Illustrates')) +
+        frow('Body', rte('bodyHtml', 'Learning point here.'));
+
+    case 'status-row':
+      return frow('Badges',
+        `<div>
+          <div class="rows-list" data-list="badges">${badgeRow()}</div>
+          <button class="add-row-btn" onclick="addRow(this,'badges',badgeRow)">+ Add Badge</button>
+        </div>`);
+
+    case 'work-block':
+      return frow('Label', inp('label','Block title')) +
+        frow('Content', rte('contentHtml', 'Table or analysis content here.'));
+
+    case 'grid-note':
+      return frow('Content HTML', ta('contentHtml', 10, '<div class="grid-note">…</div>'));
+
+    case 'setup-checklist':
+      return frow('Intro', inp('intro','Optional intro text.')) +
+        frow('Groups',
+          `<div>
+            <div class="rows-list" data-list="groups">${checkGroup()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'groups',checkGroup)">+ Add Group</button>
+          </div>`);
+
+    case 'timeline':
+      return frow('Events',
+        `<div>
+          <div class="rows-list" data-list="events">${tlRow()}</div>
+          <button class="add-row-btn" onclick="addRow(this,'events',tlRow)">+ Add Event</button>
+        </div>`);
+
+    case 'excel':
+      return frow('Content HTML', ta('contentHtml', 10, 'Full Excel mock HTML (xls-titlebar, xls-body, xls-tbl, xls-tabs)'));
+
+    case 'html':
+      return frow('Raw HTML', ta('content', 8, '<div>Any HTML.</div>'));
+
+    case 'realbinder':
+      return fsec('Page Spreads') +
+        frow('Pages', `<div>
+          <div class="rows-list" data-list="pages">${binderPageRow()}</div>
+          <button class="add-row-btn" onclick="addRow(this,'pages',binderPageRow)">+ Add Page Spread</button>
+        </div>`) +
+        fsec('Side Tabs') +
+        frow('Tabs', `<div>
+          <div class="rows-list" data-list="tabs">${binderTab()}</div>
+          <button class="add-row-btn" onclick="addRow(this,'tabs',binderTab)">+ Add Tab</button>
+        </div>`);
+
+    default:
+      return `<p style="color:var(--red)">Unknown type: ${type}</p>`;
+  }
+}
+
+// ── ROW TEMPLATES ───────────────────────────────────────────────
+function binderPageRow() {
+  return `<div class="row-item" style="flex-direction:column;gap:6px;align-items:stretch;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div>
+        <div style="font-size:9px;color:var(--teal);font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px;">Left Page</div>
+        <input data-subfield="left_label" placeholder="Label (e.g. Section · Overview)" style="width:100%;margin-bottom:4px">
+        <input data-subfield="left_title" placeholder="Title" style="width:100%;margin-bottom:4px">
+        <div style="margin-bottom:4px">${rteSub('left_body','Page content…')}</div>
+        <input data-subfield="left_pageNum" placeholder="Page #" style="width:70px">
+      </div>
+      <div>
+        <div style="font-size:9px;color:var(--teal);font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:5px;">Right Page</div>
+        <input data-subfield="right_label" placeholder="Label" style="width:100%;margin-bottom:4px">
+        <input data-subfield="right_title" placeholder="Title" style="width:100%;margin-bottom:4px">
+        <div style="margin-bottom:4px">${rteSub('right_body','Page content…')}</div>
+        <input data-subfield="right_pageNum" placeholder="Page #" style="width:70px">
+      </div>
+    </div>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()" style="align-self:flex-end;">✕ Remove Spread</button>
+  </div>`;
+}
+
+function binderTab() {
+  return `<div class="row-item">
+    <input data-subfield="label" placeholder="Tab label" style="flex:1">
+    <div style="display:flex;flex-direction:column;gap:2px;align-items:center;flex-shrink:0;">
+      <span style="font-size:9px;color:var(--dim);font-family:var(--mono);white-space:nowrap;letter-spacing:0.08em;text-transform:uppercase;">Spread ID</span>
+      <input data-subfield="page" type="number" min="0" placeholder="0" style="width:64px;text-align:center">
+    </div>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function dlgLine() {
+  return `<div class="row-item">
+    <input data-subfield="speaker" placeholder="Speaker" style="width:100px">
+    <select data-subfield="role">
+      <option value="jamie">jamie</option>
+      <option value="pm">pm</option>
+      <option value="internal">internal</option>
+      <option value="tech">tech</option>
+    </select>
+    <input data-subfield="text" placeholder="Dialogue text…" style="flex:1">
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function ivPara() {
+  return `<div class="row-item">
+    <textarea data-subfield="para" rows="2" placeholder="Paragraph…" style="flex:1;min-width:0"></textarea>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function smsRow() {
+  return `<div class="row-item">
+    <select data-subfield="dir" style="width:90px">
+      <option value="received">received</option>
+      <option value="sent">sent</option>
+    </select>
+    <textarea data-subfield="text" rows="2" placeholder="Message…" style="flex:1;min-width:0"></textarea>
+    <input data-subfield="time" placeholder="Name · Fri 2:14 PM" style="width:150px">
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function attachRow() {
+  return `<div class="row-item">
+    <input data-subfield="icon" placeholder="📄" style="width:40px;text-align:center;font-size:16px" onfocus="this.select()" title="Click and type or paste an emoji">
+    <input data-subfield="name" placeholder="File.pdf" style="width:140px">
+    <input data-subfield="onclick" placeholder="trackDocOpen('beat1','doc-contract')" style="flex:1">
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function badgeRow() {
+  return `<div class="row-item">
+    <input data-subfield="label" placeholder="Label" style="width:80px">
+    <input data-subfield="value" placeholder="1.03" style="width:65px">
+    <input data-subfield="sub"   placeholder="Sub text" style="flex:1">
+    <select data-subfield="status">
+      <option value="good">good</option>
+      <option value="neutral">neutral</option>
+      <option value="warn">warn</option>
+      <option value="bad">bad</option>
+    </select>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function checkGroup() {
+  return `<div class="row-item" style="flex-direction:column;gap:4px">
+    <div style="display:flex;gap:6px;align-items:center">
+      <input data-subfield="title" placeholder="Group title" style="flex:1">
+      <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+    </div>
+    <textarea data-subfield="items" rows="3" placeholder="One item per line…" style="width:100%"></textarea>
+  </div>`;
+}
+
+function tlRow() {
+  return `<div class="row-item">
+    <input data-subfield="dot"   placeholder="W1" style="width:40px;text-align:center">
+    <input data-subfield="month" placeholder="Week 1 — Title" style="width:160px">
+    <textarea data-subfield="text" rows="2" placeholder="Description…" style="flex:1;min-width:0"></textarea>
+    <label style="display:flex;align-items:center;gap:4px;white-space:nowrap;padding-top:2px">
+      <input type="checkbox" data-subfield="done"> Done
+    </label>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function addRow(btn, listKey, templateFn) {
+  const list = btn.closest('.card-body, #meta-form').querySelector(`[data-list="${listKey}"]`);
+  if (!list) return;
+  const wrap = document.createElement('div');
+  wrap.innerHTML = templateFn();
+  list.appendChild(wrap.firstElementChild);
+}
+
+// ── META ROWS ───────────────────────────────────────────────────
+function addCastRow(name='', role='', hero=false) {
+  const wrap = document.createElement('div');
+  wrap.className = 'row-item';
+  wrap.innerHTML = `
+    <input data-subfield="name" placeholder="Name" value="${esc(name)}" style="width:120px">
+    <input data-subfield="role" placeholder="Role / description" value="${esc(role)}" style="flex:1">
+    <label style="display:flex;align-items:center;gap:4px;white-space:nowrap">
+      <input type="checkbox" data-subfield="hero" ${hero?'checked':''}> hero
+    </label>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>`;
+  document.getElementById('cast-rows').appendChild(wrap);
+}
+
+function addTagRow(text='', color='') {
+  const wrap = document.createElement('div');
+  wrap.className = 'row-item';
+  wrap.innerHTML = `
+    <input data-subfield="text" placeholder="Tag text" value="${esc(text)}" style="flex:1">
+    <select data-subfield="color">
+      <option value="" ${!color?'selected':''}>default</option>
+      <option value="teal" ${color==='teal'?'selected':''}>teal</option>
+      <option value="amber" ${color==='amber'?'selected':''}>amber</option>
+      <option value="red" ${color==='red'?'selected':''}>red</option>
+    </select>
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>`;
+  document.getElementById('tag-rows').appendChild(wrap);
+}
+
+function addDocRow(id='', icon='📄', name='', sub='', folder='', section='documents', unlockKey='', content='', binderId='') {
+  const wrap = document.createElement('div');
+  wrap.className = 'row-item';
+  wrap.style.cssText = 'flex-direction:column;gap:5px;align-items:stretch';
+  wrap.innerHTML = `
+    <div style="display:flex;gap:5px;align-items:center">
+      <input data-subfield="icon"  value="${esc(icon)}"  placeholder="📄" style="width:40px;text-align:center;font-size:16px" onfocus="this.select()" title="Click and type or paste an emoji">
+      <input data-subfield="id"    value="${esc(id)}"    placeholder="doc-contract" style="flex:1;min-width:100px;font-family:var(--mono);font-size:11px">
+      <input data-subfield="name"  value="${esc(name)}"  placeholder="Contract_Signed.pdf" style="flex:1">
+      <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+    </div>
+    <div style="display:flex;gap:5px;align-items:center">
+      <input data-subfield="sub" value="${esc(sub)}" placeholder="Type caption e.g. PDF · Signed Contract" style="flex:1">
+    </div>
+    <div style="display:flex;gap:5px;align-items:center">
+      <input data-subfield="folder"    value="${esc(folder)}"    placeholder="Subfolder (e.g. Handover)" style="flex:1">
+      <select data-subfield="section" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 6px;font-size:11px">
+        <option value="documents" ${section!=='notes'?'selected':''}>📁 Documents</option>
+        <option value="notes"     ${section==='notes'?'selected':''}>📓 Notes</option>
+      </select>
+      <input data-subfield="unlockKey" value="${esc(unlockKey)}" placeholder="unlock key" style="flex:1;min-width:90px;font-family:var(--mono);font-size:11px">
+    </div>
+    <div style="display:flex;flex-direction:column;gap:3px">
+      <span style="font-size:10px;color:var(--dim);font-family:var(--mono);">Binder Scene ID <span style="opacity:0.5">— optional, opens a realbinder scene instead of a doc modal</span></span>
+      <input data-subfield="binderId" value="${esc(binderId||'')}" placeholder="e.g. scene-training-binder" style="width:100%;font-family:var(--mono);font-size:11px">
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:2px;">
+      <button class="add-row-btn" style="width:auto;padding:3px 10px;font-size:11px" onclick="editDocContent(this)">✏ Edit Content</button>
+      <button class="add-row-btn" style="width:auto;padding:3px 10px;font-size:11px" onclick="previewDocRow(this)">👁 Preview</button>
+    </div>
+    <textarea data-subfield="content" style="display:none"></textarea>`;
+  document.getElementById('doc-rows').appendChild(wrap);
+  if (content) {
+    const ta = wrap.querySelector('[data-subfield="content"]');
+    if (ta) ta.value = content;
+  }
+}
+
+let _editingDocRow = null;
+
+function editDocContent(btn) {
+  _editingDocRow = btn.closest('.row-item');
+  const name = _editingDocRow.querySelector('[data-subfield="name"]')?.value || 'Document';
+  const content = _editingDocRow.querySelector('[data-subfield="content"]')?.value || '';
+  document.getElementById('doc-edit-title').textContent = name;
+  document.getElementById('doc-edit-ta').value = content;
+  document.getElementById('doc-edit-modal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('doc-edit-ta').focus(), 50);
+}
+
+function saveDocContent() {
+  if (!_editingDocRow) return;
+  const ta = _editingDocRow.querySelector('[data-subfield="content"]');
+  if (ta) ta.value = document.getElementById('doc-edit-ta').value;
+  closeDocEditor();
+  debouncedSave();
+}
+
+function closeDocEditor() {
+  document.getElementById('doc-edit-modal').classList.add('hidden');
+  // Reset preview state
+  document.getElementById('doc-preview-frame').classList.add('hidden');
+  document.getElementById('doc-edit-ta').classList.remove('hidden');
+  document.getElementById('doc-preview-btn').textContent = '👁 Preview';
+}
+
+function previewDocRow(btn) {
+  const row     = btn.closest('.row-item');
+  const content = row.querySelector('[data-subfield="content"]')?.value?.trim() || '';
+  const name    = row.querySelector('[data-subfield="name"]')?.value || 'Document';
+  // Open edit modal in preview-only mode
+  _editingDocRow = row;
+  document.getElementById('doc-edit-title').textContent = name;
+  document.getElementById('doc-edit-ta').value = content;
+  document.getElementById('doc-edit-modal').classList.remove('hidden');
+  // Immediately switch to preview
+  toggleDocPreview();
+}
+
+function toggleDocPreview() {
+  const ta     = document.getElementById('doc-edit-ta');
+  const frame  = document.getElementById('doc-preview-frame');
+  const btn    = document.getElementById('doc-preview-btn');
+  const inPreview = !frame.classList.contains('hidden');
+
+  if (inPreview) {
+    // Back to edit
+    frame.classList.add('hidden');
+    ta.classList.remove('hidden');
+    btn.textContent = '👁 Preview';
+  } else {
+    // Show preview
+    const content = ta.value.trim();
+    const base    = window.location.href.replace(/\/[^\/]*$/, '/');
+    const isFullModal = content.startsWith('<div class="doc-overlay') || content.startsWith("<div class='doc-overlay");
+    const bodyHtml = isFullModal
+      ? content
+      : `<div class="doc-overlay" style="position:static;display:block;background:transparent;">
+           <div class="doc-window" onclick="void 0" style="margin:30px auto;max-width:860px;">
+             <div class="doc-body">${content}</div>
+           </div>
+         </div>`;
+    frame.srcdoc = `<!DOCTYPE html><html><head>
+      <meta charset="UTF-8">
+      <base href="${base}">
+      <link rel="stylesheet" href="css/story.css">
+      <style>
+        body{margin:0;background:#0f1117;padding:20px;}
+        .doc-overlay{position:static!important;display:block!important;background:transparent!important;}
+        .doc-window{margin:0 auto;}
+      </style>
+    </head><body>${bodyHtml}</body></html>`;
+    frame.classList.remove('hidden');
+    ta.classList.add('hidden');
+    btn.textContent = '✏ Edit';
+  }
+}
+
+function toggleMeta() {
+  document.getElementById('meta-panel').classList.toggle('hidden');
+}
+
+// ── READ SCENE ──────────────────────────────────────────────────
+function getField(card, key) {
+  const el = card.querySelector(`[data-field="${key}"]`);
+  if (!el) return '';
+  if (el.contentEditable === 'true') return el.innerHTML.trim();
+  return el.value?.trim() ?? '';
+}
+function getSubfield(row, key) {
+  const el = row.querySelector(`[data-subfield="${key}"]`);
+  if (!el) return '';
+  if (el.type === 'checkbox') return el.checked;
+  if (el.contentEditable === 'true') return el.innerHTML.trim();
+  return el.value?.trim() ?? '';
+}
+function getRows(card, listKey) {
+  const list = card.querySelector(`[data-list="${listKey}"]`);
+  if (!list) return [];
+  return Array.from(list.querySelectorAll(':scope > .row-item'));
+}
+
+function readScene(card) {
+  const type = card.dataset.type;
+  const note      = card.querySelector('[data-field="_note"]')?.value?.trim();
+  const collapsed = card.classList.contains('collapsed');
+  const scene = { type, ...(note ? { _note: note } : {}), ...(collapsed ? { _collapsed: true } : {}) };
+
+  // Scene-level attributes
+  card.querySelectorAll('[data-attr]').forEach(el => {
+    if (el.value.trim()) scene[el.dataset.attr] = el.value.trim();
+  });
+
+  switch(type) {
+    case 'prose':
+      scene.html = getField(card,'html');
+      break;
+
+    case 'dialogue':
+      scene.lines = getRows(card,'lines').map(r => ({
+        speaker: getSubfield(r,'speaker'),
+        role:    getSubfield(r,'role'),
+        text:    getSubfield(r,'text'),
+      }));
+      break;
+
+    case 'inner-voice':
+      scene.label      = getField(card,'label');
+      scene.paragraphs = getRows(card,'paragraphs').map(r => getSubfield(r,'para'));
+      break;
+
+    case 'sms-card':
+      scene.contact = {
+        avatar: getField(card,'contact.avatar'),
+        name:   getField(card,'contact.name'),
+        sub:    getField(card,'contact.sub'),
+      };
+      scene.messages = getRows(card,'messages').map(r => ({
+        dir:  getSubfield(r,'dir'),
+        text: getSubfield(r,'text'),
+        time: getSubfield(r,'time'),
+      }));
+      break;
+
+    case 'email-card': {
+      const atts = getRows(card,'email.attachments').map(r => ({
+        icon:    getSubfield(r,'icon'),
+        name:    getSubfield(r,'name'),
+        onclick: getSubfield(r,'onclick'),
+      })).filter(a => a.name);
+      scene.email = {
+        subject: getField(card,'email.subject'),
+        from:    getField(card,'email.from'),
+        to:      getField(card,'email.to'),
+        date:    getField(card,'email.date'),
+        body:    getField(card,'email.body'),
+      };
+      if (atts.length) scene.email.attachments = atts;
+      const sigName = getField(card,'email.sig.name');
+      if (sigName) scene.email.sig = { name:sigName, title:getField(card,'email.sig.title'), firm:getField(card,'email.sig.firm') };
+      const hintId = getField(card,'docHint.beatId');
+      if (hintId) scene.docHint = { beatId:hintId, text:getField(card,'docHint.text') };
+      break;
+    }
+
+    case 'callout':
+      scene.color    = getField(card,'color');
+      scene.label    = getField(card,'label');
+      scene.bodyHtml = getField(card,'bodyHtml');
+      break;
+
+    case 'status-row':
+      scene.badges = getRows(card,'badges').map(r => ({
+        label:  getSubfield(r,'label'),
+        value:  getSubfield(r,'value'),
+        sub:    getSubfield(r,'sub'),
+        status: getSubfield(r,'status'),
+      }));
+      break;
+
+    case 'work-block':
+      scene.label      = getField(card,'label');
+      scene.contentHtml = getField(card,'contentHtml');
+      break;
+
+    case 'grid-note':
+    case 'excel':
+      scene.contentHtml = getField(card,'contentHtml');
+      break;
+
+    case 'setup-checklist':
+      scene.intro  = getField(card,'intro');
+      scene.groups = getRows(card,'groups').map(r => ({
+        title: getSubfield(r,'title'),
+        items: getSubfield(r,'items').split('\n').map(s=>s.trim()).filter(Boolean),
+      }));
+      break;
+
+    case 'timeline':
+      scene.events = getRows(card,'events').map(r => ({
+        dot:   getSubfield(r,'dot'),
+        month: getSubfield(r,'month'),
+        text:  getSubfield(r,'text'),
+        done:  getSubfield(r,'done'),
+      }));
+      break;
+
+    case 'html':
+      scene.content = getField(card,'content');
+      break;
+
+    case 'realbinder':
+      scene.pages = getRows(card,'pages').map(r => ({
+        left: {
+          label:   getSubfield(r,'left_label')   || undefined,
+          title:   getSubfield(r,'left_title')   || undefined,
+          body:    getSubfield(r,'left_body')    || undefined,
+          pageNum: getSubfield(r,'left_pageNum')  ? Number(getSubfield(r,'left_pageNum'))  : undefined,
+        },
+        right: {
+          label:   getSubfield(r,'right_label')  || undefined,
+          title:   getSubfield(r,'right_title')  || undefined,
+          body:    getSubfield(r,'right_body')   || undefined,
+          pageNum: getSubfield(r,'right_pageNum') ? Number(getSubfield(r,'right_pageNum')) : undefined,
+        },
+      }));
+      scene.tabs = getRows(card,'tabs').map(r => ({
+        label: getSubfield(r,'label'),
+        page:  Number(getSubfield(r,'page') || 0),
+      })).filter(t => t.label);
+      break;
+  }
+
+  return scene;
+}
+
+// ── SERIALIZATION ───────────────────────────────────────────────
+function toJs(val, depth=0) {
+  const pad  = '  '.repeat(depth);
+  const pad1 = '  '.repeat(depth+1);
+  if (val === null || val === undefined) return 'null';
+  if (typeof val === 'boolean') return String(val);
+  if (typeof val === 'number')  return String(val);
+  if (typeof val === 'string') {
+    if (val.includes('\n') || val.includes('`')) return JSON.stringify(val);
+    return `'${val.replace(/\\/g,'\\\\').replace(/'/g,"\\'")}'`;
+  }
+  if (Array.isArray(val)) {
+    if (!val.length) return '[]';
+    return `[\n${val.map(v=>`${pad1}${toJs(v,depth+1)}`).join(',\n')},\n${pad}]`;
+  }
+  if (typeof val === 'object') {
+    const entries = Object.entries(val).filter(([,v]) =>
+      v !== '' && v !== null && v !== undefined && !(Array.isArray(v) && !v.length));
+    if (!entries.length) return '{}';
+    const lines = entries.map(([k,v]) =>
+      `${pad1}${/^[a-zA-Z_$][\w$]*$/.test(k) ? k : `'${k}'`}: ${toJs(v,depth+1)}`);
+    return `{\n${lines.join(',\n')},\n${pad}}`;
+  }
+  return String(val);
+}
+
+function generateStoryJs() {
+  saveBeatSettings();
+
+  const meta = {
+    eyebrow:    document.getElementById('m-eyebrow').value,
+    title:      document.getElementById('m-title').value,
+    sub:        document.getElementById('m-sub').value,
+    disclaimer: document.getElementById('m-disclaimer').value,
+    castLabel:  'Cast',
+    cast: Array.from(document.getElementById('cast-rows').querySelectorAll(':scope > .row-item')).map(r => {
+      const obj = { name: getSubfield(r,'name'), role: getSubfield(r,'role') };
+      if (getSubfield(r,'hero')) obj.hero = true;
+      return obj;
+    }),
+    navLabel:    'Story Beats',
+    heroEyebrow: document.getElementById('m-hero-eyebrow').value,
+    heroTitle:   document.getElementById('m-hero-title').value,
+    heroSub:     document.getElementById('m-hero-sub').value,
+    heroTags: Array.from(document.getElementById('tag-rows').querySelectorAll(':scope > .row-item')).map(r => {
+      const obj = { text: getSubfield(r,'text') };
+      const color = r.querySelector('[data-subfield="color"]')?.value;
+      if (color) obj.color = color;
+      return obj;
+    }),
+  };
+
+  const beats = Array.from(document.querySelectorAll('.beat-container')).map(c => {
+    const beat = {
+      id:      c.dataset.id,
+      num:     c.dataset.num,
+      title:   c.dataset.title,
+      eyebrow: c.dataset.eyebrow,
+      context: c.dataset.context,
+    };
+    if (c.dataset.fu) beat.folderUnlock = c.dataset.fu;
+    if (c.dataset.dr) beat.docRequirements = c.dataset.dr.split(',').map(s=>s.trim()).filter(Boolean);
+    beat.scenes = Array.from(c.querySelectorAll(':scope > .scene-card')).map(card => {
+      const { _note, _collapsed, ...clean } = readScene(card); return clean;
+    });
+    return beat;
+  });
+
+  const docs = Array.from(document.getElementById('doc-rows').querySelectorAll(':scope > .row-item')).map(r => {
+    const obj = {
+      id:        getSubfield(r,'id'),
+      icon:      getSubfield(r,'icon'),
+      name:      getSubfield(r,'name'),
+      sub:       getSubfield(r,'sub'),
+      unlockKey: getSubfield(r,'unlockKey'),
+    };
+    const folder  = getSubfield(r,'folder');
+    const section = r.querySelector('[data-subfield="section"]')?.value || 'documents';
+    const content = getSubfield(r,'content');
+    const binderId = getSubfield(r,'binderId');
+    if (folder)              obj.folder   = folder;
+    if (section === 'notes') obj.section  = 'notes';
+    if (content)             obj.content  = content;
+    if (binderId)            obj.binderId = binderId;
+    return obj;
+  }).filter(d => d.id);
+
+  const story = { meta, docs, beats };
+  return `// Generated by Story Editor — paste into js/story.js\nwindow.STORY = ${toJs(story)};\n`;
+}
+
+function copyStoryJs() {
+  const js = generateStoryJs();
+  navigator.clipboard.writeText(js).then(() => {
+    const toast = document.getElementById('copy-toast');
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 2200);
+  });
+}
+
+// ── UTILS ───────────────────────────────────────────────────────
+function esc(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── SAVE / LOAD ─────────────────────────────────────────────────
+let saveTimer = null;
+function debouncedSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    localStorage.setItem('story-editor-state', JSON.stringify(serializeState()));
+    showSaved('Auto-saved');
+  }, 800);
+}
+
+function showSaved(msg='Saved') {
+  const el = document.getElementById('save-indicator');
+  el.textContent = '✓ ' + msg;
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.textContent = ''; }, 3000);
+}
+
+function serializeState() {
+  saveBeatSettings();
+  const meta = {
+    eyebrow:    document.getElementById('m-eyebrow').value,
+    title:      document.getElementById('m-title').value,
+    sub:        document.getElementById('m-sub').value,
+    disclaimer: document.getElementById('m-disclaimer').value,
+    heroEyebrow: document.getElementById('m-hero-eyebrow').value,
+    heroTitle:   document.getElementById('m-hero-title').value,
+    heroSub:     document.getElementById('m-hero-sub').value,
+    cast: Array.from(document.getElementById('cast-rows').querySelectorAll(':scope > .row-item')).map(r => ({
+      name: getSubfield(r,'name'), role: getSubfield(r,'role'), hero: !!getSubfield(r,'hero')
+    })),
+    heroTags: Array.from(document.getElementById('tag-rows').querySelectorAll(':scope > .row-item')).map(r => ({
+      text: getSubfield(r,'text'), color: r.querySelector('[data-subfield="color"]')?.value || ''
+    })),
+  };
+  const beats = Array.from(document.querySelectorAll('.beat-container')).map(c => ({
+    id: c.dataset.id, num: c.dataset.num, title: c.dataset.title,
+    eyebrow: c.dataset.eyebrow, context: c.dataset.context,
+    fu: c.dataset.fu, dr: c.dataset.dr,
+    scenes: Array.from(c.querySelectorAll(':scope > .scene-card')).map(readScene),
+  }));
+  const docs = Array.from(document.getElementById('doc-rows').querySelectorAll(':scope > .row-item')).map(r => ({
+    id: getSubfield(r,'id'), icon: getSubfield(r,'icon'), name: getSubfield(r,'name'),
+    sub: getSubfield(r,'sub'), folder: getSubfield(r,'folder'),
+    section: r.querySelector('[data-subfield="section"]')?.value || 'documents',
+    unlockKey: getSubfield(r,'unlockKey'),
+    content:  getSubfield(r,'content'),
+    binderId: getSubfield(r,'binderId'),
+  })).filter(d => d.id);
+  return { meta, docs, beats };
+}
+
+function restoreState(state) {
+  // Reset DOM
+  document.getElementById('beat-list').innerHTML = '';
+  document.getElementById('beat-containers').innerHTML = '';
+  beatCount = 0; currentBeatIdx = 0;
+
+  // Restore meta
+  const m = state.meta || {};
+  document.getElementById('m-eyebrow').value      = m.eyebrow || '';
+  document.getElementById('m-title').value        = m.title || '';
+  document.getElementById('m-sub').value          = m.sub || '';
+  document.getElementById('m-disclaimer').value   = m.disclaimer || '';
+  document.getElementById('m-hero-eyebrow').value = m.heroEyebrow || '';
+  document.getElementById('m-hero-title').value   = m.heroTitle || '';
+  document.getElementById('m-hero-sub').value     = m.heroSub || '';
+  document.getElementById('cast-rows').innerHTML = '';
+  (m.cast || []).forEach(c => addCastRow(c.name, c.role, c.hero));
+  document.getElementById('tag-rows').innerHTML = '';
+  (m.heroTags || []).forEach(t => addTagRow(t.text, t.color));
+  document.getElementById('doc-rows').innerHTML = '';
+  (state.docs || []).forEach(d => addDocRow(d.id, d.icon, d.name, d.sub, d.folder||'', d.section||'documents', d.unlockKey||'', d.content||'', d.binderId||''));
+
+  // Restore beats
+  (state.beats || []).forEach((beatData, idx) => {
+    const tab = document.createElement('button');
+    tab.className = 'beat-tab' + (idx === 0 ? ' active' : '');
+    tab.dataset.beatIdx = idx;
+    tab.innerHTML = `<span class="beat-tab-num">${beatData.num || String(idx+1).padStart(2,'0')}</span>${beatData.title || `Beat ${idx+1}`}`;
+    tab.onclick = () => switchBeat(idx);
+    document.getElementById('beat-list').appendChild(tab);
+
+    const c = document.createElement('div');
+    c.className = 'beat-container' + (idx === 0 ? ' active' : '');
+    c.dataset.beatIdx = idx;
+    c.dataset.id      = beatData.id || `beat${idx+1}`;
+    c.dataset.num     = beatData.num || String(idx+1).padStart(2,'0');
+    c.dataset.title   = beatData.title || '';
+    c.dataset.eyebrow = beatData.eyebrow || '';
+    c.dataset.context = beatData.context || '';
+    c.dataset.fu      = beatData.fu || '';
+    c.dataset.dr      = beatData.dr || '';
+    document.getElementById('beat-containers').appendChild(c);
+
+    // Restore scenes into this container
+    (beatData.scenes || []).forEach(sceneData => {
+      const savedBeat = currentBeatIdx;
+      currentBeatIdx = idx;
+      addScene(sceneData.type);
+      currentBeatIdx = savedBeat;
+      const card = c.lastElementChild;
+      if (card) populateCard(card, sceneData);
+    });
+
+    beatCount++;
+  });
+
+  loadBeatSettings(0);
+}
+
+// ── POPULATE CARD FROM SAVED DATA ───────────────────────────────
+function populateCard(card, scene) {
+  // Editor note
+  if (scene._note) { const el = card.querySelector('[data-field="_note"]'); if (el) el.value = scene._note; }
+  if (scene._collapsed) { card.classList.add('collapsed'); const t = card.querySelector('.card-toggle'); if (t) t.textContent = '▸'; }
+  // Attrs
+  ['id','folderUnlock','requireDocs','beat','alertType','alertCount','alertLabel'].forEach(key => {
+    if (scene[key] != null && scene[key] !== '') {
+      const el = card.querySelector(`[data-attr="${key}"]`);
+      if (el) el.value = scene[key];
+    }
+  });
+
+  const sf = (key, val) => {
+    if (val === undefined || val === null) return;
+    const el = card.querySelector(`[data-field="${key}"]`);
+    if (!el) return;
+    if (el.contentEditable === 'true') el.innerHTML = String(val);
+    else el.value = val;
+  };
+
+  const fillList = (listKey, data, templateFn) => {
+    const list = card.querySelector(`[data-list="${listKey}"]`);
+    if (!list) return;
+    list.innerHTML = '';
+    (data || []).forEach(rowData => {
+      const wrap = document.createElement('div');
+      wrap.innerHTML = templateFn();
+      const row = wrap.firstElementChild;
+      Object.entries(rowData).forEach(([k,v]) => {
+        const el = row.querySelector(`[data-subfield="${k}"]`);
+        if (!el) return;
+        if (el.type === 'checkbox') el.checked = !!v;
+        else if (el.contentEditable === 'true') el.innerHTML = String(v ?? '');
+        else el.value = v ?? '';
+      });
+      list.appendChild(row);
+    });
+  };
+
+  switch(scene.type) {
+    case 'prose': sf('html', scene.html); break;
+    case 'dialogue': fillList('lines', scene.lines, dlgLine); break;
+    case 'inner-voice':
+      sf('label', scene.label);
+      fillList('paragraphs', (scene.paragraphs||[]).map(p=>({para:p})), ivPara);
+      break;
+    case 'sms-card':
+      sf('contact.avatar', scene.contact?.avatar);
+      sf('contact.name',   scene.contact?.name);
+      sf('contact.sub',    scene.contact?.sub);
+      fillList('messages', scene.messages, smsRow);
+      break;
+    case 'email-card':
+      sf('email.subject',   scene.email?.subject);
+      sf('email.from',      scene.email?.from);
+      sf('email.to',        scene.email?.to);
+      sf('email.date',      scene.email?.date);
+      sf('email.body',      scene.email?.body);
+      sf('email.sig.name',  scene.email?.sig?.name);
+      sf('email.sig.title', scene.email?.sig?.title);
+      sf('email.sig.firm',  scene.email?.sig?.firm);
+      sf('docHint.beatId',  scene.docHint?.beatId);
+      sf('docHint.text',    scene.docHint?.text);
+      fillList('email.attachments', scene.email?.attachments, attachRow);
+      break;
+    case 'callout':
+      sf('color', scene.color); sf('label', scene.label); sf('bodyHtml', scene.bodyHtml); break;
+    case 'status-row': fillList('badges', scene.badges, badgeRow); break;
+    case 'work-block': sf('label', scene.label); sf('contentHtml', scene.contentHtml); break;
+    case 'grid-note': case 'excel': sf('contentHtml', scene.contentHtml); break;
+    case 'setup-checklist':
+      sf('intro', scene.intro);
+      fillList('groups', (scene.groups||[]).map(g=>({title:g.title, items:(g.items||[]).join('\n')})), checkGroup);
+      break;
+    case 'timeline': fillList('events', scene.events, tlRow); break;
+    case 'html': sf('content', scene.content); break;
+    case 'realbinder':
+      fillList('pages', (scene.pages||[]).map(p => ({
+        left_label:    p.left?.label,
+        left_title:    p.left?.title,
+        left_body:     p.left?.body,
+        left_pageNum:  p.left?.pageNum,
+        right_label:   p.right?.label,
+        right_title:   p.right?.title,
+        right_body:    p.right?.body,
+        right_pageNum: p.right?.pageNum,
+      })), binderPageRow);
+      fillList('tabs', scene.tabs||[], binderTab);
+      break;
+  }
+}
+
+// ── EXPORT / IMPORT JSON ────────────────────────────────────────
+function exportJson() {
+  const state = serializeState();
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'story-editor-' + new Date().toISOString().slice(0,10) + '.json';
+  a.click();
+  showSaved('Exported');
+}
+
+function importStoryJs(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      // Execute the JS to populate window.STORY
+      // eslint-disable-next-line no-new-func
+      new Function(e.target.result)();
+      const story = window.STORY;
+      if (!story?.beats) { alert('Could not find window.STORY in this file.'); return; }
+
+      // Convert STORY format → editor state format
+      const state = {
+        meta: {
+          eyebrow:     story.meta?.eyebrow     || '',
+          title:       story.meta?.title       || '',
+          sub:         story.meta?.sub         || '',
+          disclaimer:  story.meta?.disclaimer  || '',
+          heroEyebrow: story.meta?.heroEyebrow || '',
+          heroTitle:   story.meta?.heroTitle   || '',
+          heroSub:     story.meta?.heroSub     || '',
+          cast:     (story.meta?.cast     || []).map(c => ({ name: c.name||'', role: c.role||'', hero: !!c.hero })),
+          heroTags: (story.meta?.heroTags || []).map(t => ({ text: t.text||'', color: t.color||'' })),
+        },
+        docs: (story.docs || []),
+        beats: (story.beats || []).map(b => ({
+          id:      b.id      || '',
+          num:     b.num     || '',
+          title:   b.title   || '',
+          eyebrow: b.eyebrow || '',
+          context: b.context || '',
+          fu: b.folderUnlock || '',
+          dr: Array.isArray(b.docRequirements) ? b.docRequirements.join(',') : (b.docRequirements || ''),
+          scenes: b.scenes || [],
+        })),
+      };
+
+      restoreState(state);
+      localStorage.setItem('story-editor-state', JSON.stringify(state));
+      showSaved('Imported from story.js');
+    } catch(err) {
+      alert('Could not import story.js:\n' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function importJson(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const state = JSON.parse(e.target.result);
+      restoreState(state);
+      localStorage.setItem('story-editor-state', JSON.stringify(state));
+      showSaved('Imported');
+    } catch(err) {
+      alert('Could not read file: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+</script>
+
+<!-- DOC CONTENT EDITOR MODAL -->
+<div id="doc-edit-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:2000;display:flex;align-items:stretch;justify-content:stretch;">
+  <div style="background:var(--surface);flex:1;display:flex;flex-direction:column;margin:32px;border-radius:6px;border:1px solid var(--border);box-shadow:0 12px 40px rgba(0,0,0,0.3);overflow:hidden;">
+    <div style="padding:10px 16px;border-bottom:1px solid var(--border);background:var(--surface2);display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <span style="font-family:var(--mono);font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:0.1em;">Document Content —</span>
+      <span id="doc-edit-title" style="font-family:var(--sans);font-size:13px;font-weight:600;flex:1;"></span>
+      <button class="btn" id="doc-preview-btn" onclick="toggleDocPreview()">👁 Preview</button>
+      <button class="btn primary" onclick="saveDocContent()">✓ Save</button>
+      <button class="btn" onclick="closeDocEditor()">Cancel</button>
+    </div>
+    <div style="padding:8px 16px;border-bottom:1px solid var(--border);background:var(--surface2);flex-shrink:0;font-size:11px;color:var(--dim);">
+      <strong>Option A — Full modal:</strong> paste the entire <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:2px">&lt;div class="doc-overlay" id="…"&gt;…&lt;/div&gt;</code> block and it is inserted exactly as-is. &nbsp;
+      <strong>Option B — Body only:</strong> paste just the inner HTML (<code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:2px">&lt;p&gt;</code>, <code style="font-size:10px;background:var(--bg);padding:1px 4px;border-radius:2px">&lt;table&gt;</code>, etc.) and the engine wraps it in standard modal chrome automatically.
+    </div>
+    <textarea id="doc-edit-ta" spellcheck="false" style="flex:1;resize:none;border:none;padding:16px;font-family:var(--mono);font-size:12px;line-height:1.6;background:var(--bg);color:var(--text);outline:none;" placeholder="<p>Document content here.</p>&#10;&#10;<table>&#10;  <tr><th>Header</th><th>Value</th></tr>&#10;  <tr><td>Item</td><td>Data</td></tr>&#10;</table>"></textarea>
+    <iframe id="doc-preview-frame" class="hidden" style="flex:1;border:none;background:#0f1117;" sandbox="allow-same-origin"></iframe>
+  </div>
+</div>
+</body>
+</html>
