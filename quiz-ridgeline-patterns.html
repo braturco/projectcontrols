@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ridgeline Training — Advanced Interaction Patterns</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500;600&display=swap');
+
+:root {
+  --ink:        #0b0c0f;
+  --surface:    #13151b;
+  --panel:      #1a1d25;
+  --panel2:     #1f2330;
+  --border:     #2c3040;
+  --border2:    #3a4055;
+  --muted:      #4a5268;
+  --text:       #c4c9d8;
+  --text-dim:   #727b90;
+  --text-bright:#e8ecf5;
+  --amber:      #e8a020;
+  --amber-dim:  #6a4a10;
+  --amber-glow: rgba(232,160,32,0.12);
+  --green:      #3ecf8e;
+  --green-dim:  #1a5c3e;
+  --red:        #e05555;
+  --red-dim:    #5c2222;
+  --blue:       #4a90d9;
+  --blue-dim:   #1e3d6a;
+  --purple:     #9b72cf;
+  --mono: 'Share Tech Mono', monospace;
+  --cond: 'Barlow Condensed', sans-serif;
+  --body: 'Barlow', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--ink);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── NAV ─────────────────────────────────────────────── */
+.site-nav {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  background: rgba(11,12,15,0.95);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  height: 46px;
+}
+
+.nav-brand {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-right: 32px;
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2px;
+  flex: 1;
+  overflow-x: auto;
+}
+
+.nav-link {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.nav-link:hover { color: var(--text); border-color: var(--border2); }
+.nav-link.active { color: var(--amber); border-color: var(--amber); }
+
+/* ── PAGE LAYOUT ─────────────────────────────────────── */
+.page { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+
+.pattern-section {
+  margin-bottom: 72px;
+  scroll-margin-top: 60px;
+}
+
+.pattern-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.pattern-num {
+  font-family: var(--mono);
+  font-size: 32px;
+  color: var(--border2);
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.pattern-meta { flex: 1; }
+
+.pattern-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--amber);
+  margin-bottom: 4px;
+}
+
+.pattern-title {
+  font-family: var(--cond);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-bright);
+  margin-bottom: 6px;
+}
+
+.pattern-desc {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+/* ── SHARED WIDGETS ──────────────────────────────────── */
+.frame {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--amber);
+}
+
+.frame-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.frame-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border: 1px solid;
+}
+
+.badge-amber { color: var(--amber); border-color: var(--amber-dim); background: var(--amber-glow); }
+.badge-green { color: var(--green); border-color: var(--green-dim); background: rgba(62,207,142,0.08); }
+.badge-blue  { color: var(--blue);  border-color: var(--blue-dim);  background: rgba(74,144,217,0.08); }
+.badge-red   { color: var(--red);   border-color: var(--red-dim);   background: rgba(224,85,85,0.08); }
+
+.btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.15s;
+  outline: none;
+}
+.btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+.btn-amber { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+.btn-amber:hover { background: rgba(232,160,32,0.2); }
+.btn-green { border-color: var(--green); color: var(--green); background: rgba(62,207,142,0.08); }
+.btn-green:hover { background: rgba(62,207,142,0.18); }
+.btn-sm { padding: 5px 12px; font-size: 9px; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn:disabled:hover { border-color: var(--border); color: var(--text); background: transparent; }
+
+.feedback-strip {
+  padding: 10px 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  border-top: 1px solid;
+  display: none;
+}
+.feedback-strip.show { display: block; }
+.feedback-strip.ok  { border-color: var(--green); background: rgba(62,207,142,0.05); color: var(--green); }
+.feedback-strip.err { border-color: var(--red);   background: rgba(224,85,85,0.05);  color: #e08080; }
+.feedback-strip .fb-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 3px;
+  opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PATTERN 1 — DRAG & DROP
+═══════════════════════════════════════════════════════ */
+
+.dnd-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.dnd-col {
+  padding: 20px;
+}
+
+.dnd-col:first-child {
+  border-right: 1px solid var(--border);
+}
+
+.dnd-col-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 14px;
+}
+
+/* Source chips */
+.chip-pool {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 200px;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--panel2);
+  border: 1px solid var(--border2);
+  cursor: grab;
+  font-size: 12px;
+  color: var(--text);
+  user-select: none;
+  transition: all 0.12s;
+  border-radius: 1px;
+}
+
+.chip:hover { border-color: var(--amber); background: var(--amber-glow); }
+.chip.dragging { opacity: 0.4; cursor: grabbing; }
+.chip.placed { opacity: 0.3; cursor: default; pointer-events: none; }
+
+.chip-icon {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  min-width: 24px;
+}
+
+/* Drop zones */
+.drop-zones {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.drop-zone {
+  min-height: 46px;
+  border: 1px dashed var(--border2);
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.12s;
+  position: relative;
+}
+
+.drop-zone.over {
+  border-color: var(--amber);
+  background: var(--amber-glow);
+}
+
+.drop-zone.filled-ok {
+  border-color: var(--green);
+  border-style: solid;
+  background: rgba(62,207,142,0.05);
+}
+
+.drop-zone.filled-err {
+  border-color: var(--red);
+  border-style: solid;
+  background: rgba(224,85,85,0.05);
+}
+
+.zone-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+  min-width: 70px;
+}
+
+.zone-content {
+  flex: 1;
+  font-size: 11px;
+}
+
+.zone-placeholder {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  font-style: italic;
+}
+
+.zone-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.zone-chip .remove-btn {
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.1s;
+}
+.zone-chip .remove-btn:hover { color: var(--red); }
+
+.zone-status {
+  font-family: var(--mono);
+  font-size: 11px;
+  width: 16px;
+  text-align: center;
+}
+
+.dnd-footer {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.dnd-score {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* ═══════════════════════════════════════════════════════
+   PATTERN 2 — FILL IN THE CELL
+═══════════════════════════════════════════════════════ */
+
+.calc-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 0;
+}
+
+.calc-sheet { overflow-x: auto; }
+
+.sheet-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.sheet-table th {
+  background: var(--panel);
+  color: var(--text-dim);
+  text-align: left;
+  padding: 7px 10px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.sheet-table td {
+  padding: 5px 10px;
+  border-bottom: 1px solid rgba(44,48,64,0.8);
+  border-right: 1px solid rgba(44,48,64,0.5);
+  color: var(--text);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.sheet-table .row-num {
+  color: var(--muted);
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  min-width: 28px;
+  text-align: center;
+  font-size: 9px;
+  padding: 5px 6px;
+}
+
+.sheet-table .total-row td {
+  background: rgba(232,160,32,0.04);
+  color: var(--amber);
+  border-top: 1px solid var(--amber-dim);
+}
+
+.sheet-table .wbs-col { color: var(--text-dim); }
+.sheet-table .label-col { color: var(--text); font-family: var(--body); }
+
+/* Input cell */
+.fill-cell {
+  padding: 0 !important;
+}
+
+.fill-input {
+  width: 100%;
+  background: rgba(74,144,217,0.08);
+  border: 1px solid var(--blue);
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 8px;
+  outline: none;
+  transition: all 0.15s;
+  min-width: 90px;
+}
+
+.fill-input:focus {
+  background: rgba(74,144,217,0.15);
+  border-color: #6aabf0;
+  color: var(--text-bright);
+}
+
+.fill-input.input-ok {
+  background: rgba(62,207,142,0.1);
+  border-color: var(--green);
+  color: var(--green);
+}
+
+.fill-input.input-err {
+  background: rgba(224,85,85,0.1);
+  border-color: var(--red);
+  color: var(--red);
+  animation: shake 0.3s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  25%      { transform: translateX(-4px); }
+  75%      { transform: translateX(4px); }
+}
+
+/* Sidebar */
+.calc-sidebar {
+  border-left: 1px solid var(--border);
+  padding: 20px 16px;
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formula-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px;
+}
+
+.formula-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.formula-text {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--amber);
+  line-height: 1.6;
+}
+
+.formula-def {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 6px;
+  line-height: 1.6;
+}
+
+.hint-box {
+  background: rgba(74,144,217,0.06);
+  border: 1px solid var(--blue-dim);
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.hint-box .hint-tag {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--blue);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.calc-question {
+  font-family: var(--cond);
+  font-size: 14px;
+  color: var(--text-bright);
+  line-height: 1.4;
+}
+
+.attempt-track {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   PATTERN 3 — BRANCHING SCENARIO
+═══════════════════════════════════════════════════════ */
+
+.scenario-shell {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Scene display */
+.scene {
+  display: none;
+  animation: sceneIn 0.3s ease;
+}
+.scene.active { display: block; }
+
+@keyframes sceneIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.scene-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.scene-loc {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.scene-day {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--amber);
+  margin-left: auto;
+  letter-spacing: 1px;
+}
+
+/* Character + dialogue */
+.scene-body {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 0;
+  padding: 20px;
+  min-height: 160px;
+}
+
+.char-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 2px solid;
+}
+
+.char-jamie { background: rgba(232,160,32,0.1); border-color: var(--amber); color: var(--amber); }
+.char-pm    { background: rgba(74,144,217,0.1);  border-color: var(--blue);  color: var(--blue); }
+.char-cont  { background: rgba(155,114,207,0.1); border-color: var(--purple); color: var(--purple); }
+
+.dialogue-block {
+  padding-left: 16px;
+}
+
+.char-name {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.dialogue-text {
+  font-family: var(--body);
+  font-size: 13px;
+  color: var(--text-bright);
+  line-height: 1.65;
+  margin-bottom: 10px;
+}
+
+.situation-box {
+  background: rgba(232,160,32,0.05);
+  border-left: 2px solid var(--amber-dim);
+  padding: 8px 12px;
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.5;
+  letter-spacing: 0.2px;
+}
+
+/* Choices */
+.scene-choices {
+  padding: 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-prompt {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.choice-btn {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.12s;
+  font-family: var(--body);
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.45;
+  width: 100%;
+}
+
+.choice-btn:hover {
+  border-color: var(--amber);
+  background: var(--amber-glow);
+  color: var(--text-bright);
+}
+
+.choice-key {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  min-width: 20px;
+  margin-top: 1px;
+}
+
+/* Outcome scenes */
+.outcome-banner {
+  padding: 12px 20px;
+  border-bottom: 1px solid;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.outcome-banner.good { border-color: var(--green-dim); background: rgba(62,207,142,0.05); color: var(--green); }
+.outcome-banner.bad  { border-color: var(--red-dim);   background: rgba(224,85,85,0.05);  color: var(--red); }
+.outcome-banner.warn { border-color: var(--amber-dim); background: var(--amber-glow);     color: var(--amber); }
+
+.outcome-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Debrief */
+.debrief-box {
+  margin: 16px 20px;
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 14px 16px;
+}
+
+.debrief-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+
+.debrief-text {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* Path tracker */
+.path-tracker {
+  padding: 12px 20px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.path-step {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.path-step .step-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.path-step.good .step-dot { background: var(--green); }
+.path-step.bad  .step-dot { background: var(--red); }
+.path-step.warn .step-dot { background: var(--amber); }
+.path-step.current .step-dot { background: var(--blue); box-shadow: 0 0 0 2px rgba(74,144,217,0.3); }
+
+.path-arrow { color: var(--muted); font-size: 10px; }
+
+/* ═══════════════════════════════════════════════════════
+   PATTERN 4 — PROGRESS TRACKER
+═══════════════════════════════════════════════════════ */
+
+.tracker-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  min-height: 480px;
+}
+
+/* Module tree */
+.module-tree {
+  border-right: 1px solid var(--border);
+  padding: 16px 0;
+  background: var(--panel);
+  overflow-y: auto;
+}
+
+.tree-section-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 16px;
+  margin-bottom: 8px;
+  margin-top: 16px;
+}
+
+.tree-section-label:first-child { margin-top: 0; }
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+  border-left: 2px solid transparent;
+}
+
+.tree-item:hover { background: rgba(255,255,255,0.03); }
+
+.tree-item.active {
+  background: var(--amber-glow);
+  border-left-color: var(--amber);
+}
+
+.tree-item.locked {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.tree-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  flex-shrink: 0;
+  border: 1px solid;
+}
+
+.icon-complete { background: rgba(62,207,142,0.1); border-color: var(--green); color: var(--green); }
+.icon-partial  { background: rgba(232,160,32,0.1); border-color: var(--amber); color: var(--amber); }
+.icon-locked   { background: transparent; border-color: var(--muted); color: var(--muted); }
+.icon-active   { background: rgba(74,144,217,0.1); border-color: var(--blue); color: var(--blue); }
+
+.tree-text { flex: 1; }
+.tree-name {
+  font-size: 12px;
+  color: var(--text);
+  display: block;
+  line-height: 1.3;
+}
+.tree-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-dim);
+  letter-spacing: 0.3px;
+}
+
+/* Detail panel */
+.detail-panel {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Score summary row */
+.score-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.score-card {
+  background: var(--panel2);
+  border: 1px solid var(--border);
+  padding: 14px 12px;
+  text-align: center;
+}
+
+.score-val {
+  font-family: var(--mono);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.score-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+/* Module breakdown */
+.module-breakdown { display: flex; flex-direction: column; gap: 10px; }
+
+.module-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: border-color 0.12s;
+}
+
+.module-row:hover { border-color: var(--border2); }
+
+.mod-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.dot-green  { background: var(--green); }
+.dot-amber  { background: var(--amber); }
+.dot-muted  { background: var(--muted); }
+.dot-blue   { background: var(--blue); }
+
+.mod-name {
+  flex: 1;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.mod-bar-wrap {
+  width: 120px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mod-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.6s ease;
+}
+
+.mod-score-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  min-width: 36px;
+  text-align: right;
+}
+
+/* Activity log */
+.activity-log { display: flex; flex-direction: column; gap: 2px; }
+
+.log-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(44,48,64,0.5);
+  font-size: 11px;
+}
+
+.log-row:last-child { border-bottom: none; }
+
+.log-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.log-time {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--muted);
+  min-width: 60px;
+}
+
+.log-text { flex: 1; color: var(--text-dim); }
+.log-pts {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--green);
+}
+
+/* Mini chart */
+.mini-chart {
+  height: 60px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 0 0 4px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: var(--border2);
+  border-radius: 1px 1px 0 0;
+  transition: background 0.2s;
+  position: relative;
+  cursor: pointer;
+  min-width: 8px;
+}
+
+.chart-bar:hover { background: var(--amber); }
+.chart-bar.active { background: var(--amber); }
+
+.chart-bar .bar-label {
+  position: absolute;
+  bottom: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--mono);
+  font-size: 7px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.chart-wrap {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 16px 14px 28px;
+}
+
+.chart-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 12px;
+}
+
+/* Separator */
+.sep { height: 1px; background: var(--border); margin: 48px 0; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="site-nav">
+  <span class="nav-brand">Ridgeline</span>
+  <div class="nav-links">
+    <a href="#p1" class="nav-link active">Drag &amp; Drop</a>
+    <a href="#p2" class="nav-link">Fill-in-Cell</a>
+    <a href="#p3" class="nav-link">Branching</a>
+    <a href="#p4" class="nav-link">Progress</a>
+  </div>
+</nav>
+
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════
+     PATTERN 1 — DRAG & DROP
+═══════════════════════════════════════════════════════ -->
+<section class="pattern-section" id="p1">
+  <div class="pattern-header">
+    <div class="pattern-num">01</div>
+    <div class="pattern-meta">
+      <div class="pattern-tag">Interaction Pattern</div>
+      <div class="pattern-title">Drag &amp; Drop Matching</div>
+      <div class="pattern-desc">Match WBS codes to work packages by dragging chips into the correct drop zones. Correct/incorrect feedback per zone on submission.</div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="frame-title">Module 2.3 — WBS Structure <span class="badge badge-amber">Exercise</span></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="resetDnd()">↺ Reset</button>
+        <button class="btn btn-sm btn-amber" id="dndCheckBtn" onclick="checkDnd()" disabled>Check Answers</button>
+      </div>
+    </div>
+
+    <div style="padding:14px 20px; background:rgba(232,160,32,0.04); border-bottom:1px solid var(--border);">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--amber);">▸ TASK: </span>
+      <span style="font-size:12px;color:var(--text-dim);">Match each WBS code on the right to the correct work package description on the left.</span>
+    </div>
+
+    <div class="dnd-layout">
+      <div class="dnd-col">
+        <div class="dnd-col-label">Work Package Descriptions — Drop zones</div>
+        <div class="drop-zones">
+          <div class="drop-zone" id="zone-mob" data-answer="1.2.1" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,this)">
+            <span class="zone-label">1 ›</span>
+            <div class="zone-content">
+              <div class="zone-placeholder" id="zph-mob">Contractor mobilization, site setup, safety orientation</div>
+            </div>
+            <span class="zone-status" id="zst-mob"></span>
+          </div>
+          <div class="drop-zone" id="zone-drill" data-answer="1.2.2" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,this)">
+            <span class="zone-label">2 ›</span>
+            <div class="zone-content">
+              <div class="zone-placeholder" id="zph-drill">Borehole drilling program, soil sampling, field logging</div>
+            </div>
+            <span class="zone-status" id="zst-drill"></span>
+          </div>
+          <div class="drop-zone" id="zone-lab" data-answer="1.2.3" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,this)">
+            <span class="zone-label">3 ›</span>
+            <div class="zone-content">
+              <div class="zone-placeholder" id="zph-lab">Soil sample submission, geotechnical lab testing, CoC management</div>
+            </div>
+            <span class="zone-status" id="zst-lab"></span>
+          </div>
+          <div class="drop-zone" id="zone-rep" data-answer="1.2.4" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,this)">
+            <span class="zone-label">4 ›</span>
+            <div class="zone-content">
+              <div class="zone-placeholder" id="zph-rep">Geotechnical interpretive report, AER submission package</div>
+            </div>
+            <span class="zone-status" id="zst-rep"></span>
+          </div>
+          <div class="drop-zone" id="zone-pm" data-answer="1.1.1" ondragover="dzOver(event,this)" ondragleave="dzLeave(this)" ondrop="dzDrop(event,this)">
+            <span class="zone-label">5 ›</span>
+            <div class="zone-content">
+              <div class="zone-placeholder" id="zph-pm">Project management, scheduling, cost reporting, change control</div>
+            </div>
+            <span class="zone-status" id="zst-pm"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="dnd-col">
+        <div class="dnd-col-label">WBS Codes — Drag from here</div>
+        <div class="chip-pool" id="chipPool">
+          <div class="chip" draggable="true" id="chip-121" data-code="1.2.1" ondragstart="chipDragStart(event,this)">
+            <span class="chip-icon">⠿</span><span>1.2.1</span>
+          </div>
+          <div class="chip" draggable="true" id="chip-122" data-code="1.2.2" ondragstart="chipDragStart(event,this)">
+            <span class="chip-icon">⠿</span><span>1.2.2</span>
+          </div>
+          <div class="chip" draggable="true" id="chip-123" data-code="1.2.3" ondragstart="chipDragStart(event,this)">
+            <span class="chip-icon">⠿</span><span>1.2.3</span>
+          </div>
+          <div class="chip" draggable="true" id="chip-124" data-code="1.2.4" ondragstart="chipDragStart(event,this)">
+            <span class="chip-icon">⠿</span><span>1.2.4</span>
+          </div>
+          <div class="chip" draggable="true" id="chip-111" data-code="1.1.1" ondragstart="chipDragStart(event,this)">
+            <span class="chip-icon">⠿</span><span>1.1.1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dnd-footer">
+      <span class="dnd-score" id="dndScoreLabel">— / 5 placed</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text-dim);">Drag codes into matching descriptions</span>
+    </div>
+    <div class="feedback-strip" id="dndFeedback"></div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATTERN 2 — FILL IN THE CELL
+═══════════════════════════════════════════════════════ -->
+<section class="pattern-section" id="p2">
+  <div class="pattern-header">
+    <div class="pattern-num">02</div>
+    <div class="pattern-meta">
+      <div class="pattern-tag">Interaction Pattern</div>
+      <div class="pattern-title">Fill-in-the-Cell Calculator</div>
+      <div class="pattern-desc">Jamie must compute and enter EVM values directly into highlighted cells. The exercise checks math against a tolerance and provides formula hints.</div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="frame-title">Module 3.2 — EVM Calculation Exercise <span class="badge badge-blue">3 cells to complete</span></div>
+      <button class="btn btn-sm" onclick="resetCalc()">↺ Reset</button>
+    </div>
+
+    <div style="padding:12px 16px; background:rgba(74,144,217,0.05); border-bottom:1px solid var(--border);">
+      <span style="font-family:var(--mono);font-size:10px;color:var(--blue);">▸ TASK: </span>
+      <span style="font-size:12px;color:var(--text-dim);">Calculate and enter SPI, CPI, and EAC for the Geotechnical Drilling work package. Blue cells are editable.</span>
+    </div>
+
+    <div class="calc-layout">
+      <div class="calc-sheet">
+        <table class="sheet-table">
+          <thead>
+            <tr>
+              <th class="row-num"></th>
+              <th>WBS</th>
+              <th>Work Package</th>
+              <th>BAC</th>
+              <th>EV</th>
+              <th>PV</th>
+              <th>AC</th>
+              <th style="color:var(--amber)">SPI</th>
+              <th style="color:var(--amber)">CPI</th>
+              <th style="color:var(--amber)">EAC</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-num">2</td>
+              <td class="wbs-col">1.2.1</td>
+              <td class="label-col">Mobilization</td>
+              <td>$48,200</td>
+              <td>$48,200</td>
+              <td>$48,200</td>
+              <td>$51,430</td>
+              <td>1.00</td>
+              <td>0.94</td>
+              <td>$51,430</td>
+            </tr>
+            <tr>
+              <td class="row-num">3</td>
+              <td class="wbs-col">1.2.2</td>
+              <td class="label-col" style="color:var(--amber)">Geotech Drilling</td>
+              <td>$312,000</td>
+              <td>$198,400</td>
+              <td>$234,000</td>
+              <td>$204,800</td>
+              <td class="fill-cell"><input class="fill-input" id="spi-input" placeholder="0.00" oninput="calcCheck('spi')" onkeydown="if(event.key==='Enter')calcCheck('spi',true)"></td>
+              <td class="fill-cell"><input class="fill-input" id="cpi-input" placeholder="0.00" oninput="calcCheck('cpi')" onkeydown="if(event.key==='Enter')calcCheck('cpi',true)"></td>
+              <td class="fill-cell"><input class="fill-input" id="eac-input" placeholder="$0" oninput="calcCheck('eac')" onkeydown="if(event.key==='Enter')calcCheck('eac',true)"></td>
+            </tr>
+            <tr>
+              <td class="row-num">4</td>
+              <td class="wbs-col">1.2.3</td>
+              <td class="label-col">Lab Analysis</td>
+              <td>$89,500</td>
+              <td>$44,750</td>
+              <td>$44,750</td>
+              <td>$46,200</td>
+              <td>1.00</td>
+              <td>0.97</td>
+              <td>$92,281</td>
+            </tr>
+            <tr class="total-row">
+              <td class="row-num">5</td>
+              <td colspan="2">PROJECT TOTAL</td>
+              <td>$449,700</td>
+              <td>$291,350</td>
+              <td>$326,950</td>
+              <td>$302,430</td>
+              <td colspan="3" style="font-size:10px;color:var(--text-dim);font-family:var(--mono);">← complete row 3 to proceed</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="calc-sidebar">
+        <div class="calc-question">Calculate SPI, CPI and EAC for WBS 1.2.2 — Geotechnical Drilling</div>
+
+        <div class="formula-box">
+          <div class="formula-label">EVM Formulas</div>
+          <div class="formula-text">
+            SPI = EV ÷ PV<br>
+            CPI = EV ÷ AC<br>
+            EAC = BAC ÷ CPI
+          </div>
+          <div class="formula-def">
+            EV = $198,400<br>
+            PV = $234,000<br>
+            AC = $204,800<br>
+            BAC = $312,000
+          </div>
+        </div>
+
+        <div class="hint-box">
+          <span class="hint-tag">💡 Hint</span>
+          Round SPI and CPI to 2 decimal places. EAC can be entered as a rounded dollar amount — a ±$200 tolerance is accepted.
+        </div>
+
+        <div class="attempt-track" id="calcAttempts">Attempts: SPI 0 · CPI 0 · EAC 0</div>
+      </div>
+    </div>
+
+    <div class="feedback-strip" id="calcFeedback"></div>
+  </div>
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATTERN 3 — BRANCHING SCENARIO
+═══════════════════════════════════════════════════════ -->
+<section class="pattern-section" id="p3">
+  <div class="pattern-header">
+    <div class="pattern-num">03</div>
+    <div class="pattern-meta">
+      <div class="pattern-tag">Interaction Pattern</div>
+      <div class="pattern-title">Branching Decision Scenario</div>
+      <div class="pattern-desc">Jamie faces a real change management situation. Each choice leads to a different outcome path with consequences, then reconverges at a debrief.</div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="frame-title">Module 4.1 — Change Control in the Field <span class="badge badge-amber">Decision Scenario</span></div>
+      <button class="btn btn-sm" onclick="resetScenario()">↺ Restart</button>
+    </div>
+
+    <!-- SCENE: Opening -->
+    <div class="scene active" id="scene-start">
+      <div class="scene-header">
+        <span class="badge badge-blue">Scene 1</span>
+        <span class="scene-loc">Field Office — Ridgeline Pipeline ROW, km 42</span>
+        <span class="scene-day">Day 18 of 45</span>
+      </div>
+      <div class="scene-body">
+        <div class="char-avatar char-cont">C</div>
+        <div class="dialogue-block">
+          <div class="char-name">Carlos Mena — Lead Driller, SubCon</div>
+          <div class="dialogue-text">"Jamie, we hit a clay lens at BH-07 that wasn't in the geotech model. We're going to need four additional boreholes on the north transect to properly characterize it. Can you give us a field instruction to proceed? We can start tomorrow."</div>
+          <div class="situation-box">
+            ▸ 4 additional boreholes × $8,200/borehole = $32,800 unbudgeted scope<br>
+            ▸ Current project contingency: $41,600 (8% of BAC)<br>
+            ▸ No approved PCN or Change Order exists for this work
+          </div>
+        </div>
+      </div>
+      <div class="scene-choices">
+        <div class="choice-prompt">What does Jamie do?</div>
+        <button class="choice-btn" onclick="goScene('scene-verbal-auth')">
+          <span class="choice-key">A</span>
+          <span>Give Carlos verbal authorization to proceed — the contingency covers it and the PM is hard to reach right now. Document it later.</span>
+        </button>
+        <button class="choice-btn" onclick="goScene('scene-pcn')">
+          <span class="choice-key">B</span>
+          <span>Tell Carlos to hold on drilling. Issue a Potential Change Notice (PCN), estimate the cost impact, and notify the Project Manager before any work starts.</span>
+        </button>
+        <button class="choice-btn" onclick="goScene('scene-reject')">
+          <span class="choice-key">C</span>
+          <span>Decline the request entirely — this is out of scope and the contractor needs to submit a formal RFI first. No verbal discussion.</span>
+        </button>
+      </div>
+      <div class="path-tracker" id="pathTracker-start">
+        <div class="path-step current"><div class="step-dot"></div><span>Scene 1</span></div>
+      </div>
+    </div>
+
+    <!-- SCENE: Verbal Auth (wrong) -->
+    <div class="scene" id="scene-verbal-auth">
+      <div class="outcome-banner bad">
+        <span>⚠</span><span class="outcome-label">Consequence Path</span><span>— Unauthorized scope commitment</span>
+      </div>
+      <div class="scene-header">
+        <span class="badge badge-red">Scene 2A</span>
+        <span class="scene-loc">Field Office → Project Manager's Inbox — 3 days later</span>
+        <span class="scene-day">Day 21</span>
+      </div>
+      <div class="scene-body">
+        <div class="char-avatar char-pm">PM</div>
+        <div class="dialogue-block">
+          <div class="char-name">Priya Desai — Project Manager</div>
+          <div class="dialogue-text">"Jamie — I'm looking at an invoice from SubCon for four boreholes that aren't in our approved scope. There's no PCN, no Change Order, no paper trail. The client is asking questions. What happened?"</div>
+          <div class="situation-box">
+            ▸ Invoice: $32,800 posted to WBS 1.2.2 without approval<br>
+            ▸ Contingency was drawn down without PM authorization<br>
+            ▸ Client (AER consultant) flagged the cost discrepancy in their review
+          </div>
+        </div>
+      </div>
+      <div class="scene-choices">
+        <div class="choice-prompt">Jamie needs to respond. What now?</div>
+        <button class="choice-btn" onclick="goScene('scene-debrief-verbal')">
+          <span class="choice-key">→</span>
+          <span>Acknowledge the error, initiate a retroactive PCN/Change Order, and escalate to the PM for client notification. Accept the lesson.</span>
+        </button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step bad current"><div class="step-dot"></div><span>2A — Unauthorized</span></div>
+      </div>
+    </div>
+
+    <!-- SCENE: PCN (correct) -->
+    <div class="scene" id="scene-pcn">
+      <div class="outcome-banner good">
+        <span>✓</span><span class="outcome-label">Correct Path</span><span>— Change control initiated</span>
+      </div>
+      <div class="scene-header">
+        <span class="badge badge-green">Scene 2B</span>
+        <span class="scene-loc">Field Office → Oracle Projects → PM Notification</span>
+        <span class="scene-day">Day 18 — same afternoon</span>
+      </div>
+      <div class="scene-body">
+        <div class="char-avatar char-jamie">J</div>
+        <div class="dialogue-block">
+          <div class="char-name">Jamie Okafor — Project Coordinator</div>
+          <div class="dialogue-text">Jamie tells Carlos to stand by. She opens Oracle Projects, logs a Potential Change Notice, attaches Carlos's field note, and sends a notification to Priya with a cost estimate of $32,800. Priya responds in 2 hours with a preliminary approval to proceed, pending a formal Change Order from the client by end of week.</div>
+          <div class="situation-box">
+            ▸ PCN #RID-PCN-018 raised in Oracle Projects<br>
+            ▸ Cost estimate: $32,800 flagged against contingency<br>
+            ▸ Drilling resumes Day 19 with written PM authorization<br>
+            ▸ Baseline integrity maintained — performance reporting unaffected
+          </div>
+        </div>
+      </div>
+      <div class="scene-choices">
+        <div class="choice-prompt">Good work — continue to debrief</div>
+        <button class="choice-btn" onclick="goScene('scene-debrief-pcn')">
+          <span class="choice-key">→</span>
+          <span>Review what Jamie did correctly and what the key principles were.</span>
+        </button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step good current"><div class="step-dot"></div><span>2B — PCN Issued ✓</span></div>
+      </div>
+    </div>
+
+    <!-- SCENE: Reject (partial) -->
+    <div class="scene" id="scene-reject">
+      <div class="outcome-banner warn">
+        <span>△</span><span class="outcome-label">Partial Credit</span><span>— Held scope but missed collaborative step</span>
+      </div>
+      <div class="scene-header">
+        <span class="badge badge-amber">Scene 2C</span>
+        <span class="scene-loc">Field — Next Morning</span>
+        <span class="scene-day">Day 19</span>
+      </div>
+      <div class="scene-body">
+        <div class="char-avatar char-cont">C</div>
+        <div class="dialogue-block">
+          <div class="char-name">Carlos Mena — Lead Driller</div>
+          <div class="dialogue-text">"Jamie, I submitted the RFI but now the drilling crew is sitting idle. That's $4,800/day in standby costs. The clay lens isn't going anywhere — we need a decision. Who's making the call?"</div>
+          <div class="situation-box">
+            ▸ Standby cost accruing: $4,800/day while waiting for formal process<br>
+            ▸ Jamie's refusal was procedurally correct but created a vacuum<br>
+            ▸ A PCN + PM escalation would have kept the project moving
+          </div>
+        </div>
+      </div>
+      <div class="scene-choices">
+        <button class="choice-btn" onclick="goScene('scene-debrief-reject')">
+          <span class="choice-key">→</span>
+          <span>Continue to debrief — understand what should have happened alongside the RFI requirement.</span>
+        </button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step warn current"><div class="step-dot"></div><span>2C — RFI Only</span></div>
+      </div>
+    </div>
+
+    <!-- DEBRIEFS -->
+    <div class="scene" id="scene-debrief-verbal">
+      <div class="scene-header">
+        <span class="badge badge-amber">Debrief</span>
+        <span class="scene-loc">Module 4.1 — Lesson Review</span>
+      </div>
+      <div class="debrief-box">
+        <div class="debrief-label">What went wrong — and the correct path</div>
+        <div class="debrief-text">Verbal authorizations for out-of-scope work bypass the project's change control system, contaminate the performance baseline, and create liability for the project coordinator. <strong style="color:var(--amber)">The correct action is always to raise a PCN first</strong>, even if the PM is unavailable — a work hold is preferable to unauthorized commitment. Retroactive change orders are administratively burdensome and can jeopardize client trust. Contingency is a PM-controlled reserve, not a coordinator-level discretionary fund.</div>
+      </div>
+      <div class="scene-choices">
+        <button class="choice-btn" onclick="resetScenario()"><span class="choice-key">↺</span><span>Restart scenario — try the correct path</span></button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step bad"><div class="step-dot"></div><span>2A — Error</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step warn current"><div class="step-dot"></div><span>Debrief</span></div>
+      </div>
+    </div>
+
+    <div class="scene" id="scene-debrief-pcn">
+      <div class="scene-header">
+        <span class="badge badge-green">Debrief — Excellent</span>
+        <span class="scene-loc">Module 4.1 — Lesson Complete</span>
+      </div>
+      <div class="debrief-box">
+        <div class="debrief-label">Why this was the right call</div>
+        <div class="debrief-text">Issuing a PCN before authorizing any work preserves the integrity of the performance baseline, creates an auditable paper trail, and keeps the PM informed. The key principles: <strong style="color:var(--green)">(1)</strong> No scope commitment without written authorization. <strong style="color:var(--green)">(2)</strong> PCN precedes all Change Orders — it is the early warning document. <strong style="color:var(--green)">(3)</strong> Contingency is a PM reserve — a coordinator can flag it but not draw it unilaterally. Jamie's action kept the project moving with full transparency.</div>
+      </div>
+      <div class="scene-choices">
+        <button class="choice-btn btn-green" style="border-color:var(--green);color:var(--green);" onclick="resetScenario()"><span class="choice-key">✓</span><span>Scenario complete — proceed to Module 4.2</span></button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step good"><div class="step-dot"></div><span>2B — PCN ✓</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step good current"><div class="step-dot"></div><span>Complete</span></div>
+      </div>
+    </div>
+
+    <div class="scene" id="scene-debrief-reject">
+      <div class="scene-header">
+        <span class="badge badge-amber">Debrief — Partial Credit</span>
+        <span class="scene-loc">Module 4.1 — Lesson Review</span>
+      </div>
+      <div class="debrief-box">
+        <div class="debrief-label">Right instinct, incomplete execution</div>
+        <div class="debrief-text">Refusing to authorize unauthorized scope without documentation was correct — this protected the baseline. However, simply redirecting to a formal RFI without simultaneously raising a PCN and escalating to the PM created a project vacuum and daily standby costs. <strong style="color:var(--amber)">The PCN is the coordinator's primary tool here</strong> — it formally acknowledges the potential scope change, starts the change clock, and gives the PM the information to make a timely decision. The RFI and PCN should happen in parallel.</div>
+      </div>
+      <div class="scene-choices">
+        <button class="choice-btn" onclick="resetScenario()"><span class="choice-key">↺</span><span>Restart — try the optimal path</span></button>
+      </div>
+      <div class="path-tracker">
+        <div class="path-step good"><div class="step-dot"></div><span>Scene 1</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step warn"><div class="step-dot"></div><span>2C — Partial</span></div>
+        <span class="path-arrow">›</span>
+        <div class="path-step warn current"><div class="step-dot"></div><span>Debrief</span></div>
+      </div>
+    </div>
+
+  </div><!-- /frame -->
+</section>
+
+<div class="sep"></div>
+
+<!-- ═══════════════════════════════════════════════════════
+     PATTERN 4 — PROGRESS TRACKER
+═══════════════════════════════════════════════════════ -->
+<section class="pattern-section" id="p4">
+  <div class="pattern-header">
+    <div class="pattern-num">04</div>
+    <div class="pattern-meta">
+      <div class="pattern-tag">Interaction Pattern</div>
+      <div class="pattern-title">Persistent Progress Dashboard</div>
+      <div class="pattern-desc">Per-learner tracking across all modules — scores, completion state, activity log, and a performance trend chart. Saved in localStorage between sessions.</div>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="frame-bar">
+      <div class="frame-title">Ridgeline Training — Jamie Okafor <span class="badge badge-green">In Progress</span></div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sm" onclick="simulateProgress()">▶ Simulate Activity</button>
+        <button class="btn btn-sm" onclick="resetProgress()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="tracker-grid">
+      <!-- Module tree -->
+      <div class="module-tree">
+        <div class="tree-section-label">Unit 1 — Foundations</div>
+        <div class="tree-item active" onclick="selectModule(this,'mod1')">
+          <div class="tree-icon icon-complete">✓</div>
+          <div class="tree-text">
+            <span class="tree-name">Project Controls Overview</span>
+            <span class="tree-sub">Complete · 100%</span>
+          </div>
+        </div>
+        <div class="tree-item" onclick="selectModule(this,'mod2')">
+          <div class="tree-icon icon-complete">✓</div>
+          <div class="tree-text">
+            <span class="tree-name">WBS &amp; Cost Accounts</span>
+            <span class="tree-sub">Complete · 88%</span>
+          </div>
+        </div>
+
+        <div class="tree-section-label">Unit 2 — EVM</div>
+        <div class="tree-item" onclick="selectModule(this,'mod3')">
+          <div class="tree-icon icon-partial">◑</div>
+          <div class="tree-text">
+            <span class="tree-name">Earned Value Management</span>
+            <span class="tree-sub">In progress · 60%</span>
+          </div>
+        </div>
+        <div class="tree-item" onclick="selectModule(this,'mod4')">
+          <div class="tree-icon icon-active">→</div>
+          <div class="tree-text">
+            <span class="tree-name">Variance Analysis</span>
+            <span class="tree-sub">Not started</span>
+          </div>
+        </div>
+
+        <div class="tree-section-label">Unit 3 — Change Control</div>
+        <div class="tree-item locked">
+          <div class="tree-icon icon-locked">⊘</div>
+          <div class="tree-text">
+            <span class="tree-name">Change Management</span>
+            <span class="tree-sub">Locked</span>
+          </div>
+        </div>
+        <div class="tree-item locked">
+          <div class="tree-icon icon-locked">⊘</div>
+          <div class="tree-text">
+            <span class="tree-name">Oracle Projects Workflow</span>
+            <span class="tree-sub">Locked</span>
+          </div>
+        </div>
+
+        <div class="tree-section-label">Unit 4 — Reporting</div>
+        <div class="tree-item locked">
+          <div class="tree-icon icon-locked">⊘</div>
+          <div class="tree-text">
+            <span class="tree-name">Monthly Cost Report</span>
+            <span class="tree-sub">Locked</span>
+          </div>
+        </div>
+        <div class="tree-item locked">
+          <div class="tree-icon icon-locked">⊘</div>
+          <div class="tree-text">
+            <span class="tree-name">Final Case Assessment</span>
+            <span class="tree-sub">Locked</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail panel -->
+      <div class="detail-panel">
+        <!-- Score cards -->
+        <div class="score-row">
+          <div class="score-card">
+            <div class="score-val" id="stat-complete" style="color:var(--green)">2</div>
+            <div class="score-label">Modules Done</div>
+          </div>
+          <div class="score-card">
+            <div class="score-val" id="stat-score" style="color:var(--amber)">94</div>
+            <div class="score-label">Avg Score %</div>
+          </div>
+          <div class="score-card">
+            <div class="score-val" id="stat-exercises" style="color:var(--blue)">7</div>
+            <div class="score-label">Exercises Done</div>
+          </div>
+          <div class="score-card">
+            <div class="score-val" id="stat-streak" style="color:var(--purple)">3</div>
+            <div class="score-label">Day Streak</div>
+          </div>
+        </div>
+
+        <!-- Module breakdown -->
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">Module Scores</div>
+          <div class="module-breakdown">
+            <div class="module-row">
+              <div class="mod-status-dot dot-green"></div>
+              <span class="mod-name">1.1 Project Controls Overview</span>
+              <div class="mod-bar-wrap"><div class="mod-bar-fill" style="width:100%;background:var(--green)"></div></div>
+              <span class="mod-score-label" style="color:var(--green)">100%</span>
+            </div>
+            <div class="module-row">
+              <div class="mod-status-dot dot-green"></div>
+              <span class="mod-name">1.2 WBS &amp; Cost Accounts</span>
+              <div class="mod-bar-wrap"><div class="mod-bar-fill" style="width:88%;background:var(--green)"></div></div>
+              <span class="mod-score-label" style="color:var(--green)">88%</span>
+            </div>
+            <div class="module-row">
+              <div class="mod-status-dot dot-amber"></div>
+              <span class="mod-name">2.1 Earned Value Management</span>
+              <div class="mod-bar-wrap"><div class="mod-bar-fill" id="mod3-bar" style="width:60%;background:var(--amber)"></div></div>
+              <span class="mod-score-label" id="mod3-pct" style="color:var(--amber)">60%</span>
+            </div>
+            <div class="module-row">
+              <div class="mod-status-dot dot-muted"></div>
+              <span class="mod-name">2.2 Variance Analysis</span>
+              <div class="mod-bar-wrap"><div class="mod-bar-fill" style="width:0%;background:var(--muted)"></div></div>
+              <span class="mod-score-label">—</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Trend chart -->
+        <div class="chart-wrap">
+          <div class="chart-title">Quiz Score History</div>
+          <div class="mini-chart" id="trendChart">
+            <div class="chart-bar" style="height:100%" title="100%"><div class="bar-label">M1.1</div></div>
+            <div class="chart-bar" style="height:75%" title="75%"><div class="bar-label">M1.1</div></div>
+            <div class="chart-bar" style="height:100%" title="100%"><div class="bar-label">M1.2</div></div>
+            <div class="chart-bar" style="height:88%" title="88%"><div class="bar-label">M1.2</div></div>
+            <div class="chart-bar active" style="height:67%" title="67%"><div class="bar-label">M2.1</div></div>
+          </div>
+        </div>
+
+        <!-- Activity log -->
+        <div>
+          <div style="font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text-dim);margin-bottom:10px;">Recent Activity</div>
+          <div class="activity-log" id="activityLog">
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--amber)"></div>
+              <span class="log-time">Today 10:42</span>
+              <span class="log-text">Quiz — EVM Calculations (Module 2.1)</span>
+              <span class="log-pts">+67%</span>
+            </div>
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--green)"></div>
+              <span class="log-time">Yesterday</span>
+              <span class="log-text">Exercise — WBS Drag &amp; Drop complete</span>
+              <span class="log-pts">+100%</span>
+            </div>
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--green)"></div>
+              <span class="log-time">Yesterday</span>
+              <span class="log-text">Module 1.2 — WBS &amp; Cost Accounts passed</span>
+              <span class="log-pts">88%</span>
+            </div>
+            <div class="log-row">
+              <div class="log-dot" style="background:var(--green)"></div>
+              <span class="log-time">Mar 27</span>
+              <span class="log-text">Module 1.1 — Project Controls Overview passed</span>
+              <span class="log-pts">100%</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- /tracker-grid -->
+  </div>
+</section>
+
+</div><!-- /page -->
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DND ENGINE
+══════════════════════════════════════════════════════ */
+let draggingId = null;
+let dndState = {}; // zoneId → chipCode
+let dndChecked = false;
+
+function chipDragStart(e, el) {
+  draggingId = el.dataset.code;
+  el.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+document.addEventListener('dragend', () => {
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('dragging'));
+});
+
+function dzOver(e, zone) {
+  e.preventDefault();
+  if (!dndChecked) zone.classList.add('over');
+}
+
+function dzLeave(zone) {
+  zone.classList.remove('over');
+}
+
+function dzDrop(e, zone) {
+  e.preventDefault();
+  zone.classList.remove('over');
+  if (!draggingId || dndChecked) return;
+
+  const zoneId = zone.id;
+  const prev = dndState[zoneId];
+
+  // If zone already has a chip, return it
+  if (prev) returnChip(prev);
+
+  // If chip already in another zone, remove from that zone
+  for (const [zid, code] of Object.entries(dndState)) {
+    if (code === draggingId && zid !== zoneId) {
+      clearZone(zid);
+      break;
+    }
+  }
+
+  dndState[zoneId] = draggingId;
+  renderZone(zoneId, draggingId);
+  document.getElementById('chip-'+draggingId.replace(/\./g,'')).classList.add('placed');
+  draggingId = null;
+  updateDndScore();
+}
+
+function renderZone(zoneId, code) {
+  const zone = document.getElementById(zoneId);
+  const ph = zone.querySelector('.zone-placeholder');
+  if (ph) ph.style.display = 'none';
+  const existing = zone.querySelector('.zone-chip');
+  if (existing) existing.remove();
+
+  const chip = document.createElement('div');
+  chip.className = 'zone-chip';
+  chip.innerHTML = `<span style="font-family:var(--mono);font-size:11px;color:var(--blue)">${code}</span>
+    <button class="remove-btn" onclick="removeFromZone('${zoneId}')">✕</button>`;
+  zone.querySelector('.zone-content').appendChild(chip);
+}
+
+function clearZone(zoneId) {
+  delete dndState[zoneId];
+  const zone = document.getElementById(zoneId);
+  const chip = zone.querySelector('.zone-chip');
+  if (chip) chip.remove();
+  const ph = zone.querySelector('.zone-placeholder');
+  if (ph) ph.style.display = '';
+  zone.className = 'drop-zone';
+  document.getElementById('zst-'+zoneId.replace('zone-','')).textContent = '';
+}
+
+function returnChip(code) {
+  document.getElementById('chip-'+code.replace(/\./g,'')).classList.remove('placed');
+}
+
+function removeFromZone(zoneId) {
+  const code = dndState[zoneId];
+  if (code) returnChip(code);
+  clearZone(zoneId);
+  updateDndScore();
+}
+
+function updateDndScore() {
+  const placed = Object.keys(dndState).length;
+  document.getElementById('dndScoreLabel').textContent = `${placed} / 5 placed`;
+  document.getElementById('dndCheckBtn').disabled = placed < 5;
+}
+
+function checkDnd() {
+  dndChecked = true;
+  let correct = 0;
+  const zones = ['zone-mob','zone-drill','zone-lab','zone-rep','zone-pm'];
+  zones.forEach(zid => {
+    const zone = document.getElementById(zid);
+    const answer = zone.dataset.answer;
+    const placed = dndState[zid];
+    const stEl = document.getElementById('zst-'+zid.replace('zone-',''));
+    if (placed === answer) {
+      zone.classList.add('filled-ok');
+      stEl.textContent = '✓';
+      stEl.style.color = 'var(--green)';
+      correct++;
+    } else {
+      zone.classList.add('filled-err');
+      stEl.textContent = '✗';
+      stEl.style.color = 'var(--red)';
+    }
+  });
+
+  const fb = document.getElementById('dndFeedback');
+  fb.classList.add('show');
+  if (correct === 5) {
+    fb.classList.add('ok');
+    fb.innerHTML = '<span class="fb-tag">✓ Perfect Score</span>All 5 WBS codes correctly matched. The WBS provides the framework for all cost, schedule, and performance measurement on the Ridgeline project.';
+  } else {
+    fb.classList.add('err');
+    fb.innerHTML = `<span class="fb-tag">✗ ${correct}/5 Correct</span>Review the incorrect matches — focus on the distinction between WBS 1.1.x (project management) and 1.2.x (field deliverables). You can reset and try again.`;
+    document.getElementById('dndCheckBtn').textContent = '↺ Try Again';
+    document.getElementById('dndCheckBtn').disabled = false;
+    document.getElementById('dndCheckBtn').onclick = resetDnd;
+    dndChecked = false;
+  }
+}
+
+function resetDnd() {
+  dndState = {};
+  dndChecked = false;
+  ['zone-mob','zone-drill','zone-lab','zone-rep','zone-pm'].forEach(zid => {
+    const zone = document.getElementById(zid);
+    zone.className = 'drop-zone';
+    const chip = zone.querySelector('.zone-chip');
+    if (chip) chip.remove();
+    const ph = zone.querySelector('.zone-placeholder');
+    if (ph) ph.style.display = '';
+    document.getElementById('zst-'+zid.replace('zone-','')).textContent = '';
+  });
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('placed'));
+  document.getElementById('dndCheckBtn').textContent = 'Check Answers';
+  document.getElementById('dndCheckBtn').disabled = true;
+  document.getElementById('dndCheckBtn').onclick = checkDnd;
+  const fb = document.getElementById('dndFeedback');
+  fb.className = 'feedback-strip';
+  fb.innerHTML = '';
+  updateDndScore();
+}
+
+/* ══════════════════════════════════════════════════════
+   CALC ENGINE
+══════════════════════════════════════════════════════ */
+const CALC_ANSWERS = {
+  spi: { value: 0.85, label: '0.85', tol: 0.01 },
+  cpi: { value: 0.97, label: '0.97', tol: 0.01 },
+  eac: { value: 321649, label: '$321,649', tol: 500 }
+};
+
+const calcAttempts = { spi: 0, cpi: 0, eac: 0 };
+const calcDone = { spi: false, cpi: false, eac: false };
+
+function parseCalcInput(field, raw) {
+  if (field === 'eac') return parseFloat(raw.replace(/[$,\s]/g,''));
+  return parseFloat(raw);
+}
+
+function calcCheck(field, submit=false) {
+  const input = document.getElementById(field+'-input');
+  const raw = input.value.trim();
+  if (!raw || calcDone[field]) return;
+
+  if (!submit && raw.length < 2) return; // wait for more input
+
+  const val = parseCalcInput(field, raw);
+  const ans = CALC_ANSWERS[field];
+  const isCorrect = Math.abs(val - ans.value) <= ans.tol;
+
+  calcAttempts[field]++;
+  updateAttemptLabel();
+
+  if (isCorrect) {
+    input.classList.remove('input-err');
+    input.classList.add('input-ok');
+    input.value = ans.label;
+    input.readOnly = true;
+    calcDone[field] = true;
+    checkCalcComplete();
+  } else if (submit) {
+    input.classList.remove('input-ok');
+    input.classList.add('input-err');
+    setTimeout(() => input.classList.remove('input-err'), 400);
+    showCalcHint(field, val);
+  }
+}
+
+function showCalcHint(field, val) {
+  const hints = {
+    spi: `SPI = EV ÷ PV = $198,400 ÷ $234,000. Your answer: ${val.toFixed(2)}`,
+    cpi: `CPI = EV ÷ AC = $198,400 ÷ $204,800. Your answer: ${val.toFixed(2)}`,
+    eac: `EAC = BAC ÷ CPI = $312,000 ÷ 0.97. Your answer: $${Math.round(val).toLocaleString()}`
+  };
+  const fb = document.getElementById('calcFeedback');
+  fb.className = 'feedback-strip show err';
+  fb.innerHTML = `<span class="fb-tag">✗ Recheck</span>${hints[field]} — check your formula and try again.`;
+}
+
+function checkCalcComplete() {
+  if (calcDone.spi && calcDone.cpi && calcDone.eac) {
+    const fb = document.getElementById('calcFeedback');
+    fb.className = 'feedback-strip show ok';
+    fb.innerHTML = '<span class="fb-tag">✓ All Cells Complete</span>Excellent. SPI = 0.85 (behind schedule), CPI = 0.97 (slight cost overrun), EAC = $321,649 — the drilling package will cost ~$9,649 more than budgeted at current performance. These figures would feed directly into Jamie\'s monthly cost narrative.';
+  } else {
+    const fb = document.getElementById('calcFeedback');
+    fb.className = 'feedback-strip show ok';
+    const done = Object.values(calcDone).filter(Boolean).length;
+    fb.innerHTML = `<span class="fb-tag">✓ ${done}/3 Correct</span>Keep going — complete the remaining cells.`;
+  }
+}
+
+function updateAttemptLabel() {
+  document.getElementById('calcAttempts').textContent =
+    `Attempts: SPI ${calcAttempts.spi} · CPI ${calcAttempts.cpi} · EAC ${calcAttempts.eac}`;
+}
+
+function resetCalc() {
+  ['spi','cpi','eac'].forEach(f => {
+    const inp = document.getElementById(f+'-input');
+    inp.value = '';
+    inp.className = 'fill-input';
+    inp.readOnly = false;
+    calcAttempts[f] = 0;
+    calcDone[f] = false;
+  });
+  updateAttemptLabel();
+  document.getElementById('calcFeedback').className = 'feedback-strip';
+  document.getElementById('calcFeedback').innerHTML = '';
+}
+
+/* ══════════════════════════════════════════════════════
+   BRANCHING ENGINE
+══════════════════════════════════════════════════════ */
+function goScene(sceneId) {
+  document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+  document.getElementById(sceneId).classList.add('active');
+  document.getElementById(sceneId).scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function resetScenario() {
+  goScene('scene-start');
+}
+
+/* ══════════════════════════════════════════════════════
+   PROGRESS ENGINE
+══════════════════════════════════════════════════════ */
+let progressState = {
+  complete: 2, score: 94, exercises: 7, streak: 3,
+  mod3pct: 60,
+  log: [
+    { time:'Today 10:42', text:'Quiz — EVM Calculations (Module 2.1)', pts:'+67%', color:'var(--amber)' },
+    { time:'Yesterday',   text:'Exercise — WBS Drag & Drop complete',   pts:'+100%', color:'var(--green)' },
+    { time:'Yesterday',   text:'Module 1.2 — WBS & Cost Accounts passed', pts:'88%', color:'var(--green)' },
+    { time:'Mar 27',      text:'Module 1.1 — Project Controls Overview passed', pts:'100%', color:'var(--green)' },
+  ],
+  bars: [100,75,100,88,67]
+};
+
+function renderProgress() {
+  document.getElementById('stat-complete').textContent   = progressState.complete;
+  document.getElementById('stat-score').textContent      = progressState.score;
+  document.getElementById('stat-exercises').textContent  = progressState.exercises;
+  document.getElementById('stat-streak').textContent     = progressState.streak;
+  document.getElementById('mod3-bar').style.width = progressState.mod3pct + '%';
+  document.getElementById('mod3-pct').textContent = progressState.mod3pct + '%';
+
+  // Re-render chart
+  const chart = document.getElementById('trendChart');
+  chart.innerHTML = progressState.bars.map((h, i) =>
+    `<div class="chart-bar ${i===progressState.bars.length-1?'active':''}" style="height:${h}%"><div class="bar-label">Q${i+1}</div></div>`
+  ).join('');
+
+  // Re-render log
+  const log = document.getElementById('activityLog');
+  log.innerHTML = progressState.log.map(row =>
+    `<div class="log-row">
+      <div class="log-dot" style="background:${row.color}"></div>
+      <span class="log-time">${row.time}</span>
+      <span class="log-text">${row.text}</span>
+      <span class="log-pts">${row.pts}</span>
+    </div>`
+  ).join('');
+}
+
+const simActivities = [
+  { text:'Quiz — Schedule Variance (Module 2.1)', pts:'+80%', color:'var(--green)' },
+  { text:'Exercise — Clickable Spreadsheet passed', pts:'+100%', color:'var(--green)' },
+  { text:'Scenario — Change Control decision (correct path)', pts:'+100%', color:'var(--green)' },
+  { text:'Module 2.1 — EVM complete', pts:'87%', color:'var(--green)' },
+  { text:'Module 2.2 — Variance Analysis started', pts:'+20%', color:'var(--amber)' },
+];
+let simIdx = 0;
+
+function simulateProgress() {
+  if (simIdx >= simActivities.length) { simIdx = 0; }
+  const act = simActivities[simIdx++];
+  progressState.log.unshift({ time:'Just now', ...act });
+  progressState.log = progressState.log.slice(0, 5);
+  progressState.exercises++;
+  progressState.mod3pct = Math.min(100, progressState.mod3pct + 12);
+  const newScore = Math.round(parseInt(act.pts) || 80);
+  progressState.bars.push(newScore);
+  if (progressState.bars.length > 8) progressState.bars = progressState.bars.slice(-8);
+  progressState.score = Math.round(progressState.bars.reduce((a,b)=>a+b,0)/progressState.bars.length);
+  if (progressState.mod3pct >= 100) progressState.complete = 3;
+  try { localStorage.setItem('ridgeline_progress', JSON.stringify(progressState)); } catch(e) {}
+  renderProgress();
+}
+
+function resetProgress() {
+  progressState = { complete:2, score:94, exercises:7, streak:3, mod3pct:60,
+    log:[
+      { time:'Today 10:42', text:'Quiz — EVM Calculations (Module 2.1)', pts:'+67%', color:'var(--amber)' },
+      { time:'Yesterday',   text:'Exercise — WBS Drag & Drop complete',   pts:'+100%', color:'var(--green)' },
+      { time:'Yesterday',   text:'Module 1.2 — WBS & Cost Accounts passed', pts:'88%', color:'var(--green)' },
+      { time:'Mar 27',      text:'Module 1.1 — Project Controls Overview passed', pts:'100%', color:'var(--green)' },
+    ],
+    bars:[100,75,100,88,67]
+  };
+  simIdx = 0;
+  try { localStorage.removeItem('ridgeline_progress'); } catch(e) {}
+  renderProgress();
+}
+
+function selectModule(el, id) {
+  document.querySelectorAll('.tree-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// Load from localStorage if available
+try {
+  const saved = localStorage.getItem('ridgeline_progress');
+  if (saved) progressState = { ...progressState, ...JSON.parse(saved) };
+} catch(e) {}
+
+renderProgress();
+
+// Nav highlighting on scroll
+const sections = document.querySelectorAll('.pattern-section');
+const navLinks = document.querySelectorAll('.nav-link');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  navLinks.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#'+current);
+  });
+});
+</script>
+</body>
+</html>

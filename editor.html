@@ -263,6 +263,11 @@ const SCENE_TYPES = [
   { type:'excel',           label:'Excel Mock',     icon:'🟢' },
   { type:'html',            label:'Raw HTML',       icon:'</>'},
   { type:'realbinder',      label:'Binder',         icon:'📒' },
+  { type:'quiz',            label:'Quiz',           icon:'❓' },
+  { type:'drag-match',      label:'Drag Match',     icon:'⇄'  },
+  { type:'fill-cell',       label:'Fill Cell',      icon:'✍'  },
+  { type:'branch',          label:'Branch Scene',   icon:'⑂'  },
+  { type:'click-doc',       label:'Click Doc',      icon:'🖱' },
 ];
 
 // ── INIT ────────────────────────────────────────────────────────
@@ -388,6 +393,15 @@ function addScene(type) {
           <div class="attr-group"><label>folderUnlock</label><input data-attr="folderUnlock" placeholder="e.g. handover-docs"></div>
           <div class="attr-group"><label>requireDocs</label><input data-attr="requireDocs" placeholder="doc-a,doc-b"></div>
           <div class="attr-group"><label>beat</label><input data-attr="beat" placeholder="e.g. beat1"></div>
+          <div class="attr-group"><label>Max Width</label><input data-attr="maxWidth" placeholder="e.g. 640px or 70%"></div>
+          <div class="attr-group"><label>Alignment</label>
+            <select data-attr="align" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 7px;font-size:12px;font-family:var(--mono);">
+              <option value="">default</option>
+              <option value="left">left</option>
+              <option value="center">center</option>
+              <option value="right">right</option>
+            </select>
+          </div>
         </div>
         <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);">
           <div style="font-size:9px;color:var(--teal);font-family:var(--mono);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:6px;">Alert — shown when this scene is revealed</div>
@@ -398,10 +412,12 @@ function addScene(type) {
                 <option value="">none</option>
                 <option value="phone">📱 Phone (SMS)</option>
                 <option value="email">✉️ Email</option>
+                <option value="call">📹 Incoming Call</option>
               </select>
             </div>
             <div class="attr-group"><label>Badge Count</label><input data-attr="alertCount" type="number" min="0" placeholder="1" style="width:70px"></div>
-            <div class="attr-group" style="grid-column:1/-1"><label>Tooltip Label</label><input data-attr="alertLabel" placeholder="e.g. New message from Sarah Chen"></div>
+            <div class="attr-group" style="grid-column:1/-1"><label>Tooltip Label / Caller Name</label><input data-attr="alertLabel" placeholder="e.g. Sarah Chen, Dan Reyes"></div>
+          <div class="attr-group" style="grid-column:1/-1"><label>Call Title (call type only)</label><input data-attr="alertCallTitle" placeholder="e.g. Project Kickoff"></div>
           </div>
         </div>
       </details>
@@ -483,7 +499,14 @@ function buildSceneForm(type) {
       return frow('Content', rte('html', 'Your text here.'));
 
     case 'dialogue':
-      return frow('Lines',
+      return fsec('Style') +
+        frow('Display', `<select data-field="style" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:4px 8px;font-size:12px">
+          <option value="">Normal (bubbles)</option>
+          <option value="meeting">Meeting (video call)</option>
+        </select>`) +
+        frow('Meeting title', inp('meetingTitle', 'e.g. Project Kickoff')) +
+        fsec('Lines') +
+        frow('Lines',
         `<div>
           <div class="rows-list" data-list="lines">${dlgLine()}</div>
           <button class="add-row-btn" onclick="addRow(this,'lines',dlgLine)">+ Add Line</button>
@@ -582,6 +605,104 @@ function buildSceneForm(type) {
           <button class="add-row-btn" onclick="addRow(this,'tabs',binderTab)">+ Add Tab</button>
         </div>`);
 
+    case 'quiz':
+      return fsec('Questions') +
+        frow('', `<div style="font-size:11px;color:var(--dim);margin-bottom:8px;font-family:var(--mono)">
+          Options format — one per line. Prefix correct answer with <code>*</code>. Add per-option feedback with <code>||</code>:<br>
+          <code style="color:var(--green)">* EV − PV || Correct! SV = EV minus PV.</code><br>
+          <code>EV − AC</code>
+        </div>`) +
+        frow('',
+          `<div>
+            <div class="rows-list" data-list="questions">${quizQuestionRow()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'questions',quizQuestionRow)">+ Add Question</button>
+          </div>`) +
+        fsec('Gate') +
+        frow('Gated', `<label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-field="gated"> Block Continue until last question answered correctly</label>`);
+
+    case 'drag-match':
+      return fsec('Question') +
+        frow('Question', inp('question','Match each metric to its formula')) +
+        fsec('Chips (items to drag)') +
+        frow('',
+          `<div>
+            <div class="rows-list" data-list="chips">${dragChipRow()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'chips',dragChipRow)">+ Add Chip</button>
+          </div>`) +
+        fsec('Zones (drop targets)') +
+        frow('',
+          `<div>
+            <div class="rows-list" data-list="zones">${dragZoneRow()}</div>
+            <button class="add-row-btn" onclick="addRow(this,'zones',dragZoneRow)">+ Add Zone</button>
+          </div>`) +
+        fsec('Gate') +
+        frow('Gated', `<label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-field="gated"> Block Continue until all matched correctly</label>`);
+
+    case 'fill-cell':
+      return fsec('Exercise') +
+        frow('Question', inp('question','Calculate the Schedule Variance for Geotechnical Drilling.')) +
+        frow('Formula', inp('formula','SV = EV − PV')) +
+        frow('Hint', inp('hint','EV = $198,400  ·  PV = $234,000 (optional)')) +
+        fsec('Table HTML') +
+        `<div style="padding:0 4px 6px">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+            <button class="add-row-btn" style="width:auto;padding:5px 12px;font-size:11px" onclick="fillInsertInput(this)" title="Click in the HTML editor below to position cursor, then click to insert an input field">⊕ Insert Input Field</button>
+            <button class="add-row-btn" style="width:auto;padding:5px 12px;font-size:11px" onclick="fillTogglePreview(this)">👁 Preview</button>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">Click in the HTML below to position cursor, then Insert → auto-adds key + answer row</span>
+          </div>
+          <textarea data-field="tableHtml" rows="10" placeholder="<thead><tr><th>WBS</th><th>Work Package</th><th>EV</th><th>SV</th></tr></thead>&#10;<tbody>&#10;<tr><td>1.2.2</td><td>Geo Drilling</td><td>$198,400</td><td class=&quot;fill-td&quot;></td></tr>&#10;</tbody>" style="width:100%;resize:vertical"></textarea>
+          <div class="fill-cell-editor-preview" style="display:none;margin-top:6px">
+            <iframe style="width:100%;height:420px;border:1px solid var(--border);display:block"></iframe>
+          </div>
+        </div>` +
+        fsec('Answers') +
+        `<div style="padding:0 4px 6px">
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">One row per input field — key must match <code style="font-family:var(--mono);color:var(--teal)">data-key</code> in the HTML above. Use Insert to add both automatically.</div>
+          <div data-list="answers" style="display:flex;flex-direction:column;gap:6px"></div>
+          <button class="add-row-btn" onclick="addRow(this,'answers',fillAnswerRow)" style="margin-top:6px">+ Add Answer Row</button>
+        </div>` +
+        frow('Tolerance (±)', `<div style="display:flex;align-items:center;gap:8px">${inp('tolerance','0','width:80px')}<span style="font-family:var(--mono);font-size:10px;color:var(--dim)">applied to all numeric answers</span></div>`) +
+        fsec('Gate') +
+        frow('Gated', `<label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-field="gated"> Block Continue until all correct</label>`);
+
+    case 'branch':
+      return fsec('Slides') +
+        `<div style="padding:0 4px 6px">
+          <div style="font-size:10px;color:var(--text-dim);margin-bottom:8px">First slide is always shown first. Choices reference other slides by id.</div>
+          <div data-list="slides" style="display:flex;flex-direction:column;gap:10px"></div>
+          <div style="display:flex;gap:6px;align-items:center;margin-top:10px;flex-wrap:wrap">
+            <button class="add-row-btn" onclick="addRow(this,'slides',branchSlideRow)">+ Add Slide</button>
+            <button class="add-row-btn" style="width:auto;padding:5px 12px;font-size:11px" onclick="branchTogglePreview(this)">👁 Preview</button>
+          </div>
+          <div class="branch-editor-preview" style="display:none;margin-top:8px">
+            <iframe style="width:100%;height:520px;border:1px solid var(--border);display:block"></iframe>
+          </div>
+        </div>` +
+        fsec('Gate') +
+        frow('Gated', `<label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-field="gated"> Block Continue until scenario complete</label>`);
+
+    case 'click-doc':
+      return fsec('Document') +
+        frow('Title', inp('docTitle','RIDGELINE_CONTRACT_v3.docx')) +
+        frow('Question', inp('question','Which clause establishes environmental compliance obligations?')) +
+        frow('Correct Keys', `<div style="display:flex;align-items:center;gap:8px">${inp('correctKeys','t1,t3','flex:1')}<span style="font-family:var(--mono);font-size:10px;color:var(--dim);white-space:nowrap">comma-separated</span></div>`) +
+        frow('Feedback — Correct', inp('feedbackCorrect','Correct! That clause sets out the environmental obligations.')) +
+        frow('Feedback — Wrong', inp('feedbackWrong','Not that one — look for the clause covering environmental legislation.')) +
+        fsec('Document HTML') +
+        `<div style="padding:0 4px 6px">
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+            <button class="add-row-btn" style="width:auto;padding:5px 12px;font-size:11px" onclick="clickDocWrapTarget(this)" title="Select text in the editor below, then click to wrap it as a clickable target">⬡ Wrap Selection as Target</button>
+            <button class="add-row-btn" style="width:auto;padding:5px 12px;font-size:11px" onclick="clickDocTogglePreview(this)">👁 Preview</button>
+            <span style="font-family:var(--mono);font-size:10px;color:var(--dim)">Select text in the editor, then click Wrap → auto-generates a key</span>
+          </div>
+          <textarea data-field="contentHtml" rows="12" placeholder="<h3>1. Scope of Work</h3>&#10;<p>Paragraph text. Highlight any span of text above and click Wrap to make it clickable.</p>" style="width:100%;resize:vertical"></textarea>
+          <div class="click-doc-editor-preview" style="display:none;margin-top:6px">
+            <iframe style="width:100%;height:560px;border:1px solid var(--border);display:block"></iframe>
+          </div>
+        </div>` +
+        fsec('Gate') +
+        frow('Gated', `<label style="display:flex;align-items:center;gap:6px;font-size:12px"><input type="checkbox" data-field="gated"> Block Continue until correct clause selected</label>`);
+
     default:
       return `<p style="color:var(--red)">Unknown type: ${type}</p>`;
   }
@@ -622,16 +743,19 @@ function binderTab() {
 }
 
 function dlgLine() {
-  return `<div class="row-item">
-    <input data-subfield="speaker" placeholder="Speaker" style="width:100px">
-    <select data-subfield="role">
-      <option value="jamie">jamie</option>
-      <option value="pm">pm</option>
-      <option value="internal">internal</option>
-      <option value="tech">tech</option>
-    </select>
-    <input data-subfield="text" placeholder="Dialogue text…" style="flex:1">
-    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  return `<div class="row-item" style="flex-direction:column;gap:5px;align-items:stretch">
+    <div style="display:flex;gap:5px;align-items:center">
+      <input data-subfield="speaker" placeholder="Speaker name" style="flex:1;min-width:0">
+      <input type="color" data-subfield="color" value="#7a8499" title="Speaker name colour" style="width:32px;height:28px;padding:2px;border:1px solid var(--border);border-radius:3px;background:var(--bg);cursor:pointer;flex-shrink:0">
+      <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--teal);white-space:nowrap;cursor:pointer;flex-shrink:0" title="Hero lines appear on the right">
+        <input type="checkbox" data-subfield="hero"> Hero
+      </label>
+      <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+    </div>
+    <div style="display:flex;gap:5px">
+      <input data-subfield="text" placeholder="Dialogue text…" style="flex:1;min-width:0">
+      <input data-subfield="avatar" placeholder="avatar.jpg" style="width:110px;min-width:0" title="Filename in /img/ — leave blank for initials">
+    </div>
   </div>`;
 }
 
@@ -685,6 +809,38 @@ function checkGroup() {
       <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
     </div>
     <textarea data-subfield="items" rows="3" placeholder="One item per line…" style="width:100%"></textarea>
+  </div>`;
+}
+
+function quizQuestionRow() {
+  return `<div class="row-item" style="flex-direction:column;gap:6px;align-items:stretch;padding:10px;background:var(--surface2);border:1px solid var(--border)">
+    <div style="display:flex;gap:6px;align-items:center">
+      <input data-subfield="context" placeholder="Context tag (optional, e.g. Month 5 · EVM Review)" style="flex:1;min-width:0">
+      <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕ Remove</button>
+    </div>
+    <textarea data-subfield="question" rows="2" placeholder="Question text…" style="width:100%"></textarea>
+    <textarea data-subfield="optionsRaw" rows="4" placeholder="* Correct option text || optional per-option feedback&#10;Wrong option A&#10;Wrong option B&#10;Wrong option C" style="width:100%;font-family:monospace;font-size:11px;line-height:1.5"></textarea>
+    <div style="display:flex;gap:6px">
+      <input data-subfield="feedbackCorrect" placeholder="Correct feedback (optional)" style="flex:1;min-width:0">
+      <input data-subfield="feedbackWrong"   placeholder="Wrong feedback (optional)"   style="flex:1;min-width:0">
+    </div>
+  </div>`;
+}
+
+function dragChipRow() {
+  return `<div class="row-item">
+    <input data-subfield="id"    placeholder="id (e.g. sv)"   style="width:80px">
+    <input data-subfield="label" placeholder="Label (e.g. Schedule Variance)" style="flex:1;min-width:0">
+    <input data-subfield="icon"  placeholder="Icon (≈)"       style="width:52px">
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
+  </div>`;
+}
+
+function dragZoneRow() {
+  return `<div class="row-item">
+    <input data-subfield="label"  placeholder="Zone label (e.g. EV − PV)" style="flex:1;min-width:0">
+    <input data-subfield="answer" placeholder="Correct chip id (e.g. sv)" style="width:120px">
+    <button class="del-row-btn" onclick="this.closest('.row-item').remove()">✕</button>
   </div>`;
 }
 
@@ -859,6 +1015,303 @@ function toggleMeta() {
   document.getElementById('meta-panel').classList.toggle('hidden');
 }
 
+// ── CLICK-DOC EDITOR HELPERS ─────────────────────────────────────
+// ── BRANCH EDITOR HELPERS ───────────────────────────────────────
+const _avSel = `<select data-subfield="avatarClass" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:11px;font-family:var(--mono)">
+  <option value="branch-av-other">teal</option>
+  <option value="branch-av-jamie">amber</option>
+  <option value="branch-av-pm">blue</option>
+  <option value="branch-av-cont">purple</option>
+</select>`;
+const _outSel = `<select data-subfield="outcome" style="background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:3px;padding:3px 6px;font-size:11px;font-family:var(--mono)">
+  <option value="">no outcome</option>
+  <option value="good">✓ good</option>
+  <option value="bad">✗ bad</option>
+  <option value="warn">⚠ warn</option>
+</select>`;
+
+function branchSlideRow() {
+  return `<div class="row-item" style="flex-direction:column;gap:6px;padding:10px 12px;border:1px solid var(--border);border-radius:3px">
+    <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:6px;align-items:center">
+      <input data-subfield="id" placeholder="slide id (e.g. start, good, bad)" style="font-family:var(--mono);font-size:11px">
+      ${_avSel}
+      <input data-subfield="avatar" placeholder="JO" title="Avatar initials" style="width:42px;text-align:center;font-family:var(--mono);font-size:11px">
+      <button class="rm-btn" onclick="this.closest('.row-item').remove()" style="padding:2px 7px;font-size:13px;cursor:pointer">×</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+      <input data-subfield="speaker" placeholder="Speaker name">
+      <input data-subfield="loc" placeholder="Location / date context">
+    </div>
+    <textarea data-subfield="text" rows="2" placeholder="Slide body text — the situation, question, or response..."></textarea>
+    <input data-subfield="situation" placeholder="Situation box (optional — italic context shown below text)">
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center">
+      ${_outSel}
+      <input data-subfield="outcomeLabel" placeholder="Outcome label (e.g. GOOD CALL, POOR APPROACH)">
+    </div>
+    <textarea data-subfield="debrief" rows="2" placeholder="Debrief text (optional — shown on outcome slides after reveal)"></textarea>
+    <div>
+      <div style="font-size:9px;color:var(--teal);font-family:var(--mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">Choices — one per line: Button text | next-slide-id | outcome</div>
+      <textarea data-subfield="choices" rows="3" placeholder="Present the EVM data transparently | good | good&#10;Blame the scope increase | bad | bad"></textarea>
+    </div>
+  </div>`;
+}
+
+function _branchReadSlides(card) {
+  return getRows(card,'slides').map(r => {
+    const slide = {
+      id:          getSubfield(r,'id').trim(),
+      avatar:      getSubfield(r,'avatar').trim() || '?',
+      avatarClass: getSubfield(r,'avatarClass') || 'branch-av-other',
+      speaker:     getSubfield(r,'speaker').trim(),
+      loc:         getSubfield(r,'loc').trim(),
+      text:        getSubfield(r,'text').trim(),
+    };
+    const sit = getSubfield(r,'situation').trim();
+    if (sit) slide.situation = sit;
+    const outcome = getSubfield(r,'outcome');
+    if (outcome) {
+      slide.outcome = outcome;
+      const ol = getSubfield(r,'outcomeLabel').trim();
+      if (ol) slide.outcomeLabel = ol;
+    }
+    const debrief = getSubfield(r,'debrief').trim();
+    if (debrief) slide.debrief = debrief;
+    const choicesRaw = getSubfield(r,'choices').trim();
+    if (choicesRaw) {
+      slide.choices = choicesRaw.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
+        const p = l.split('|').map(x => x.trim());
+        const c = { text: p[0] || '', next: p[1] || '' };
+        if (p[2]) c.outcome = p[2];
+        return c;
+      });
+    }
+    return slide;
+  });
+}
+
+function branchTogglePreview(btn) {
+  const card   = btn.closest('.card-body');
+  const panel  = card.querySelector('.branch-editor-preview');
+  const iframe = panel.querySelector('iframe');
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    btn.textContent = '👁 Preview';
+    return;
+  }
+
+  const slides = _branchReadSlides(card);
+  const keys   = ['A','B','C','D','E'];
+  const slidesHtml = slides.map(s => {
+    const outcomeHtml = s.outcome
+      ? `<div class="branch-outcome ${s.outcome}"><span>${s.outcome==='good'?'✓':s.outcome==='bad'?'✗':'⚠'}</span><span>${s.outcomeLabel||s.outcome.toUpperCase()}</span></div>` : '';
+    const choicesHtml = (s.choices||[]).map((c,ci) =>
+      `<button class="branch-btn" data-outcome="${c.outcome||''}"><span class="branch-btn-key">${keys[ci]}</span><span>${c.text}</span><span style="font-size:10px;opacity:.45;margin-left:auto;font-family:monospace">→ ${c.next}</span></button>`
+    ).join('');
+    const debriefHtml = s.debrief
+      ? `<div class="branch-debrief"><div class="branch-debrief-label">Debrief</div><div class="branch-debrief-text">${s.debrief}</div></div>` : '';
+    return `<div style="margin-bottom:14px">
+      <div style="font-family:monospace;font-size:9px;color:#7a8499;padding:3px 10px;background:#181c26;letter-spacing:.1em;border:1px solid #2a3048;border-bottom:none">SLIDE: ${s.id||'(no id)'}</div>
+      <div class="branch-slide" style="display:block!important">
+        ${outcomeHtml}
+        <div class="branch-hd">
+          <div class="branch-av ${s.avatarClass}">${s.avatar||'?'}</div>
+          <div><div class="branch-speaker">${s.speaker||''}</div><div class="branch-loc">${s.loc||''}</div></div>
+        </div>
+        <div class="branch-body">
+          <div class="branch-text">${s.text||''}</div>
+          ${s.situation?`<div class="branch-situation">${s.situation}</div>`:''}
+          <div class="branch-choices">${choicesHtml}</div>
+        </div>
+        ${debriefHtml}
+      </div>
+    </div>`;
+  }).join('');
+
+  const base = window.location.href.replace(/\/[^\/]*$/, '/');
+  iframe.srcdoc = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8"><base href="${base}">
+    <link rel="stylesheet" href="css/story.css">
+    <style>body{margin:0;background:#0f1117;padding:16px;}</style>
+  </head><body>${slidesHtml||'<p style="color:#7a8499;padding:20px">No slides defined.</p>'}</body></html>`;
+
+  panel.style.display = '';
+  btn.textContent = '✕ Close Preview';
+}
+
+// ── FILL-CELL EDITOR HELPERS ────────────────────────────────────
+function fillAnswerRow() {
+  return `<div class="row-item" style="display:grid;grid-template-columns:1fr 1fr auto;gap:6px;align-items:center;padding:6px 8px">
+    <input data-subfield="key" placeholder="key (e.g. f1)" style="font-family:var(--mono);font-size:11px">
+    <input data-subfield="value" type="number" step="any" placeholder="correct value">
+    <button class="rm-btn" onclick="this.closest('.row-item').remove()" style="padding:2px 7px;font-size:13px;line-height:1;cursor:pointer">×</button>
+  </div>`;
+}
+
+function fillInsertInput(btn) {
+  const card = btn.closest('.card-body');
+  const ta   = card.querySelector('[data-field="tableHtml"]');
+  if (!ta) return;
+
+  // Auto-key: count existing data-key attributes
+  const existing = (ta.value.match(/data-key="[^"]+"/g) || []).length;
+  const key = 'f' + (existing + 1);
+  const snippet = `<input class="fill-answer" data-key="${key}" placeholder="?">`;
+
+  const start = ta.selectionStart ?? ta.value.length;
+  const end   = ta.selectionEnd   ?? ta.value.length;
+  ta.value = ta.value.slice(0, start) + snippet + ta.value.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start + snippet.length, start + snippet.length);
+
+  // Add matching answer row
+  const list = card.querySelector('[data-list="answers"]');
+  if (list) {
+    const wrap = document.createElement('div');
+    wrap.innerHTML = fillAnswerRow();
+    const row = wrap.firstElementChild;
+    row.querySelector('[data-subfield="key"]').value = key;
+    list.appendChild(row);
+    row.querySelector('[data-subfield="value"]').focus();
+  }
+
+  // Flash the textarea border
+  ta.style.boxShadow = '0 0 0 2px var(--amber)';
+  setTimeout(() => { ta.style.boxShadow = ''; }, 900);
+
+  debouncedSave();
+}
+
+function fillTogglePreview(btn) {
+  const card   = btn.closest('.card-body');
+  const panel  = card.querySelector('.fill-cell-editor-preview');
+  const iframe = panel.querySelector('iframe');
+  const ta     = card.querySelector('[data-field="tableHtml"]');
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    btn.textContent = '👁 Preview';
+    return;
+  }
+
+  const base = window.location.href.replace(/\/[^\/]*$/, '/');
+  iframe.srcdoc = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <base href="${base}">
+    <link rel="stylesheet" href="css/story.css">
+    <style>
+      body { margin:0; background:var(--bg,#0f1117); padding:20px; }
+      /* show input key badge for authoring reference */
+      .fill-answer::placeholder { opacity:1; }
+      .fill-answer[data-key]::after { content:attr(data-key); }
+    </style>
+  </head><body>
+    <div class="fill-cell-scene" style="max-width:760px;margin:0 auto">
+      <div class="fill-xls-wrap">
+        <table class="fill-xls">${ta.value.trim()}</table>
+      </div>
+    </div>
+  </body></html>`;
+
+  panel.style.display = '';
+  btn.textContent = '✕ Close Preview';
+}
+
+function clickDocWrapTarget(btn) {
+  const card = btn.closest('.card-body');
+  const ta   = card.querySelector('[data-field="contentHtml"]');
+  if (!ta) return;
+
+  const start = ta.selectionStart;
+  const end   = ta.selectionEnd;
+  if (start === end) {
+    const orig = btn.textContent;
+    btn.textContent = '⚠ Select text first';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+    return;
+  }
+
+  // Auto-generate a unique key by counting existing targets
+  const existing = (ta.value.match(/data-key="[^"]+"/g) || []).length;
+  const key = `t${existing + 1}`;
+  const selected = ta.value.slice(start, end);
+  const wrapped  = `<span class="click-target" data-key="${key}" onclick="clickDocSelect(this)">${selected}</span>`;
+
+  ta.value = ta.value.slice(0, start) + wrapped + ta.value.slice(end);
+
+  // Move cursor to after the inserted span
+  ta.focus();
+  const newPos = start + wrapped.length;
+  ta.setSelectionRange(newPos, newPos);
+
+  debouncedSave();
+
+  // Flash the generated key so author knows what was created
+  const keyEl = card.querySelector('[data-field="correctKeys"]');
+  if (keyEl) {
+    keyEl.style.outline = '2px solid var(--teal)';
+    setTimeout(() => { keyEl.style.outline = ''; }, 1400);
+  }
+}
+
+function clickDocTogglePreview(btn) {
+  const card   = btn.closest('.card-body');
+  const panel  = card.querySelector('.click-doc-editor-preview');
+  const iframe = panel.querySelector('iframe');
+  const ta     = card.querySelector('[data-field="contentHtml"]');
+
+  if (panel.style.display !== 'none') {
+    panel.style.display = 'none';
+    btn.textContent = '👁 Preview';
+    return;
+  }
+
+  const base    = window.location.href.replace(/\/[^\/]*$/, '/');
+  const content = ta.value.trim();
+
+  // Wrap in overlay shell if not already a doc-overlay
+  const isOverlay = /^<div[^>]+class="[^"]*doc-overlay/.test(content);
+  const bodyHtml  = isOverlay
+    ? content
+    : `<div class="doc-overlay" style="position:static;display:block;background:transparent;"><div class="doc-window" onclick="void 0"><div class="doc-body">${content}</div></div></div>`;
+
+  iframe.srcdoc = `<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <base href="${base}">
+    <link rel="stylesheet" href="css/story.css">
+    <style>
+      body { margin:0; background:#0f1117; padding:20px; }
+      /* Make overlay render as static block (same as previewDocRow) */
+      .doc-overlay { position:static!important; display:block!important; background:transparent!important; }
+      .doc-window  { margin:0 auto; }
+      /* Click-target key badges */
+      .click-target {
+        cursor:pointer;
+        outline:1px dashed #a87200;
+        padding:1px 4px;
+        margin:-1px -4px;
+        border-radius:2px;
+      }
+      .click-target::after {
+        content: attr(data-key);
+        font-family: monospace;
+        font-size: 8px;
+        font-weight: 700;
+        background: #f0a500;
+        color: #0f1117;
+        padding: 1px 6px;
+        margin-left: 5px;
+        border-radius: 2px;
+        vertical-align: middle;
+        letter-spacing: 0.06em;
+      }
+    </style>
+  </head><body>${bodyHtml}</body></html>`;
+
+  panel.style.display = '';
+  btn.textContent = '✕ Close Preview';
+}
+
 // ── READ SCENE ──────────────────────────────────────────────────
 function getField(card, key) {
   const el = card.querySelector(`[data-field="${key}"]`);
@@ -897,9 +1350,13 @@ function readScene(card) {
       break;
 
     case 'dialogue':
+      scene.style        = getField(card,'style') || undefined;
+      scene.meetingTitle = getField(card,'meetingTitle') || undefined;
       scene.lines = getRows(card,'lines').map(r => ({
         speaker: getSubfield(r,'speaker'),
-        role:    getSubfield(r,'role'),
+        hero:    getSubfield(r,'hero') || undefined,
+        color:   getSubfield(r,'color') || undefined,
+        avatar:  getSubfield(r,'avatar') || undefined,
         text:    getSubfield(r,'text'),
       }));
       break;
@@ -988,6 +1445,72 @@ function readScene(card) {
     case 'html':
       scene.content = getField(card,'content');
       break;
+
+    case 'quiz': {
+      scene.questions = getRows(card,'questions').map(r => ({
+        context:         getSubfield(r,'context')         || undefined,
+        question:        getSubfield(r,'question'),
+        optionsRaw:      getSubfield(r,'optionsRaw'),
+        feedbackCorrect: getSubfield(r,'feedbackCorrect') || undefined,
+        feedbackWrong:   getSubfield(r,'feedbackWrong')   || undefined,
+      })).filter(q => q.question);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl?.checked) scene.gated = true;
+      break;
+    }
+
+    case 'drag-match': {
+      scene.question = getField(card,'question');
+      scene.chips = getRows(card,'chips').map(r => ({
+        id:    getSubfield(r,'id'),
+        label: getSubfield(r,'label'),
+        icon:  getSubfield(r,'icon') || undefined,
+      })).filter(c => c.id);
+      scene.zones = getRows(card,'zones').map(r => ({
+        label:  getSubfield(r,'label'),
+        answer: getSubfield(r,'answer'),
+      })).filter(z => z.answer);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl?.checked) scene.gated = true;
+      break;
+    }
+
+    case 'fill-cell': {
+      scene.question   = getField(card,'question');
+      scene.formula    = getField(card,'formula') || undefined;
+      scene.hint       = getField(card,'hint')    || undefined;
+      scene.tableHtml  = getField(card,'tableHtml');
+      const tol = getField(card,'tolerance');
+      scene.tolerance  = tol !== '' ? Number(tol) : 0;
+      scene.answers = {};
+      getRows(card,'answers').forEach(r => {
+        const k = getSubfield(r,'key').trim();
+        const v = getSubfield(r,'value').trim();
+        if (k && v !== '') scene.answers[k] = Number(v);
+      });
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl?.checked) scene.gated = true;
+      break;
+    }
+
+    case 'branch': {
+      scene.slides = _branchReadSlides(card);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl?.checked) scene.gated = true;
+      break;
+    }
+
+    case 'click-doc': {
+      scene.docTitle        = getField(card,'docTitle');
+      scene.question        = getField(card,'question');
+      scene.correctKeys     = getField(card,'correctKeys');
+      scene.feedbackCorrect = getField(card,'feedbackCorrect') || undefined;
+      scene.feedbackWrong   = getField(card,'feedbackWrong')   || undefined;
+      scene.contentHtml     = getField(card,'contentHtml');
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl?.checked) scene.gated = true;
+      break;
+    }
 
     case 'realbinder':
       scene.pages = getRows(card,'pages').map(r => ({
@@ -1235,7 +1758,7 @@ function populateCard(card, scene) {
   if (scene._note) { const el = card.querySelector('[data-field="_note"]'); if (el) el.value = scene._note; }
   if (scene._collapsed) { card.classList.add('collapsed'); const t = card.querySelector('.card-toggle'); if (t) t.textContent = '▸'; }
   // Attrs
-  ['id','folderUnlock','requireDocs','beat','alertType','alertCount','alertLabel'].forEach(key => {
+  ['id','folderUnlock','requireDocs','beat','maxWidth','align','alertType','alertCount','alertLabel','alertCallTitle'].forEach(key => {
     if (scene[key] != null && scene[key] !== '') {
       const el = card.querySelector(`[data-attr="${key}"]`);
       if (el) el.value = scene[key];
@@ -1272,7 +1795,17 @@ function populateCard(card, scene) {
 
   switch(scene.type) {
     case 'prose': sf('html', scene.html); break;
-    case 'dialogue': fillList('lines', scene.lines, dlgLine); break;
+    case 'dialogue':
+      sf('style', scene.style);
+      sf('meetingTitle', scene.meetingTitle);
+      fillList('lines', (scene.lines||[]).map(l => ({
+        speaker: l.speaker,
+        hero:    l.hero || l.role === 'jamie',
+        color:   l.color || (l.role === 'jamie' ? '#3eb8b8' : l.role === 'pm' ? '#f0a500' : l.role === 'internal' ? '#4caf82' : '#7a8499'),
+        avatar:  l.avatar || '',
+        text:    l.text,
+      })), dlgLine);
+      break;
     case 'inner-voice':
       sf('label', scene.label);
       fillList('paragraphs', (scene.paragraphs||[]).map(p=>({para:p})), ivPara);
@@ -1307,6 +1840,66 @@ function populateCard(card, scene) {
       break;
     case 'timeline': fillList('events', scene.events, tlRow); break;
     case 'html': sf('content', scene.content); break;
+    case 'quiz': {
+      fillList('questions', (scene.questions||[]).map(q => ({
+        context:         q.context         || '',
+        question:        q.question        || '',
+        optionsRaw:      q.optionsRaw      || '',
+        feedbackCorrect: q.feedbackCorrect || '',
+        feedbackWrong:   q.feedbackWrong   || '',
+      })), quizQuestionRow);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl) gatedEl.checked = !!scene.gated;
+      break;
+    }
+    case 'drag-match': {
+      sf('question', scene.question);
+      fillList('chips', (scene.chips||[]).map(c => ({ id:c.id, label:c.label, icon:c.icon||'' })), dragChipRow);
+      fillList('zones', (scene.zones||[]).map(z => ({ label:z.label, answer:z.answer })), dragZoneRow);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl) gatedEl.checked = !!scene.gated;
+      break;
+    }
+    case 'fill-cell': {
+      sf('question', scene.question);
+      sf('formula', scene.formula);
+      sf('hint', scene.hint);
+      sf('tableHtml', scene.tableHtml);
+      sf('tolerance', scene.tolerance ?? 0);
+      fillList('answers', Object.entries(scene.answers || {}).map(([k,v]) => ({key:k, value:String(v)})), fillAnswerRow);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl) gatedEl.checked = !!scene.gated;
+      break;
+    }
+    case 'branch': {
+      fillList('slides', (scene.slides || []).map(s => ({
+        id:          s.id          || '',
+        avatar:      s.avatar      || '',
+        avatarClass: s.avatarClass || 'branch-av-other',
+        speaker:     s.speaker     || '',
+        loc:         s.loc         || '',
+        text:        s.text        || '',
+        situation:   s.situation   || '',
+        outcome:     s.outcome     || '',
+        outcomeLabel:s.outcomeLabel|| '',
+        debrief:     s.debrief     || '',
+        choices:     (s.choices||[]).map(c => [c.text, c.next, c.outcome].filter(Boolean).join(' | ')).join('\n'),
+      })), branchSlideRow);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl) gatedEl.checked = !!scene.gated;
+      break;
+    }
+    case 'click-doc': {
+      sf('docTitle', scene.docTitle);
+      sf('question', scene.question);
+      sf('correctKeys', scene.correctKeys || scene.correctKey || '');
+      sf('feedbackCorrect', scene.feedbackCorrect);
+      sf('feedbackWrong', scene.feedbackWrong);
+      sf('contentHtml', scene.contentHtml);
+      const gatedEl = card.querySelector('[data-field="gated"]');
+      if (gatedEl) gatedEl.checked = !!scene.gated;
+      break;
+    }
     case 'realbinder':
       fillList('pages', (scene.pages||[]).map(p => ({
         left_label:    p.left?.label,

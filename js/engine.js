@@ -14,6 +14,10 @@ let beats = [];
 const beatDocsReviewed = {};
 const beatDocRequirements = {};
 
+let _emailCounter  = 0;
+let _emailRegistry = {};   // emailId → { subject, from, to, date, body, sig, attachments }
+let _unlockedEmailIds = []; // in order revealed
+
 // ── SCENE RENDERERS ────────────────────────────────────────────
 // Each renderer accepts a scene object and returns an HTMLElement.
 
@@ -24,12 +28,92 @@ function renderProse(scene) {
   return d;
 }
 
+function _lineColor(l) {
+  return l.color || (l.role === 'jamie' ? 'var(--teal)' : l.role === 'pm' ? 'var(--amber)' : l.role === 'internal' ? 'var(--green)' : l.role === 'client' ? 'var(--blue)' : 'var(--text-dim)');
+}
+
 function renderDialogue(scene) {
+  if (scene.style === 'meeting') return renderMeetingDialogue(scene);
   const d = document.createElement('div');
   d.className = 'dialogue';
-  d.innerHTML = scene.lines.map(l =>
-    `<div class="line"><span class="line-speaker ${l.role}">${l.speaker}</span><span class="line-text">${l.text}</span></div>`
+  d.innerHTML = (scene.lines || []).map(l => {
+    const isHero = l.hero === true || l.role === 'jamie';
+    const color = _lineColor(l);
+    return `<div class="line${isHero ? ' line-hero' : ''}" style="--sc:${color}"><span class="line-speaker" style="color:${color}">${l.speaker || ''}</span><span class="line-text">${l.text}</span></div>`;
+  }).join('');
+  return d;
+}
+
+function renderMeetingDialogue(scene) {
+  const lines = scene.lines || [];
+  const seen = new Map();
+  lines.forEach(l => {
+    if (l.speaker && !seen.has(l.speaker))
+      seen.set(l.speaker, { color: _lineColor(l), avatar: l.avatar || '' });
+  });
+  const speakers = [...seen.entries()]; // [[name, {color, avatar}], ...]
+  const initials = name => name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  const cols = speakers.length <= 2 ? speakers.length : speakers.length <= 4 ? 2 : 3;
+  const avatarImg = (src, cls, color, name) =>
+    src ? `<img src="img/${src}" class="${cls}" style="object-fit:cover" alt="${name}">`
+        : `<div class="${cls}" style="background:${color}">${initials(name)}</div>`;
+
+  const tilesHtml = speakers.map(([name, info]) =>
+    `<div class="meeting-tile" data-speaker="${name}">
+      ${avatarImg(info.avatar, 'meeting-tile-avatar', info.color, name)}
+      <div class="meeting-tile-name">${name}</div>
+      <span class="meeting-tile-mic">🎙</span>
+    </div>`
   ).join('');
+
+  const messagesHtml = lines.map(l => {
+    const color = _lineColor(l);
+    const isHero = l.hero === true || l.role === 'jamie';
+    return `<div class="line line-hidden" style="--sc:${color}" data-speaker="${l.speaker || ''}" data-hero="${isHero ? 'true' : ''}">
+      <div class="meeting-msg">
+        <div class="meeting-msg-body">
+          <div class="meeting-msg-name" style="color:${color}">${l.speaker || ''}</div>
+          <div class="meeting-msg-text">${l.text}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const d = document.createElement('div');
+  d.className = 'dialogue dialogue-meeting';
+  d.innerHTML = `
+    <div class="meeting-topbar">
+      <div class="meeting-topbar-left">
+        <span>📅</span>
+        <span class="meeting-topbar-title">${scene.meetingTitle || 'Video Call'}</span>
+      </div>
+      <div class="meeting-topbar-right">${speakers.length} participant${speakers.length !== 1 ? 's' : ''}</div>
+    </div>
+    <div class="meeting-body">
+      <div class="meeting-video-area" style="--cols:${cols}">${tilesHtml}</div>
+      <div class="meeting-sidebar">
+        <div class="meeting-chat-header">💬 Meeting Chat</div>
+        <div class="dialogue-scroll meeting-chat">${messagesHtml}</div>
+        <div class="meeting-chat-input-row">
+          <div class="meeting-chat-input-fake meeting-chat-draft"></div>
+          <button class="meeting-chat-send meeting-send-btn" onclick="meetingSend(this)">➤</button>
+        </div>
+      </div>
+    </div>
+    <div class="meeting-toolbar">
+      <button class="mtb-btn"><span class="mtb-icon">🎙</span><span class="mtb-label">Mute</span></button>
+      <button class="mtb-btn"><span class="mtb-icon">📷</span><span class="mtb-label">Video</span></button>
+      <span class="mtb-sep"></span>
+      <button class="mtb-btn"><span class="mtb-icon">🖥</span><span class="mtb-label">Share</span></button>
+      <button class="mtb-btn"><span class="mtb-icon">😄</span><span class="mtb-label">React</span></button>
+      <span class="mtb-sep"></span>
+      <button class="mtb-btn"><span class="mtb-icon">👥</span><span class="mtb-label">People</span></button>
+      <button class="mtb-btn mtb-active"><span class="mtb-icon">💬</span><span class="mtb-label">Chat</span></button>
+      <button class="mtb-btn"><span class="mtb-icon">⋯</span><span class="mtb-label">More</span></button>
+      <span class="mtb-sep"></span>
+      <button class="mtb-btn mtb-leave"><span class="mtb-icon">📵</span><span class="mtb-label">Leave</span></button>
+    </div>`;
+
   return d;
 }
 
@@ -185,9 +269,113 @@ function smsSend(btn) {
   }, 200);
 }
 
+// ── MEETING CHAT INTERACTION ────────────────────────────────────
+
+function initMeetingChats() {
+  document.querySelectorAll('.scene-block:not(.scene-hidden) .meeting-chat').forEach(chat => {
+    _meetingAdvance(chat);
+  });
+}
+
+function _meetingInit(sceneBlock) {
+  sceneBlock.querySelectorAll('.meeting-chat').forEach(chat => _meetingAdvance(chat));
+}
+
+function _meetingReveal(line) {
+  line.classList.remove('line-hidden');
+  line.style.opacity   = '0';
+  line.style.transform = 'translateY(6px)';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    line.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    line.style.opacity    = '1';
+    line.style.transform  = 'translateY(0)';
+  }));
+  const chat = line.closest('.meeting-chat');
+  if (chat) setTimeout(() => { chat.scrollTop = chat.scrollHeight; }, 50);
+  // Update speaking tile
+  const dl = line.closest('.dialogue-meeting');
+  if (dl) {
+    const speaker = line.dataset.speaker;
+    dl.querySelectorAll('.meeting-tile').forEach(t => t.classList.remove('speaking'));
+    if (speaker) dl.querySelector(`.meeting-tile[data-speaker="${speaker}"]`)?.classList.add('speaking');
+  }
+}
+
+function _meetingSetDraft(chat, line) {
+  const row    = chat.closest('.meeting-sidebar')?.querySelector('.meeting-chat-input-row');
+  const draft  = row?.querySelector('.meeting-chat-draft');
+  const sendBtn = row?.querySelector('.meeting-send-btn');
+  if (!draft || !sendBtn) return;
+  if (!line) {
+    draft.textContent = '';
+    draft.dataset.placeholder = '';
+    sendBtn.classList.remove('ready');
+    sendBtn._pendingLine = null;
+    _meetingUnlockNav(chat);
+    return;
+  }
+  const text = line.querySelector('.meeting-msg-text')?.textContent || '';
+  draft.style.opacity = '0';
+  draft.textContent   = text;
+  requestAnimationFrame(() => {
+    draft.style.transition = 'opacity 0.3s ease';
+    draft.style.opacity    = '1';
+  });
+  sendBtn.classList.add('ready');
+  sendBtn._pendingLine = line;
+}
+
+function _meetingLockNav(chat) {
+  const btn = chat.closest('.beat')?.querySelector('.story-next-btn');
+  if (btn && !btn.disabled) { btn.disabled = true; btn.dataset.meetingLocked = '1'; }
+}
+
+function _meetingUnlockNav(chat) {
+  const btn = chat.closest('.beat')?.querySelector('.story-next-btn');
+  if (btn && btn.dataset.meetingLocked) { btn.disabled = false; delete btn.dataset.meetingLocked; }
+}
+
+function _meetingAdvance(chat) {
+  const nextHidden = chat.querySelector('.line.line-hidden');
+  if (!nextHidden) {
+    _meetingSetDraft(chat, null);
+    return;
+  }
+  _meetingLockNav(chat);
+  if (nextHidden.dataset.hero === 'true') {
+    _meetingSetDraft(chat, nextHidden);
+  } else {
+    setTimeout(() => {
+      _meetingReveal(nextHidden);
+      setTimeout(() => _meetingAdvance(chat), 700);
+    }, 900);
+  }
+}
+
+function meetingSend(btn) {
+  if (!btn.classList.contains('ready')) return;
+  const row   = btn.closest('.meeting-chat-input-row');
+  const draft = row?.querySelector('.meeting-chat-draft');
+  const chat  = btn.closest('.meeting-sidebar')?.querySelector('.meeting-chat');
+  const line  = btn._pendingLine;
+  if (!line || !chat) return;
+  btn.classList.remove('ready');
+  btn._pendingLine = null;
+  draft.style.transition = 'opacity 0.12s ease';
+  draft.style.opacity    = '0';
+  setTimeout(() => { draft.textContent = ''; draft.style.opacity = '1'; }, 130);
+  setTimeout(() => {
+    _meetingReveal(line);
+    setTimeout(() => _meetingAdvance(chat), 500);
+  }, 200);
+}
+
 function renderEmailCard(scene) {
   const { email, docHint } = scene;
   const d = document.createElement('div');
+  const _eid = ++_emailCounter;
+  d.dataset.emailId = _eid;
+  _emailRegistry[_eid] = scene.email;
   const attachmentsHtml = email.attachments
     ? `<div class="email-attachment-bar">${email.attachments.map(a =>
         `<div class="email-attachment" onclick="${a.onclick}"><span class="email-attachment-icon">${a.icon}</span> ${a.name}</div>`
@@ -393,6 +581,203 @@ function binderStep(binderId, dir) {
   binderGoto(binderId, current + dir);
 }
 
+// ── QUIZ SCENE ──────────────────────────────────────────────────
+// Options raw format (one per line):
+//   * Correct answer text || Optional per-option feedback
+//   Wrong answer text
+function _parseQuizOpts(raw) {
+  const keys = ['A','B','C','D','E','F'];
+  return (raw || '').split('\n').map(l => l.trim()).filter(Boolean).map((line, i) => {
+    const correct = line.startsWith('*');
+    const rest    = correct ? line.slice(1).trim() : line;
+    const parts   = rest.split('||');
+    return { text: parts[0].trim(), correct, feedback: (parts[1] || '').trim(), key: keys[i] };
+  });
+}
+
+function renderQuiz(scene) {
+  // Normalise to questions array — supports both new multi-Q and legacy single-Q format
+  let questions = scene.questions || [];
+  if (!questions.length && scene.question) {
+    questions = [{
+      context:         scene.context,
+      question:        scene.question,
+      optionsRaw:      (scene.options || []).map(o => {
+        const text    = typeof o === 'object' ? o.text     : String(o);
+        const correct = typeof o === 'object' ? !!o.correct : false;
+        const fb      = typeof o === 'object' ? (o.feedback || '') : '';
+        return `${correct ? '* ' : ''}${text}${fb ? ' || ' + fb : ''}`;
+      }).join('\n'),
+      feedbackCorrect: scene.feedbackCorrect,
+      feedbackWrong:   scene.feedbackWrong,
+    }];
+  }
+
+  const total     = questions.length;
+  const multiQ    = total > 1;
+
+  const panesHtml = questions.map((q, qi) => {
+    const opts    = _parseQuizOpts(q.optionsRaw);
+    const optsHtml = opts.map(opt =>
+      `<button class="quiz-opt" data-correct="${opt.correct ? '1' : '0'}" data-fb="${(opt.feedback||'').replace(/"/g,'&quot;')}" onclick="quizSelect(this)"><span class="quiz-opt-key">${opt.key}</span><span>${opt.text}</span></button>`
+    ).join('');
+    return `<div class="quiz-pane" data-qidx="${qi}"${qi > 0 ? ' style="display:none"' : ''} data-fb-correct="${(q.feedbackCorrect||'').replace(/"/g,'&quot;')}" data-fb-wrong="${(q.feedbackWrong||'').replace(/"/g,'&quot;')}">
+      ${q.context ? `<div class="quiz-scene-context">${q.context}</div>` : ''}
+      <div class="quiz-scene-question">${q.question || ''}</div>
+      <div class="quiz-scene-options">${optsHtml}</div>
+      <div class="quiz-scene-feedback"></div>
+      <div class="quiz-scene-footer">
+        <button class="quiz-submit-btn" onclick="quizSubmit(this)" disabled>Check Answer</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  const d = document.createElement('div');
+  d.className = 'quiz-scene';
+  d.dataset.total   = total;
+  d.dataset.current = '0';
+  d.dataset.score   = '0';
+  d.innerHTML = `
+    ${multiQ ? `<div class="quiz-hd">
+      <span class="quiz-prog-label">Question 1 of ${total}</span>
+      <div class="quiz-prog-bar"><div class="quiz-prog-fill" style="width:0%"></div></div>
+    </div>` : ''}
+    ${panesHtml}
+    <div class="quiz-complete" style="display:none">
+      <div class="quiz-score-ring"></div>
+      <div class="quiz-score-title">Quiz Complete</div>
+      <div class="quiz-score-sub"></div>
+      <button class="scene-action-btn" style="margin-top:4px" onclick="quizRetry(this)">↩ Try Again</button>
+    </div>`;
+  return d;
+}
+
+// ── DRAG-MATCH SCENE ────────────────────────────────────────────
+function renderDragMatch(scene) {
+  const chips = (scene.chips || []).map(c =>
+    `<div class="drag-chip" draggable="true" data-chipid="${c.id}" ondragstart="dragStart(this,event)" ondragend="dragEnd(this)">
+      <span class="drag-chip-icon">${c.icon || '≡'}</span>${c.label}
+    </div>`
+  ).join('');
+  const zones = (scene.zones || []).map(z =>
+    `<div class="drag-zone" data-answer="${z.answer}" ondragover="dragOver(this,event)" ondragleave="dragLeave(this)" ondrop="dragDrop(this,event)">
+      <div class="drag-zone-label">${z.label}</div>
+      <div class="drag-zone-slot">drop here</div>
+      <div class="drag-zone-status"></div>
+    </div>`
+  ).join('');
+  const d = document.createElement('div');
+  d.className = 'drag-match-scene';
+  d.innerHTML = `
+    <div class="drag-match-head">
+      <div class="drag-match-q">${scene.question || ''}</div>
+      <div class="drag-match-hint">Drag items from the right column to their matching zone on the left</div>
+    </div>
+    <div class="drag-match-layout">
+      <div class="drag-zones"><div class="drag-col-label">Match to</div>${zones}</div>
+      <div class="drag-chips-col"><div class="drag-col-label">Items</div>${chips}</div>
+    </div>
+    <div class="drag-match-footer">
+      <div class="drag-match-score"></div>
+      <button class="scene-action-btn" onclick="dragReset(this)">Reset</button>
+      <button class="scene-action-btn primary" onclick="dragCheck(this)">Check Answers</button>
+    </div>`;
+  return d;
+}
+
+// ── FILL-CELL SCENE ─────────────────────────────────────────────
+function renderFillCell(scene) {
+  const d = document.createElement('div');
+  d.className = 'fill-cell-scene';
+  d.dataset.answers  = JSON.stringify(scene.answers  || {});
+  d.dataset.tolerance = String(scene.tolerance ?? 1);
+  d.innerHTML = `
+    <div class="fill-cell-head">
+      <div class="fill-cell-q">${scene.question || ''}</div>
+      ${scene.formula ? `<div class="fill-cell-formula">${scene.formula}</div>` : ''}
+    </div>
+    ${scene.hint ? `<div class="fill-cell-hint">${scene.hint}</div>` : ''}
+    <div class="fill-xls-wrap">
+      <table class="fill-xls">${scene.tableHtml || ''}</table>
+    </div>
+    <div class="fill-cell-footer">
+      <div class="fill-cell-feedback"></div>
+      <button class="scene-action-btn" onclick="fillReset(this)">Reset</button>
+      <button class="scene-action-btn primary" onclick="fillCheck(this)">Check Answer</button>
+    </div>`;
+  return d;
+}
+
+// ── BRANCH SCENE ────────────────────────────────────────────────
+function renderBranch(scene) {
+  const slides = scene.slides || [];
+  const keys = ['A','B','C','D','E'];
+  const slideHtml = slides.map((s, si) => {
+    const avClass = s.avatarClass || 'branch-av-other';
+    const outcomeHtml = s.outcome
+      ? `<div class="branch-outcome ${s.outcome}">
+           <span>${s.outcome === 'good' ? '✓' : s.outcome === 'bad' ? '✗' : '⚠'}</span>
+           <span>${s.outcomeLabel || s.outcome.toUpperCase()}</span>
+         </div>`
+      : '';
+    const choicesHtml = (s.choices || []).map((c, ci) =>
+      `<button class="branch-btn" onclick="branchGo(this,'${c.next}','${c.outcome || ''}')" data-outcome="${c.outcome || ''}">
+        <span class="branch-btn-key">${keys[ci]}</span><span>${c.text}</span>
+      </button>`
+    ).join('');
+    const debriefHtml = s.debrief
+      ? `<div class="branch-debrief"><div class="branch-debrief-label">Debrief</div><div class="branch-debrief-text">${s.debrief}</div></div>` : '';
+    const tryAgainHtml = s.outcome && !s.choices?.length
+      ? `<div class="branch-footer"><button class="scene-action-btn" onclick="branchReset(this)">↩ Try Again</button><div class="branch-path"></div></div>` : '';
+    return `<div class="branch-slide" data-slide-id="${s.id}"${si > 0 ? ' style="display:none"' : ''}>
+      ${outcomeHtml}
+      <div class="branch-hd">
+        <div class="branch-av ${avClass}">${s.avatar || '?'}</div>
+        <div><div class="branch-speaker">${s.speaker || ''}</div><div class="branch-loc">${s.loc || ''}</div></div>
+      </div>
+      <div class="branch-body">
+        <div class="branch-text">${s.text || ''}</div>
+        ${s.situation ? `<div class="branch-situation">${s.situation}</div>` : ''}
+        <div class="branch-choices">${choicesHtml}</div>
+      </div>
+      ${debriefHtml}
+      ${tryAgainHtml}
+    </div>`;
+  }).join('');
+  const d = document.createElement('div');
+  d.className = 'branch-scene';
+  d.innerHTML = slideHtml || '<div style="padding:20px;color:var(--text-dim)">No slides defined.</div>';
+  return d;
+}
+
+// ── CLICK-DOC SCENE ─────────────────────────────────────────────
+function renderClickDoc(scene) {
+  // Support both correctKeys (multi, comma-sep) and legacy correctKey (single)
+  const keys = (scene.correctKeys || scene.correctKey || '').split(',').map(k => k.trim()).filter(Boolean);
+  const total = keys.length;
+  const d = document.createElement('div');
+  d.className = 'click-doc-scene';
+  d.dataset.correctKeys = keys.join(',');
+  d.dataset.fbCorrect   = scene.feedbackCorrect || '';
+  d.dataset.fbWrong     = scene.feedbackWrong   || '';
+  d.innerHTML = `
+    <div class="click-doc-toolbar">
+      <span class="click-doc-title-text">${scene.docTitle || 'Document'}</span>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="click-doc-badge">⬡ exercise mode</span>
+        <button class="scene-action-btn" onclick="clickDocStart(this)">Start Exercise</button>
+      </div>
+    </div>
+    <div class="click-doc-question">
+      <span class="q-label">Exercise — identify the correct passage${total > 1 ? 's' : ''}</span>
+      ${scene.question || ''}
+    </div>
+    ${total > 1 ? `<div class="click-doc-progress"><span class="click-doc-found">0</span> of ${total} found</div>` : ''}
+    <div class="click-doc-body">${scene.contentHtml || ''}</div>
+    <div class="click-doc-feedback"></div>`;
+  return d;
+}
+
 const RENDERERS = {
   'prose': renderProse,
   'dialogue': renderDialogue,
@@ -408,6 +793,11 @@ const RENDERERS = {
   'excel': renderExcel,
   'html': renderHtml,
   'realbinder': renderBinder,
+  'quiz': renderQuiz,
+  'drag-match': renderDragMatch,
+  'fill-cell': renderFillCell,
+  'branch': renderBranch,
+  'click-doc': renderClickDoc,
 };
 
 // ── BUILDERS ───────────────────────────────────────────────────
@@ -419,11 +809,21 @@ function buildSceneBlock(scene) {
   if (scene.folderUnlock) wrapper.dataset.folderUnlock = scene.folderUnlock;
   if (scene.requireDocs)  wrapper.dataset.requireDocs  = scene.requireDocs;
   if (scene.beat)         wrapper.dataset.beat         = scene.beat;
+  if (scene.gated) wrapper.dataset.requireAnswer = '1';
+  if (scene.maxWidth || scene.align) {
+    const w = scene.maxWidth || '';
+    const a = scene.align || 'left';
+    if (w) wrapper.style.maxWidth = w;
+    if (a === 'center') { wrapper.style.marginLeft = 'auto'; wrapper.style.marginRight = 'auto'; }
+    else if (a === 'right') { wrapper.style.marginLeft = 'auto'; wrapper.style.marginRight = '0'; }
+    else { wrapper.style.marginLeft = '0'; wrapper.style.marginRight = 'auto'; }
+  }
   if (scene.alertType) {
     if (!wrapper.id) wrapper.id = 'alert-target-' + Math.random().toString(36).slice(2, 7);
-    wrapper.dataset.alertType  = scene.alertType;
-    wrapper.dataset.alertCount = scene.alertCount ?? 1;
-    wrapper.dataset.alertLabel = scene.alertLabel || '';
+    wrapper.dataset.alertType      = scene.alertType;
+    wrapper.dataset.alertCount     = scene.alertCount ?? 1;
+    wrapper.dataset.alertLabel     = scene.alertLabel || '';
+    wrapper.dataset.alertCallTitle = scene.alertCallTitle || '';
   }
   const renderer = RENDERERS[scene.type];
   if (!renderer) { console.warn('engine.js: unknown scene type:', scene.type); return wrapper; }
@@ -476,6 +876,9 @@ function buildSidebar(story) {
           <span class="nav-num">${b.num}</span>${b.title}
         </div>`
       ).join('')}
+    </div>
+    <div class="sidebar-footer">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Switch to light mode">☀️</button>
     </div>`;
 }
 
@@ -534,6 +937,119 @@ function initDocModals() {
   });
 }
 
+// ── EMAIL INBOX ─────────────────────────────────────────────────
+
+function _unlockEmail(id) {
+  if (!id || _unlockedEmailIds.includes(id)) return;
+  _unlockedEmailIds.push(id);
+  _updateEmailBadge();
+}
+
+function _updateEmailBadge() {
+  const n = _unlockedEmailIds.length;
+  document.querySelectorAll('.email-app-count').forEach(el => {
+    el.textContent = n;
+    el.style.display = n > 0 ? 'flex' : 'none';
+  });
+}
+
+// ── EMAIL APP ───────────────────────────────────────────────────
+
+let _selectedEmailId = null;
+
+function openEmailApp() {
+  let overlay = document.getElementById('email-app-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'email-app-overlay';
+    overlay.className = 'email-app-overlay';
+    overlay.innerHTML = `
+      <div class="email-app">
+        <div class="email-app-bar">
+          <span class="email-app-bar-title">📧 Inbox</span>
+          <button class="email-app-close" onclick="closeEmailApp()">✕</button>
+        </div>
+        <div class="email-app-body">
+          <div class="email-app-list" id="email-app-list"></div>
+          <div class="email-app-detail" id="email-app-detail">
+            <div class="email-app-empty">Select an email to read it.</div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+  _renderEmailList();
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEmailApp() {
+  const overlay = document.getElementById('email-app-overlay');
+  if (overlay) overlay.classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function _renderEmailList() {
+  const list = document.getElementById('email-app-list');
+  if (!list) return;
+  if (_unlockedEmailIds.length === 0) {
+    list.innerHTML = '<div class="email-app-empty" style="padding:20px;">No emails yet.</div>';
+    return;
+  }
+  list.innerHTML = _unlockedEmailIds.slice().reverse().map(id => {
+    const e = _emailRegistry[id];
+    if (!e) return '';
+    const snippet = (e.body || '').replace(/<[^>]+>/g, '').trim().slice(0, 80);
+    const isSelected = id === _selectedEmailId;
+    return `<div class="email-list-item${isSelected ? ' selected' : ''}" onclick="selectEmail(${id})">
+      <div class="email-list-from">${e.from || ''}</div>
+      <div class="email-list-subject">${e.subject || '(no subject)'}</div>
+      <div class="email-list-preview">${e.date ? `<span class="email-list-date">${e.date}</span>` : ''}${snippet ? `<span>${snippet}</span>` : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function selectEmail(id) {
+  _selectedEmailId = id;
+  _renderEmailList(); // re-render to update selected state
+  const e = _emailRegistry[id];
+  const detail = document.getElementById('email-app-detail');
+  if (!detail || !e) return;
+  const scene = { type: 'email-card', email: e };
+  const rendered = renderEmailCard(scene);
+  // Strip the topbar — the app provides its own chrome
+  const topbar = rendered.querySelector('.email-topbar');
+  if (topbar) topbar.remove();
+  const card = rendered.querySelector('.email-card');
+  if (card) { card.style.margin = '0'; card.style.maxWidth = 'none'; card.style.borderRadius = '0'; card.style.boxShadow = 'none'; }
+  detail.innerHTML = '';
+  detail.appendChild(rendered);
+}
+
+// ── THEME ───────────────────────────────────────────────────────
+
+function initTheme() {
+  const saved = localStorage.getItem('story-theme') || 'dark';
+  document.documentElement.dataset.theme = saved;
+  // Sync button icon after sidebar is built
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.theme-toggle').forEach(btn => {
+      btn.textContent = saved === 'light' ? '🌙' : '☀️';
+      btn.title = saved === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+    });
+  });
+}
+
+function toggleTheme() {
+  const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('story-theme', next);
+  document.querySelectorAll('.theme-toggle').forEach(btn => {
+    btn.textContent = next === 'light' ? '🌙' : '☀️';
+    btn.title = next === 'light' ? 'Switch to dark mode' : 'Switch to light mode';
+  });
+}
+
 // ── MAIN ENTRY POINT ───────────────────────────────────────────
 
 function initStory() {
@@ -542,6 +1058,7 @@ function initStory() {
     console.error('engine.js: window.STORY is not defined — load story.js before engine.js');
     return;
   }
+  initTheme();
   buildSidebar(story);
   buildHero(story.meta);
   initDocModals();
@@ -554,6 +1071,21 @@ function initStory() {
   initDialogues();
   initStoryBeats();
   initSmsCards();
+  initMeetingChats();
+  // Inject fixed email button top-right
+  if (!document.getElementById('email-app-fab')) {
+    const fab = document.createElement('button');
+    fab.id = 'email-app-fab';
+    fab.className = 'email-app-btn';
+    fab.title = 'Open email inbox';
+    fab.onclick = openEmailApp;
+    fab.innerHTML = '📧 <span class="email-app-count" id="email-app-count" style="display:none">0</span>';
+    document.body.appendChild(fab);
+  }
+  // Unlock emails visible from the start (first scenes of beat 1)
+  document.querySelectorAll('.scene-block:not(.scene-hidden) [data-email-id]').forEach(el => {
+    _unlockEmail(parseInt(el.dataset.emailId));
+  });
 }
 
 // ── INTERACTION FUNCTIONS (verbatim from index.html) ───────────
@@ -574,12 +1106,15 @@ function go(id, navEl) {
 
 function initDialogues() {
   document.querySelectorAll('.dialogue').forEach(dl => {
+    if (dl.classList.contains('dialogue-meeting')) return; // handled by meeting system
     const lines = Array.from(dl.querySelectorAll('.line'));
     if (lines.length <= 1) return;
-    const scroll = document.createElement('div');
-    scroll.className = 'dialogue-scroll';
-    lines.forEach(l => scroll.appendChild(l));
-    dl.insertBefore(scroll, dl.firstChild);
+    if (!dl.querySelector(':scope > .dialogue-scroll')) {
+      const scroll = document.createElement('div');
+      scroll.className = 'dialogue-scroll';
+      lines.forEach(l => scroll.appendChild(l));
+      dl.insertBefore(scroll, dl.firstChild);
+    }
     lines.slice(1).forEach(l => l.classList.add('line-hidden'));
     const ctrl = document.createElement('div');
     ctrl.className = 'dialogue-controls';
@@ -594,6 +1129,12 @@ function dlgNext(btn) {
   const hidden = dl.querySelector('.line.line-hidden');
   if (!hidden) return;
   hidden.classList.remove('line-hidden');
+  // Update speaking tile for meeting style
+  if (dl.classList.contains('dialogue-meeting')) {
+    const speaker = hidden.dataset.speaker;
+    dl.querySelectorAll('.meeting-tile').forEach(t => t.classList.remove('speaking'));
+    if (speaker) dl.querySelector(`.meeting-tile[data-speaker="${speaker}"]`)?.classList.add('speaking');
+  }
   const scrollEl = dl.querySelector('.dialogue-scroll');
   if (scrollEl) setTimeout(() => {
     const lineBottom = hidden.offsetTop + hidden.offsetHeight;
@@ -625,6 +1166,11 @@ function navItemForBeat(beatId) {
 
 function unlockBeat(beat) {
   beat.classList.remove('beat-locked');
+  const firstScene = beat.querySelector(':scope > .scene-block');
+  if (firstScene) {
+    const emailEl = firstScene.querySelector('[data-email-id]');
+    if (emailEl) _unlockEmail(parseInt(emailEl.dataset.emailId));
+  }
   beat.style.opacity = '0';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     beat.style.transition = 'opacity 0.5s ease';
@@ -672,6 +1218,8 @@ function initStoryBeats() {
 
 function _revealScene(scene) {
   scene.classList.remove('scene-hidden');
+  const emailEl = scene.querySelector('[data-email-id]');
+  if (emailEl) _unlockEmail(parseInt(emailEl.dataset.emailId));
   scene.style.opacity = '0';
   scene.style.transform = 'translateY(10px)';
   requestAnimationFrame(() => requestAnimationFrame(() => {
@@ -691,6 +1239,15 @@ function beatNext(beatId) {
 
   const nextScene    = scenes[current + 1];
   const leavingScene = scenes[current];
+
+  // Answer gate — quiz/exercise in current scene must be completed
+  if (leavingScene.dataset.requireAnswer && !leavingScene.dataset.answerDone) {
+    const btn = nav.querySelector('.story-next-btn');
+    const orig = btn.textContent;
+    btn.textContent = 'Complete the exercise first';
+    setTimeout(() => { btn.textContent = orig; }, 2800);
+    return;
+  }
 
   // Doc gate
   const reqs = nextScene.dataset.requireDocs;
@@ -723,10 +1280,11 @@ function beatNext(beatId) {
     btn.textContent = 'Check your notifications ›';
 
     showAlert({
-      type:     nextScene.dataset.alertType,
-      count:    parseInt(nextScene.dataset.alertCount) || 1,
-      label:    nextScene.dataset.alertLabel || (nextScene.dataset.alertType === 'phone' ? 'New message' : 'New email'),
-      target:   nextScene.id,
+      type:      nextScene.dataset.alertType,
+      count:     parseInt(nextScene.dataset.alertCount) || 1,
+      label:     nextScene.dataset.alertLabel || (nextScene.dataset.alertType === 'phone' ? 'New message' : nextScene.dataset.alertType === 'call' ? 'Incoming call' : 'New email'),
+      callTitle: nextScene.dataset.alertCallTitle || '',
+      target:    nextScene.id,
       onDismiss: () => {
         _revealScene(nextScene);
         nav.dataset.current = newCurrent;
@@ -740,7 +1298,8 @@ function beatNext(beatId) {
           btn.textContent = 'Continue ›';
           btn.disabled    = false;
         }
-        _smsInit(nextScene); // runs last — SMS lock overrides the re-enable above
+        _smsInit(nextScene);
+        _meetingInit(nextScene); // runs last — meeting lock overrides the re-enable above
         setTimeout(() => nextScene.scrollIntoView({ behavior: 'smooth', block: 'start' }), 120);
       },
     });
@@ -750,6 +1309,7 @@ function beatNext(beatId) {
   // Normal reveal
   _revealScene(nextScene);
   _smsInit(nextScene);
+  _meetingInit(nextScene);
   setTimeout(() => nav.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 80);
   nav.dataset.current = newCurrent;
   nav.querySelector('.story-progress-label').textContent = `Scene ${newCurrent + 1} of ${total}`;
@@ -952,7 +1512,49 @@ function toggleSubfolder(el) {
 
 // ── ALERT BADGES ───────────────────────────────────────────────
 
-function showAlert({ type, count, label, target, onDismiss }) {
+function showCallAlert({ label, callTitle, onDismiss }) {
+  document.getElementById('call-overlay')?.remove();
+
+  const callerText = label || 'Incoming call';
+  const titleText  = callTitle || 'Video call';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'call-overlay';
+  overlay.className = 'call-overlay';
+  overlay.innerHTML = `
+    <div class="call-card">
+      <div class="call-ring">
+        <div class="call-ring-icon">📹</div>
+      </div>
+      <div class="call-info">
+        <div class="call-title">${titleText}</div>
+        <div class="call-caller">${callerText}</div>
+      </div>
+      <div class="call-actions">
+        <button class="call-btn call-accept" title="Accept">
+          <span>📞</span>
+          <span class="call-btn-label">Accept</span>
+        </button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+
+  overlay.querySelector('.call-accept').onclick = () => {
+    overlay.classList.add('call-connecting');
+    setTimeout(() => {
+      overlay.remove();
+      if (onDismiss) onDismiss();
+    }, 600);
+  };
+
+}
+
+function showAlert({ type, count, label, target, callTitle, onDismiss }) {
+  if (type === 'call') {
+    showCallAlert({ label, callTitle, target, onDismiss });
+    return;
+  }
   const tray = document.getElementById('alert-tray');
   if (!tray) return;
   if (target && tray.querySelector(`[data-target="${target}"]`)) return;
@@ -1009,3 +1611,377 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('folder-panel').classList.remove('folder-open');
   });
 });
+
+// ══════════════════════════════════════════════════════════════
+// QUIZ INTERACTION
+// ══════════════════════════════════════════════════════════════
+function quizSelect(btn) {
+  const pane = btn.closest('.quiz-pane');
+  pane.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('selected'));
+  btn.classList.add('selected');
+  const fb = pane.querySelector('.quiz-scene-feedback');
+  fb.className = 'quiz-scene-feedback';
+  fb.textContent = '';
+  pane.querySelector('.quiz-submit-btn').disabled = false;
+}
+
+function quizSubmit(btn) {
+  const pane     = btn.closest('.quiz-pane');
+  const quiz     = btn.closest('.quiz-scene');
+  const selected = pane.querySelector('.quiz-opt.selected');
+  if (!selected) return;
+
+  const isCorrect = selected.dataset.correct === '1';
+  const optFb     = selected.dataset.fb;
+  const globalFb  = isCorrect ? (pane.dataset.fbCorrect || '') : (pane.dataset.fbWrong || '');
+  const fbText    = optFb || globalFb || (isCorrect ? 'Correct!' : 'Not quite — try again.');
+  const fb        = pane.querySelector('.quiz-scene-feedback');
+
+  pane.querySelectorAll('.quiz-opt').forEach(o => {
+    o.classList.add('locked');
+    if (o.dataset.correct === '1') o.classList.add('correct');
+  });
+  if (!isCorrect) selected.classList.add('wrong');
+
+  fb.innerHTML = `<strong>${isCorrect ? 'Correct' : 'Incorrect'}</strong>${fbText}`;
+  fb.className = `quiz-scene-feedback ${isCorrect ? 'show-correct' : 'show-wrong'}`;
+  btn.disabled = true;
+
+  if (isCorrect) {
+    const total   = parseInt(quiz.dataset.total);
+    const current = parseInt(quiz.dataset.current);
+    quiz.dataset.score = parseInt(quiz.dataset.score) + 1;
+    const isLast  = current + 1 >= total;
+    btn.textContent = isLast ? 'See Results ›' : 'Next Question ›';
+    btn.classList.add('answered');
+    btn.disabled = false;
+    btn.onclick = function() { quizAdvance(this); };
+    if (isLast) _markAnswerDone(quiz);
+  } else {
+    btn.textContent = 'Try Again';
+    setTimeout(() => {
+      pane.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('locked','correct','wrong','selected'));
+      fb.className = 'quiz-scene-feedback';
+      fb.textContent = '';
+      btn.textContent = 'Check Answer';
+      btn.disabled = true;
+      btn.onclick = function() { quizSubmit(this); };
+    }, 2000);
+  }
+}
+
+function quizAdvance(btn) {
+  const quiz    = btn.closest('.quiz-scene');
+  const current = parseInt(quiz.dataset.current);
+  const total   = parseInt(quiz.dataset.total);
+  const newIdx  = current + 1;
+
+  if (newIdx >= total) {
+    quiz.querySelectorAll('.quiz-pane').forEach(p => p.style.display = 'none');
+    const score = parseInt(quiz.dataset.score);
+    const comp  = quiz.querySelector('.quiz-complete');
+    comp.querySelector('.quiz-score-ring').textContent = `${score}/${total}`;
+    comp.querySelector('.quiz-score-sub').textContent  = score === total ? 'Perfect score!' : `${score} of ${total} correct`;
+    comp.style.display = '';
+  } else {
+    quiz.dataset.current = newIdx;
+    quiz.querySelectorAll('.quiz-pane').forEach(p => p.style.display = 'none');
+    quiz.querySelector(`.quiz-pane[data-qidx="${newIdx}"]`).style.display = '';
+    const label = quiz.querySelector('.quiz-prog-label');
+    const fill  = quiz.querySelector('.quiz-prog-fill');
+    if (label) label.textContent = `Question ${newIdx + 1} of ${total}`;
+    if (fill)  fill.style.width  = `${(newIdx / total) * 100}%`;
+  }
+}
+
+function quizRetry(btn) {
+  const quiz  = btn.closest('.quiz-scene');
+  const total = parseInt(quiz.dataset.total);
+  quiz.dataset.current = '0';
+  quiz.dataset.score   = '0';
+  quiz.querySelectorAll('.quiz-pane').forEach((p, i) => {
+    p.style.display = i === 0 ? '' : 'none';
+    p.querySelectorAll('.quiz-opt').forEach(o => o.classList.remove('locked','correct','wrong','selected'));
+    const fb   = p.querySelector('.quiz-scene-feedback');
+    const sBtn = p.querySelector('.quiz-submit-btn');
+    if (fb)   { fb.className = 'quiz-scene-feedback'; fb.textContent = ''; }
+    if (sBtn) { sBtn.textContent = 'Check Answer'; sBtn.disabled = true; sBtn.className = 'quiz-submit-btn'; sBtn.onclick = function() { quizSubmit(this); }; }
+  });
+  quiz.querySelector('.quiz-complete').style.display = 'none';
+  const label = quiz.querySelector('.quiz-prog-label');
+  const fill  = quiz.querySelector('.quiz-prog-fill');
+  if (label) label.textContent = `Question 1 of ${total}`;
+  if (fill)  fill.style.width  = '0%';
+}
+
+// ══════════════════════════════════════════════════════════════
+// DRAG-MATCH INTERACTION
+// ══════════════════════════════════════════════════════════════
+let _dragChip = null;
+
+function dragStart(chip, e) {
+  _dragChip = chip;
+  chip.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', chip.dataset.chipid);
+}
+
+function dragEnd(chip) {
+  chip.classList.remove('dragging');
+  _dragChip = null;
+}
+
+function dragOver(zone, e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  zone.classList.add('drag-over');
+}
+
+function dragLeave(zone) {
+  zone.classList.remove('drag-over');
+}
+
+function dragDrop(zone, e) {
+  e.preventDefault();
+  zone.classList.remove('drag-over');
+  const chipId = e.dataTransfer.getData('text/plain') || (_dragChip && _dragChip.dataset.chipid);
+  if (!chipId) return;
+  const scene = zone.closest('.drag-match-scene');
+  const chip  = scene.querySelector(`.drag-chip[data-chipid="${chipId}"]`);
+  if (!chip) return;
+
+  // If zone already has a chip, return it
+  const prevId = zone.dataset.placed;
+  if (prevId) {
+    const prevChip = scene.querySelector(`.drag-chip[data-chipid="${prevId}"]`);
+    if (prevChip) prevChip.classList.remove('placed');
+  }
+  // If chip was already in another zone, clear that zone
+  scene.querySelectorAll('.drag-zone').forEach(z => {
+    if (z !== zone && z.dataset.placed === chipId) {
+      z.dataset.placed = '';
+      z.classList.remove('zone-ok','zone-err');
+      const slot = z.querySelector('.drag-zone-slot');
+      slot.textContent = 'drop here';
+      slot.classList.remove('has-chip');
+      z.querySelector('.drag-zone-status').textContent = '';
+    }
+  });
+
+  zone.dataset.placed = chipId;
+  chip.classList.add('placed');
+  const slot = zone.querySelector('.drag-zone-slot');
+  slot.textContent = chip.textContent.trim();
+  slot.classList.add('has-chip');
+  zone.querySelector('.drag-zone-status').textContent = '';
+  zone.classList.remove('zone-ok','zone-err');
+
+  // Update score display
+  _dragUpdateScore(scene);
+}
+
+function _dragUpdateScore(scene) {
+  const zones   = scene.querySelectorAll('.drag-zone');
+  const placed  = Array.from(zones).filter(z => z.dataset.placed).length;
+  const score   = scene.querySelector('.drag-match-score');
+  if (score) score.textContent = `${placed} of ${zones.length} placed`;
+}
+
+function dragCheck(btn) {
+  const scene  = btn.closest('.drag-match-scene');
+  const zones  = scene.querySelectorAll('.drag-zone');
+  let correct = 0;
+  zones.forEach(z => {
+    const placed = z.dataset.placed;
+    const status = z.querySelector('.drag-zone-status');
+    if (!placed) { status.textContent = ''; return; }
+    const ok = placed === z.dataset.answer;
+    z.classList.toggle('zone-ok',  ok);
+    z.classList.toggle('zone-err', !ok);
+    status.textContent = ok ? '✓' : '✗';
+    if (ok) correct++;
+  });
+  const score = scene.querySelector('.drag-match-score');
+  const total = zones.length;
+  score.textContent = `${correct} / ${total} correct`;
+  if (correct === total) _markAnswerDone(scene);
+}
+
+function dragReset(btn) {
+  const scene = btn.closest('.drag-match-scene');
+  scene.querySelectorAll('.drag-zone').forEach(z => {
+    z.dataset.placed = '';
+    z.classList.remove('zone-ok','zone-err');
+    const slot = z.querySelector('.drag-zone-slot');
+    slot.textContent = 'drop here';
+    slot.classList.remove('has-chip');
+    z.querySelector('.drag-zone-status').textContent = '';
+  });
+  scene.querySelectorAll('.drag-chip').forEach(c => c.classList.remove('placed'));
+  const score = scene.querySelector('.drag-match-score');
+  if (score) score.textContent = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// FILL-CELL INTERACTION
+// ══════════════════════════════════════════════════════════════
+function fillCheck(btn) {
+  const scene     = btn.closest('.fill-cell-scene');
+  const answers   = JSON.parse(scene.dataset.answers || '{}');
+  const tolerance = parseFloat(scene.dataset.tolerance ?? 1);
+  const inputs    = scene.querySelectorAll('.fill-answer');
+  const fb        = scene.querySelector('.fill-cell-feedback');
+  let allCorrect  = true;
+
+  inputs.forEach(inp => {
+    const key   = inp.dataset.key;
+    const expected = answers[key];
+    if (expected === undefined) return;
+    const raw   = inp.value.replace(/[$,\s()]/g,'').trim();
+    const val   = parseFloat(raw) * (inp.value.includes('(') ? -1 : 1);
+    const ok    = Math.abs(val - expected) <= tolerance;
+    inp.classList.toggle('ans-ok',  ok);
+    inp.classList.toggle('ans-err', !ok);
+    if (!ok) allCorrect = false;
+  });
+
+  if (allCorrect && inputs.length > 0) {
+    fb.className = 'fill-cell-feedback fb-ok';
+    fb.textContent = '✓ Correct!';
+    _markAnswerDone(scene);
+  } else {
+    fb.className = 'fill-cell-feedback fb-err';
+    fb.textContent = 'One or more values are incorrect — check your formula.';
+    setTimeout(() => inputs.forEach(i => i.classList.remove('ans-err')), 2200);
+  }
+}
+
+function fillReset(btn) {
+  const scene = btn.closest('.fill-cell-scene');
+  scene.querySelectorAll('.fill-answer').forEach(i => {
+    i.value = '';
+    i.className = 'fill-answer';
+  });
+  const fb = scene.querySelector('.fill-cell-feedback');
+  if (fb) { fb.className = 'fill-cell-feedback'; fb.textContent = ''; }
+}
+
+// ══════════════════════════════════════════════════════════════
+// BRANCH INTERACTION
+// ══════════════════════════════════════════════════════════════
+function branchGo(btn, slideId, outcome) {
+  const scene  = btn.closest('.branch-scene');
+  const from   = btn.closest('.branch-slide');
+  const target = scene.querySelector(`.branch-slide[data-slide-id="${slideId}"]`);
+  if (!target) return;
+
+  // Track path
+  const fromId = from.dataset.slideId || 'start';
+  const path   = JSON.parse(scene.dataset.path || '[]');
+  path.push({ id: fromId, outcome });
+  scene.dataset.path = JSON.stringify(path);
+
+  from.style.display = 'none';
+  target.style.display = '';
+
+  // Update path trackers in outcomes
+  scene.querySelectorAll('.branch-path').forEach(p => {
+    p.innerHTML = path.map((step, i) => {
+      const arrow = i > 0 ? '<span class="branch-path-arrow">›</span>' : '';
+      return `${arrow}<div class="branch-path-step ${step.outcome || ''}"><div class="branch-path-dot"></div>${step.id}</div>`;
+    }).join('');
+  });
+}
+
+function branchReset(btn) {
+  const scene = btn.closest('.branch-scene');
+  scene.dataset.path = '[]';
+  scene.querySelectorAll('.branch-slide').forEach((s, i) => {
+    s.style.display = i === 0 ? '' : 'none';
+  });
+  scene.querySelectorAll('.branch-path').forEach(p => p.innerHTML = '');
+}
+
+// ══════════════════════════════════════════════════════════════
+// CLICK-DOC INTERACTION
+// ══════════════════════════════════════════════════════════════
+function clickDocStart(btn) {
+  const scene = btn.closest('.click-doc-scene');
+  scene.querySelector('.click-doc-body').classList.add('exercise-on');
+  scene.querySelector('.click-doc-badge').classList.add('visible');
+  scene.querySelector('.click-doc-question').classList.add('visible');
+  scene.dataset.found = '';
+  btn.textContent = 'Reset';
+  btn.onclick = function() { clickDocReset(this); };
+}
+
+function clickDocSelect(el) {
+  const scene = el.closest('.click-doc-scene');
+  if (!scene.querySelector('.click-doc-body').classList.contains('exercise-on')) return;
+  if (el.classList.contains('ct-correct')) return; // already found
+
+  const correctKeys = (scene.dataset.correctKeys || '').split(',').map(k => k.trim()).filter(Boolean);
+  const total       = correctKeys.length;
+  const isCorrect   = correctKeys.includes(el.dataset.key);
+  const fb          = scene.querySelector('.click-doc-feedback');
+
+  if (isCorrect) {
+    el.classList.add('ct-correct');
+    el.style.pointerEvents = 'none';
+
+    // Track found keys
+    const found = (scene.dataset.found || '').split(',').filter(Boolean);
+    if (!found.includes(el.dataset.key)) found.push(el.dataset.key);
+    scene.dataset.found = found.join(',');
+
+    // Update progress counter
+    const counter = scene.querySelector('.click-doc-found');
+    if (counter) counter.textContent = found.length;
+
+    const allDone = total <= 1 ? true : found.length >= total;
+
+    if (allDone) {
+      const fbText = scene.dataset.fbCorrect || (total > 1 ? 'All passages found!' : 'That\'s the right passage.');
+      fb.innerHTML = `<span class="fb-label">Complete</span>${fbText}`;
+      fb.className = 'click-doc-feedback fb-correct';
+      _markAnswerDone(scene);
+      // Disable remaining unfound targets
+      scene.querySelectorAll('.click-target:not(.ct-correct)').forEach(t => { t.style.pointerEvents = 'none'; });
+    } else {
+      const remaining = total - found.length;
+      fb.innerHTML = `<span class="fb-label">Found</span>${remaining} more to find.`;
+      fb.className = 'click-doc-feedback fb-correct';
+    }
+  } else {
+    el.classList.add('ct-wrong');
+    const fbText = scene.dataset.fbWrong || 'Not that one — keep looking.';
+    fb.innerHTML = `<span class="fb-label">Incorrect</span>${fbText}`;
+    fb.className = 'click-doc-feedback fb-wrong';
+    setTimeout(() => el.classList.remove('ct-wrong'), 1400);
+  }
+}
+
+function clickDocReset(btn) {
+  const scene = btn.closest('.click-doc-scene');
+  scene.querySelector('.click-doc-body').classList.remove('exercise-on');
+  scene.querySelector('.click-doc-badge').classList.remove('visible');
+  scene.querySelector('.click-doc-question').classList.remove('visible');
+  scene.dataset.found = '';
+  scene.querySelectorAll('.click-target').forEach(t => {
+    t.classList.remove('ct-selected','ct-correct','ct-wrong');
+    t.style.pointerEvents = '';
+  });
+  const counter = scene.querySelector('.click-doc-found');
+  if (counter) counter.textContent = '0';
+  const fb = scene.querySelector('.click-doc-feedback');
+  fb.className = 'click-doc-feedback';
+  fb.textContent = '';
+  btn.textContent = 'Start Exercise';
+  btn.onclick = function() { clickDocStart(this); };
+}
+
+// ── SHARED UTILITY ──────────────────────────────────────────────
+function _markAnswerDone(el) {
+  const scene = el.closest('.scene-block');
+  if (scene) scene.dataset.answerDone = '1';
+}

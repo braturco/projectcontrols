@@ -3,7 +3,9 @@
     "allow": [
       "Bash(gh api:*)",
       "WebFetch(domain:api.github.com)",
-      "Bash(start \"\" \"c:\\\\Users\\\\turco\\\\OneDrive\\\\Documents\\\\GitHub\\\\projectcontrols\\\\index.html\")"
+      "Bash(start \"\" \"c:\\\\Users\\\\turco\\\\OneDrive\\\\Documents\\\\GitHub\\\\projectcontrols\\\\index.html\")",
+      "Bash(\"c:/Users/turco/OneDrive/Documents/GitHub/projectcontrols/css/story.css\":*)",
+      "Bash(grep -n \"quizQuestionRow\\\\|data-list=\"\"questions\"\"\\\\|case ''quiz''\" c:/Users/turco/OneDrive/Documents/GitHub/projectcontrols/editor.html)"
     ]
   }
 }

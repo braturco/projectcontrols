@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ridgeline Training — Interaction Demos</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700&family=Barlow:wght@300;400;500&display=swap');
+
+  :root {
+    --ink:       #0d0e0f;
+    --surface:   #14161a;
+    --panel:     #1c1f26;
+    --border:    #2e3340;
+    --muted:     #454d5e;
+    --text:      #c8cdd8;
+    --text-dim:  #7a8394;
+    --amber:     #e8a020;
+    --amber-dim: #7a5210;
+    --green:     #3ecf8e;
+    --red:       #e85555;
+    --blue:      #4a90d9;
+    --mono:      'Share Tech Mono', monospace;
+    --cond:      'Barlow Condensed', sans-serif;
+    --body:      'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* ─── LAYOUT ─────────────────────────────────────────── */
+  .page {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .page-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+  }
+
+  .page-header .logo {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .page-header h1 {
+    font-family: var(--cond);
+    font-size: 22px;
+    font-weight: 300;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  .demo-section {
+    margin-bottom: 48px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-desc {
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 20px;
+    font-style: italic;
+  }
+
+  /* ─── BUTTONS ─────────────────────────────────────────── */
+  .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 10px 20px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.15s;
+    outline: none;
+  }
+
+  .btn:hover {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(232,160,32,0.05);
+  }
+
+  .btn-primary {
+    border-color: var(--amber);
+    color: var(--amber);
+    background: rgba(232,160,32,0.08);
+  }
+
+  .btn-primary:hover {
+    background: rgba(232,160,32,0.18);
+  }
+
+  .btn-success {
+    border-color: var(--green);
+    color: var(--green);
+    background: rgba(62,207,142,0.08);
+  }
+
+  .btn-danger {
+    border-color: var(--red);
+    color: var(--red);
+  }
+
+  .btn-small {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+
+  /* ─── QUIZ TRIGGER AREA ───────────────────────────────── */
+  .trigger-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 16px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+  }
+
+  .trigger-row span {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  /* ─── QUIZ DIALOG OVERLAY ─────────────────────────────── */
+  .quiz-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    backdrop-filter: blur(2px);
+  }
+
+  .quiz-overlay.active {
+    display: flex;
+    animation: overlayIn 0.2s ease;
+  }
+
+  @keyframes overlayIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  .quiz-dialog {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-top: 2px solid var(--amber);
+    width: 100%;
+    max-width: 580px;
+    animation: dialogIn 0.22s cubic-bezier(0.34,1.2,0.64,1);
+    position: relative;
+  }
+
+  @keyframes dialogIn {
+    from { transform: translateY(18px) scale(0.98); opacity: 0; }
+    to   { transform: translateY(0) scale(1); opacity: 1; }
+  }
+
+  .quiz-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+  }
+
+  .quiz-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .quiz-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: rgba(232,160,32,0.1);
+    border: 1px solid var(--amber-dim);
+    padding: 2px 8px;
+  }
+
+  .quiz-progress {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  .quiz-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 2px 6px;
+    transition: color 0.15s;
+  }
+
+  .quiz-close:hover { color: var(--text); }
+
+  .quiz-body {
+    padding: 24px 20px 20px;
+  }
+
+  .quiz-context {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    border-left: 2px solid var(--amber-dim);
+    padding: 6px 10px;
+    margin-bottom: 18px;
+    background: rgba(232,160,32,0.04);
+    letter-spacing: 0.3px;
+    line-height: 1.5;
+  }
+
+  .quiz-question {
+    font-family: var(--cond);
+    font-size: 17px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    color: #e0e4ed;
+    margin-bottom: 20px;
+    line-height: 1.4;
+  }
+
+  /* Multiple choice options */
+  .quiz-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .quiz-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s;
+    font-family: var(--body);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.4;
+    width: 100%;
+  }
+
+  .quiz-option:hover:not(.locked) {
+    border-color: var(--amber);
+    background: rgba(232,160,32,0.05);
+    color: #e0e4ed;
+  }
+
+  .quiz-option.selected:not(.locked) {
+    border-color: var(--blue);
+    background: rgba(74,144,217,0.08);
+    color: #e0e4ed;
+  }
+
+  .quiz-option.correct {
+    border-color: var(--green);
+    background: rgba(62,207,142,0.08);
+    color: var(--green);
+  }
+
+  .quiz-option.wrong {
+    border-color: var(--red);
+    background: rgba(232,85,85,0.08);
+    color: var(--red);
+  }
+
+  .option-key {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 18px;
+    margin-top: 1px;
+  }
+
+  .quiz-option.correct .option-key { color: var(--green); }
+  .quiz-option.wrong   .option-key { color: var(--red); }
+
+  /* Feedback area */
+  .quiz-feedback {
+    display: none;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-left: 3px solid;
+  }
+
+  .quiz-feedback.correct {
+    display: block;
+    border-color: var(--green);
+    background: rgba(62,207,142,0.06);
+    color: var(--green);
+  }
+
+  .quiz-feedback.wrong {
+    display: block;
+    border-color: var(--red);
+    background: rgba(232,85,85,0.06);
+    color: #e08585;
+  }
+
+  .quiz-feedback strong {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* Progress bar */
+  .quiz-progress-bar {
+    height: 2px;
+    background: var(--border);
+    margin-bottom: 20px;
+  }
+
+  .quiz-progress-fill {
+    height: 100%;
+    background: var(--amber);
+    transition: width 0.4s ease;
+  }
+
+  .quiz-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  .quiz-score-badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* ─── SCORE COMPLETE SCREEN ──────────────────────────── */
+  .quiz-complete {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+  }
+
+  .quiz-complete.active {
+    display: block;
+    animation: dialogIn 0.25s ease;
+  }
+
+  .score-ring {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid var(--amber);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--amber);
+    background: rgba(232,160,32,0.05);
+  }
+
+  .score-title {
+    font-family: var(--cond);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .score-subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 24px;
+  }
+
+  /* ─── DOCUMENT / SPREADSHEET DEMO ────────────────────── */
+  .doc-frame {
+    background: var(--panel);
+    border: 1px solid var(--border);
+  }
+
+  .doc-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: #11131a;
+  }
+
+  .doc-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .doc-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--text-dim);
+  }
+
+  .exercise-mode-badge {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    background: rgba(232,160,32,0.06);
+    animation: pulse-border 2s infinite;
+    display: none;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% { border-color: var(--amber-dim); }
+    50%       { border-color: var(--amber); }
+  }
+
+  .exercise-mode-badge.visible { display: inline-block; }
+
+  /* Contract doc */
+  .contract-doc {
+    padding: 28px 32px;
+    font-family: var(--body);
+    font-size: 13px;
+    line-height: 1.8;
+    color: var(--text);
+    max-height: 420px;
+    overflow-y: auto;
+  }
+
+  .contract-doc h3 {
+    font-family: var(--cond);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 22px 0 8px;
+  }
+
+  .contract-doc h3:first-child { margin-top: 0; }
+
+  .contract-doc p { margin-bottom: 10px; }
+
+  /* Clickable clause */
+  .clickable-clause {
+    position: relative;
+    cursor: default;
+    border-radius: 2px;
+    transition: background 0.15s, outline 0.15s;
+  }
+
+  .exercise-active .clickable-clause {
+    cursor: pointer;
+    outline: 1px dashed var(--amber-dim);
+    padding: 2px 4px;
+    margin: -2px -4px;
+  }
+
+  .exercise-active .clickable-clause:hover {
+    background: rgba(232,160,32,0.1);
+    outline-color: var(--amber);
+  }
+
+  .exercise-active .clickable-clause::after {
+    content: '▸';
+    font-size: 10px;
+    color: var(--amber);
+    margin-left: 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .exercise-active .clickable-clause:hover::after { opacity: 1; }
+
+  .clickable-clause.highlighted {
+    background: rgba(74,144,217,0.15) !important;
+    outline: 1px solid var(--blue) !important;
+  }
+
+  /* Spreadsheet */
+  .sheet-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .sheet-table th {
+    background: #11131a;
+    color: var(--text-dim);
+    text-align: left;
+    padding: 7px 10px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
+    font-size: 10px;
+  }
+
+  .sheet-table td {
+    padding: 6px 10px;
+    border-bottom: 1px solid rgba(46,51,64,0.6);
+    border-right: 1px solid rgba(46,51,64,0.4);
+    color: var(--text);
+    transition: background 0.12s;
+    cursor: default;
+  }
+
+  .sheet-table tr:last-child td { border-bottom: none; }
+
+  .sheet-table .row-num {
+    color: var(--muted);
+    background: #11131a;
+    border-right: 1px solid var(--border);
+    min-width: 32px;
+    text-align: center;
+    font-size: 9px;
+  }
+
+  .sheet-table .total-row td {
+    background: rgba(232,160,32,0.04);
+    color: var(--amber);
+    border-top: 1px solid var(--amber-dim);
+  }
+
+  /* Clickable cells */
+  .clickable-cell {
+    cursor: default;
+    border-radius: 1px;
+    transition: all 0.12s;
+  }
+
+  .exercise-active .clickable-cell {
+    cursor: pointer;
+    outline: 1px dashed var(--amber-dim);
+  }
+
+  .exercise-active .clickable-cell:hover {
+    background: rgba(232,160,32,0.14) !important;
+    outline-color: var(--amber);
+    color: var(--amber);
+  }
+
+  .clickable-cell.highlighted {
+    background: rgba(74,144,217,0.18) !important;
+    outline: 1px solid var(--blue) !important;
+    color: var(--blue) !important;
+  }
+
+  .clickable-cell.correct-pick {
+    background: rgba(62,207,142,0.12) !important;
+    outline: 1px solid var(--green) !important;
+    color: var(--green) !important;
+  }
+
+  .clickable-cell.wrong-pick {
+    background: rgba(232,85,85,0.1) !important;
+    outline: 1px solid var(--red) !important;
+    color: var(--red) !important;
+  }
+
+  /* Inline question banner */
+  .doc-question-banner {
+    display: none;
+    padding: 12px 14px;
+    background: rgba(232,160,32,0.06);
+    border-top: 1px solid var(--amber-dim);
+    border-bottom: 1px solid var(--amber-dim);
+    font-size: 12px;
+    color: var(--amber);
+    font-family: var(--cond);
+    font-size: 14px;
+    letter-spacing: 0.3px;
+  }
+
+  .doc-question-banner.visible { display: block; }
+
+  .doc-question-banner .q-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .doc-feedback-banner {
+    display: none;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.5;
+    border-top: 1px solid;
+  }
+
+  .doc-feedback-banner.correct {
+    display: block;
+    border-color: var(--green);
+    background: rgba(62,207,142,0.06);
+    color: var(--green);
+  }
+
+  .doc-feedback-banner.wrong {
+    display: block;
+    border-color: var(--red);
+    background: rgba(232,85,85,0.06);
+    color: #e08585;
+  }
+
+  .doc-feedback-banner .fb-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 3px;
+    opacity: 0.7;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* separator */
+  .sep { height: 1px; background: var(--border); margin: 40px 0; }
+
+  /* hint text */
+  .hint {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 8px;
+    letter-spacing: 0.3px;
+  }
+
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <span class="logo">Ridgeline Training</span>
+    <h1>Interaction Patterns — Demo</h1>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       DEMO 1 — QUIZ DIALOG
+  ═══════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="section-label">Pattern 01 — Quiz Dialog Overlay</div>
+    <p class="section-desc">A modal quiz drops in over any lesson content. Supports multi-question sequences with inline feedback and a score screen on completion.</p>
+
+    <div class="trigger-row">
+      <span>Launch style:</span>
+      <button class="btn btn-primary btn-small" onclick="startQuiz('multiple')">Multiple Choice (3 Qs)</button>
+      <button class="btn btn-small" onclick="startQuiz('single')">Single Question</button>
+    </div>
+    <p class="hint">▸ In a real module, these would trigger automatically at the end of a section or on a "Check Your Knowledge" button.</p>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       DEMO 2 — CLICKABLE CONTRACT DOCUMENT
+  ═══════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="section-label">Pattern 02 — Clickable Contract Document</div>
+    <p class="section-desc">An exercise activates click targets on specific contract clauses. The document looks normal until exercise mode is toggled — then hotspots light up.</p>
+
+    <div class="doc-frame" id="contractFrame">
+      <div class="doc-toolbar">
+        <div class="doc-toolbar-left">
+          <span class="doc-title">RIDGELINE_PIPELINE_CONTRACT_v3.docx</span>
+          <span class="exercise-mode-badge" id="contractBadge">⬡ exercise mode</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-small" id="contractBtn" onclick="toggleContractExercise()">Start Exercise</button>
+          <button class="btn btn-small btn-danger" style="display:none" id="contractReset" onclick="resetContractExercise()">Reset</button>
+        </div>
+      </div>
+
+      <div class="doc-question-banner" id="contractQuestion">
+        <div class="q-label">Exercise — Select the correct clause</div>
+        Which clause establishes the contractor's obligation for environmental compliance?
+      </div>
+
+      <div class="contract-doc" id="contractDoc">
+        <h3>1. Scope of Work</h3>
+        <p>The Contractor shall perform all geotechnical drilling, soil sampling, and environmental site assessment activities as described in Schedule A, inclusive of all Borehole Program locations identified in the Ridgeline Pipeline Environmental Assessment.</p>
+
+        <h3>2. Project Schedule</h3>
+        <p>All field work activities shall be completed no later than September 15 of the current field season. The Contractor acknowledges that <span class="clickable-clause" data-clause="2a" onclick="handleClauseClick('2a')">migratory bird nesting restrictions under the Migratory Birds Convention Act apply between April 1 and July 31</span>, and shall schedule clearing and vegetation disturbance accordingly.</p>
+
+        <h3>3. Environmental Compliance</h3>
+        <p><span class="clickable-clause" data-clause="3a" onclick="handleClauseClick('3a')">The Contractor shall at all times conduct operations in accordance with applicable federal and provincial environmental legislation, including the Alberta Environmental Protection and Enhancement Act, and all conditions of the AER authorizations issued for this Project.</span> Spill response plans shall be maintained on-site at all times.</p>
+
+        <h3>4. Reporting & Documentation</h3>
+        <p>Field data including borehole logs, chain-of-custody forms, and photographic documentation shall be submitted to the Project Manager within <span class="clickable-clause" data-clause="4a" onclick="handleClauseClick('4a')">five (5) business days of each mobilization completing field activities</span>. Deliverables shall conform to the formats specified in Schedule B.</p>
+
+        <h3>5. Payment Terms</h3>
+        <p>Invoices shall be submitted monthly against approved progress, referencing the applicable WBS codes. The Owner's Representative shall have fourteen (14) days to review and approve invoices prior to payment. Disputed amounts shall not delay payment of undisputed balances.</p>
+      </div>
+
+      <div class="doc-feedback-banner" id="contractFeedback"></div>
+    </div>
+    <p class="hint">▸ Clickable zones are invisible until "Start Exercise" is triggered. Only correct targets advance the exercise.</p>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- ═══════════════════════════════════════════════════
+       DEMO 3 — CLICKABLE SPREADSHEET
+  ═══════════════════════════════════════════════════ -->
+  <div class="demo-section">
+    <div class="section-label">Pattern 03 — Clickable Spreadsheet / Cost Report</div>
+    <p class="section-desc">Exercise mode activates selectable cells in a cost report. The learner identifies the correct value or field in response to a question.</p>
+
+    <div class="doc-frame" id="sheetFrame">
+      <div class="doc-toolbar">
+        <div class="doc-toolbar-left">
+          <span class="doc-title">RIDGELINE_WBS_COST_REPORT_Q2.xlsx</span>
+          <span class="exercise-mode-badge" id="sheetBadge">⬡ exercise mode</span>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-small" id="sheetBtn" onclick="toggleSheetExercise()">Start Exercise</button>
+          <button class="btn btn-small btn-danger" style="display:none" id="sheetReset" onclick="resetSheetExercise()">Reset</button>
+        </div>
+      </div>
+
+      <div class="doc-question-banner" id="sheetQuestion">
+        <div class="q-label">Exercise — Identify the correct cell</div>
+        Jamie needs to report the current schedule variance for the Geotechnical Drilling work package. Click the correct cell.
+      </div>
+
+      <div style="overflow-x:auto; padding: 12px;">
+        <table class="sheet-table">
+          <thead>
+            <tr>
+              <th class="row-num"></th>
+              <th>WBS Code</th>
+              <th>Work Package</th>
+              <th>Budget (BAC)</th>
+              <th>BCWP (EV)</th>
+              <th>BCWS (PV)</th>
+              <th>ACWP (AC)</th>
+              <th>SV</th>
+              <th>CV</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="row-num">2</td>
+              <td>1.2.1</td>
+              <td>Mobilization</td>
+              <td class="clickable-cell" data-cell="bac-121" onclick="handleCellClick('bac-121')">$48,200</td>
+              <td class="clickable-cell" data-cell="ev-121"  onclick="handleCellClick('ev-121')">$48,200</td>
+              <td class="clickable-cell" data-cell="pv-121"  onclick="handleCellClick('pv-121')">$48,200</td>
+              <td class="clickable-cell" data-cell="ac-121"  onclick="handleCellClick('ac-121')">$51,430</td>
+              <td class="clickable-cell" data-cell="sv-121"  onclick="handleCellClick('sv-121')">$0</td>
+              <td class="clickable-cell" data-cell="cv-121"  onclick="handleCellClick('cv-121')">($3,230)</td>
+            </tr>
+            <tr>
+              <td class="row-num">3</td>
+              <td>1.2.2</td>
+              <td>Geotechnical Drilling</td>
+              <td class="clickable-cell" data-cell="bac-122" onclick="handleCellClick('bac-122')">$312,000</td>
+              <td class="clickable-cell" data-cell="ev-122"  onclick="handleCellClick('ev-122')">$198,400</td>
+              <td class="clickable-cell" data-cell="pv-122"  onclick="handleCellClick('pv-122')">$234,000</td>
+              <td class="clickable-cell" data-cell="ac-122"  onclick="handleCellClick('ac-122')">$204,800</td>
+              <td class="clickable-cell correct-answer" data-cell="sv-122" onclick="handleCellClick('sv-122')">($35,600)</td>
+              <td class="clickable-cell" data-cell="cv-122"  onclick="handleCellClick('cv-122')">($6,400)</td>
+            </tr>
+            <tr>
+              <td class="row-num">4</td>
+              <td>1.2.3</td>
+              <td>Lab Analysis</td>
+              <td class="clickable-cell" data-cell="bac-123" onclick="handleCellClick('bac-123')">$89,500</td>
+              <td class="clickable-cell" data-cell="ev-123"  onclick="handleCellClick('ev-123')">$44,750</td>
+              <td class="clickable-cell" data-cell="pv-123"  onclick="handleCellClick('pv-123')">$44,750</td>
+              <td class="clickable-cell" data-cell="ac-123"  onclick="handleCellClick('ac-123')">$46,200</td>
+              <td class="clickable-cell" data-cell="sv-123"  onclick="handleCellClick('sv-123')">$0</td>
+              <td class="clickable-cell" data-cell="cv-123"  onclick="handleCellClick('cv-123')">($1,450)</td>
+            </tr>
+            <tr>
+              <td class="row-num">5</td>
+              <td>1.2.4</td>
+              <td>Reporting</td>
+              <td class="clickable-cell" data-cell="bac-124" onclick="handleCellClick('bac-124')">$67,800</td>
+              <td class="clickable-cell" data-cell="ev-124"  onclick="handleCellClick('ev-124')">$0</td>
+              <td class="clickable-cell" data-cell="pv-124"  onclick="handleCellClick('pv-124')">$0</td>
+              <td class="clickable-cell" data-cell="ac-124"  onclick="handleCellClick('ac-124')">$0</td>
+              <td class="clickable-cell" data-cell="sv-124"  onclick="handleCellClick('sv-124')">$0</td>
+              <td class="clickable-cell" data-cell="cv-124"  onclick="handleCellClick('cv-124')">$0</td>
+            </tr>
+            <tr class="total-row">
+              <td class="row-num">6</td>
+              <td colspan="2">PROJECT TOTAL</td>
+              <td>$517,500</td>
+              <td>$291,350</td>
+              <td>$326,950</td>
+              <td>$302,430</td>
+              <td>($35,600)</td>
+              <td>($11,080)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-feedback-banner" id="sheetFeedback"></div>
+    </div>
+    <p class="hint">▸ The correct answer is the SV cell for WBS 1.2.2. All other cells respond with a "not quite" message.</p>
+  </div>
+
+</div><!-- /page -->
+
+
+<!-- ═══════════════════════════════════════════════════════
+     QUIZ OVERLAY
+═══════════════════════════════════════════════════════ -->
+<div class="quiz-overlay" id="quizOverlay">
+  <div class="quiz-dialog" id="quizDialog">
+    <div class="quiz-header">
+      <div class="quiz-header-left">
+        <span class="quiz-tag">Knowledge Check</span>
+        <span class="quiz-progress" id="quizProgressLabel">Question 1 of 3</span>
+      </div>
+      <button class="quiz-close" onclick="closeQuiz()" title="Close">✕</button>
+    </div>
+
+    <!-- Question pane -->
+    <div id="quizPane">
+      <div class="quiz-body">
+        <div class="quiz-progress-bar">
+          <div class="quiz-progress-fill" id="quizProgressFill" style="width:33%"></div>
+        </div>
+        <div class="quiz-context" id="quizContext"></div>
+        <div class="quiz-question" id="quizQuestionText"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+      </div>
+      <div class="quiz-footer">
+        <span class="quiz-score-badge" id="quizScoreBadge">Score: 0 / 0</span>
+        <button class="btn btn-primary btn-small" id="quizNextBtn" onclick="nextQuestion()" style="display:none">Next →</button>
+        <button class="btn btn-small" id="quizSubmitBtn" onclick="submitAnswer()" style="display:none">Submit Answer</button>
+      </div>
+    </div>
+
+    <!-- Complete pane -->
+    <div class="quiz-complete" id="quizComplete">
+      <div class="score-ring" id="scoreRingText">—</div>
+      <div class="score-title" id="completeTitleText">Module Complete</div>
+      <div class="score-subtitle" id="completeSubText"></div>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn btn-small" onclick="closeQuiz()">Close</button>
+        <button class="btn btn-primary btn-small" onclick="retryQuiz()">Retry</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script>
+/* ══════════════════════════════════════════════════
+   QUIZ ENGINE
+══════════════════════════════════════════════════ */
+
+const QUESTIONS_FULL = [
+  {
+    context: 'Ridgeline Pipeline — Module 3: Earned Value Management\nSection: Schedule Variance',
+    question: 'On the Ridgeline project, the Geotechnical Drilling work package has a PV of $234,000 and an EV of $198,400. Which statement correctly describes the schedule status?',
+    options: [
+      'The work package is ahead of schedule by $35,600.',
+      'The work package is behind schedule; less work has been earned than was planned.',
+      'The work package has a cost overrun of $35,600.',
+      'No variance exists because the BAC has not been exceeded.'
+    ],
+    correct: 1,
+    feedback: {
+      correct: 'Correct. SV = EV − PV = $198,400 − $234,000 = −$35,600. A negative SV means less work has been accomplished than planned — the package is behind schedule. This is different from a cost variance.',
+      wrong: 'Not quite. Schedule Variance (SV) = EV − PV. Here SV = $198,400 − $234,000 = −$35,600. Negative SV indicates behind schedule. Cost variance (CV) is calculated separately from AC.'
+    }
+  },
+  {
+    context: 'Ridgeline Pipeline — Module 3: Earned Value Management\nSection: Change Management',
+    question: 'Jamie receives a Contractor RFI requesting an additional 4 boreholes not in the original scope. Under the Ridgeline project controls framework, what is Jamie\'s first step?',
+    options: [
+      'Direct the contractor to proceed and document it as a field instruction.',
+      'Issue a Potential Change Notice (PCN) and notify the Project Manager.',
+      'Add the cost to the contingency reserve and update the baseline.',
+      'Reject the request since the field season is already underway.'
+    ],
+    correct: 1,
+    feedback: {
+      correct: 'Correct. Any scope change must be captured as a Potential Change Notice before any work proceeds or costs are committed. This preserves the integrity of the performance baseline and the change log.',
+      wrong: 'Proceeding without a formal change notice would contaminate the baseline and create an uncontrolled cost. The correct first step is to issue a PCN and escalate to the PM — no work on the change should proceed until approved.'
+    }
+  },
+  {
+    context: 'Ridgeline Pipeline — Module 2: WBS & Cost Accounts\nSection: Oracle Projects',
+    question: 'When Jamie reviews the Oracle Projects cost report for WBS 1.2.2, she notices field labour costs posted to the wrong task. Which Oracle action corrects this?',
+    options: [
+      'Delete and re-enter the transaction on the correct task.',
+      'Create a journal entry in Oracle GL to reclassify the cost.',
+      'Submit a Cost Transfer request to move the transaction to the correct WBS task.',
+      'Flag it in the monthly narrative and adjust the forecast only.'
+    ],
+    correct: 2,
+    feedback: {
+      correct: 'Correct. Oracle Projects uses a Cost Transfer (or Expenditure Transfer) function to move a posted transaction between tasks or projects. Deletions or GL entries are not the appropriate mechanism and can cause reconciliation issues.',
+      wrong: 'In Oracle Projects, misposted transactions are corrected via a Cost Transfer — not deletions or GL journal entries, which bypass the project module controls. Adjusting the forecast without correcting the actuals would also misrepresent performance.'
+    }
+  }
+];
+
+const QUESTIONS_SINGLE = [QUESTIONS_FULL[0]];
+
+let quizQuestions = [];
+let currentQ = 0;
+let score = 0;
+let selectedOption = null;
+let answered = false;
+let quizMode = 'multiple';
+
+function startQuiz(mode) {
+  quizMode = mode;
+  quizQuestions = mode === 'single' ? QUESTIONS_SINGLE : QUESTIONS_FULL;
+  currentQ = 0;
+  score = 0;
+  document.getElementById('quizOverlay').classList.add('active');
+  document.getElementById('quizPane').style.display = '';
+  document.getElementById('quizComplete').classList.remove('active');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = quizQuestions[currentQ];
+  const total = quizQuestions.length;
+
+  answered = false;
+  selectedOption = null;
+
+  // Header
+  document.getElementById('quizProgressLabel').textContent = `Question ${currentQ+1} of ${total}`;
+  document.getElementById('quizProgressFill').style.width = `${((currentQ) / total) * 100}%`;
+
+  // Context + question
+  document.getElementById('quizContext').textContent = q.context;
+  document.getElementById('quizQuestionText').textContent = q.question;
+
+  // Options
+  const optContainer = document.getElementById('quizOptions');
+  optContainer.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const keys = ['A', 'B', 'C', 'D'];
+    const btn = document.createElement('button');
+    btn.className = 'quiz-option';
+    btn.innerHTML = `<span class="option-key">${keys[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectOption(i, btn);
+    optContainer.appendChild(btn);
+  });
+
+  // Feedback clear
+  const fb = document.getElementById('quizFeedback');
+  fb.className = 'quiz-feedback';
+  fb.innerHTML = '';
+
+  // Buttons
+  document.getElementById('quizSubmitBtn').style.display = 'none';
+  document.getElementById('quizNextBtn').style.display = 'none';
+  document.getElementById('quizScoreBadge').textContent = `Score: ${score} / ${currentQ}`;
+}
+
+function selectOption(idx, btn) {
+  if (answered) return;
+  selectedOption = idx;
+  document.querySelectorAll('.quiz-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  document.getElementById('quizSubmitBtn').style.display = 'inline-block';
+}
+
+function submitAnswer() {
+  if (selectedOption === null || answered) return;
+  answered = true;
+
+  const q = quizQuestions[currentQ];
+  const isCorrect = selectedOption === q.correct;
+  if (isCorrect) score++;
+
+  // Style options
+  document.querySelectorAll('.quiz-option').forEach((btn, i) => {
+    btn.classList.add('locked');
+    if (i === q.correct) btn.classList.add('correct');
+    else if (i === selectedOption && !isCorrect) btn.classList.add('wrong');
+  });
+
+  // Feedback
+  const fb = document.getElementById('quizFeedback');
+  fb.className = `quiz-feedback ${isCorrect ? 'correct' : 'wrong'}`;
+  fb.innerHTML = `<strong>${isCorrect ? '✓ Correct' : '✗ Incorrect'}</strong>${isCorrect ? q.feedback.correct : q.feedback.wrong}`;
+
+  // Buttons
+  document.getElementById('quizSubmitBtn').style.display = 'none';
+  const isLast = currentQ >= quizQuestions.length - 1;
+  const nextBtn = document.getElementById('quizNextBtn');
+  nextBtn.style.display = 'inline-block';
+  nextBtn.textContent = isLast ? 'See Results →' : 'Next →';
+  document.getElementById('quizScoreBadge').textContent = `Score: ${score} / ${currentQ+1}`;
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= quizQuestions.length) {
+    showComplete();
+  } else {
+    renderQuestion();
+  }
+}
+
+function showComplete() {
+  document.getElementById('quizPane').style.display = 'none';
+  const complete = document.getElementById('quizComplete');
+  complete.classList.add('active');
+
+  const total = quizQuestions.length;
+  const pct = Math.round((score / total) * 100);
+  document.getElementById('scoreRingText').textContent = `${pct}%`;
+
+  const pass = pct >= 67;
+  document.getElementById('completeTitleText').textContent = pass ? 'Section Passed' : 'Review Required';
+  document.getElementById('completeTitleText').style.color = pass ? 'var(--green)' : 'var(--amber)';
+  document.getElementById('completeSubText').textContent = `${score} of ${total} correct — ${pass ? 'You may proceed to the next module.' : 'Consider reviewing the EVM section before continuing.'}`;
+
+  document.getElementById('quizProgressFill').style.width = '100%';
+  document.getElementById('quizProgressLabel').textContent = 'Complete';
+}
+
+function closeQuiz() {
+  document.getElementById('quizOverlay').classList.remove('active');
+}
+
+function retryQuiz() {
+  startQuiz(quizMode);
+}
+
+/* ══════════════════════════════════════════════════
+   CONTRACT EXERCISE
+══════════════════════════════════════════════════ */
+let contractActive = false;
+let contractAnswered = false;
+
+function toggleContractExercise() {
+  contractActive = true;
+  contractAnswered = false;
+  document.getElementById('contractDoc').classList.add('exercise-active');
+  document.getElementById('contractBadge').classList.add('visible');
+  document.getElementById('contractQuestion').classList.add('visible');
+  document.getElementById('contractBtn').style.display = 'none';
+  document.getElementById('contractReset').style.display = 'inline-block';
+  document.getElementById('contractFeedback').className = 'doc-feedback-banner';
+  document.querySelectorAll('.clickable-clause').forEach(el => el.classList.remove('highlighted'));
+}
+
+function handleClauseClick(id) {
+  if (!contractActive || contractAnswered) return;
+  const correct = '3a';
+  const el = document.querySelector(`[data-clause="${id}"]`);
+  const fb = document.getElementById('contractFeedback');
+
+  document.querySelectorAll('.clickable-clause').forEach(c => c.classList.remove('highlighted'));
+  el.classList.add('highlighted');
+
+  if (id === correct) {
+    contractAnswered = true;
+    fb.className = 'doc-feedback-banner correct';
+    fb.innerHTML = '<span class="fb-label">✓ Correct</span>Clause 3 establishes the contractor\'s ongoing obligation to comply with federal and provincial environmental legislation and AER conditions — this is the environmental compliance clause.';
+  } else {
+    fb.className = 'doc-feedback-banner wrong';
+    fb.innerHTML = '<span class="fb-label">✗ Not quite</span>This clause covers a related topic but not the primary environmental compliance obligation. Look for the clause that specifically references the EPEA and AER authorizations.';
+  }
+}
+
+function resetContractExercise() {
+  contractActive = false;
+  contractAnswered = false;
+  document.getElementById('contractDoc').classList.remove('exercise-active');
+  document.getElementById('contractBadge').classList.remove('visible');
+  document.getElementById('contractQuestion').classList.remove('visible');
+  document.getElementById('contractBtn').style.display = 'inline-block';
+  document.getElementById('contractReset').style.display = 'none';
+  document.getElementById('contractFeedback').className = 'doc-feedback-banner';
+  document.querySelectorAll('.clickable-clause').forEach(el => el.classList.remove('highlighted'));
+}
+
+/* ══════════════════════════════════════════════════
+   SPREADSHEET EXERCISE
+══════════════════════════════════════════════════ */
+let sheetActive = false;
+let sheetAnswered = false;
+
+function toggleSheetExercise() {
+  sheetActive = true;
+  sheetAnswered = false;
+  document.getElementById('sheetFrame').querySelector('table').parentElement.parentElement.classList.add('exercise-active'); // not ideal — use wrapper
+  document.querySelectorAll('.clickable-cell').forEach(el => {
+    el.classList.remove('correct-pick','wrong-pick','highlighted');
+    el.parentElement.parentElement.classList.add('exercise-active');
+  });
+  // Simpler: just mark the table wrapper
+  document.querySelectorAll('.clickable-cell').forEach(el => el.dataset.active = 'true');
+  document.getElementById('sheetBadge').classList.add('visible');
+  document.getElementById('sheetQuestion').classList.add('visible');
+  document.getElementById('sheetBtn').style.display = 'none';
+  document.getElementById('sheetReset').style.display = 'inline-block';
+  document.getElementById('sheetFeedback').className = 'doc-feedback-banner';
+  // Apply exercise-active to the overflow div
+  document.querySelector('#sheetFrame [style*="overflow"]').classList.add('exercise-active');
+  document.querySelectorAll('#sheetFrame .clickable-cell').forEach(el => {
+    el.classList.remove('correct-pick','wrong-pick');
+  });
+}
+
+function handleCellClick(id) {
+  if (!sheetActive || sheetAnswered) return;
+  const correct = 'sv-122';
+  const el = document.querySelector(`[data-cell="${id}"]`);
+  const fb = document.getElementById('sheetFeedback');
+
+  document.querySelectorAll('.clickable-cell').forEach(c => {
+    c.classList.remove('highlighted','correct-pick','wrong-pick');
+  });
+
+  if (id === correct) {
+    sheetAnswered = true;
+    el.classList.add('correct-pick');
+    fb.className = 'doc-feedback-banner correct';
+    fb.innerHTML = '<span class="fb-label">✓ Correct</span>WBS 1.2.2 Schedule Variance = EV − PV = $198,400 − $234,000 = ($35,600). This is the cell Jamie would reference to report the schedule variance for the Geotechnical Drilling package.';
+  } else {
+    el.classList.add('wrong-pick');
+    const hints = {
+      'bac-122': 'That\'s the Budget at Completion (BAC) — total planned budget, not variance.',
+      'ev-122':  'That\'s the Earned Value (BCWP) — work accomplished in dollars. Variance is EV minus PV.',
+      'pv-122':  'That\'s the Planned Value (BCWS). Variance = EV − PV, not PV alone.',
+      'ac-122':  'That\'s Actual Cost (ACWP). Schedule Variance uses EV and PV, not actual cost.',
+      'cv-122':  'That\'s the Cost Variance, not Schedule Variance. SV = EV − PV; CV = EV − AC.',
+    };
+    fb.className = 'doc-feedback-banner wrong';
+    fb.innerHTML = `<span class="fb-label">✗ Not this one</span>${hints[id] || 'That cell is from a different work package. The question asks about WBS 1.2.2 — Geotechnical Drilling.'}`;
+  }
+}
+
+function resetSheetExercise() {
+  sheetActive = false;
+  sheetAnswered = false;
+  document.getElementById('sheetBadge').classList.remove('visible');
+  document.getElementById('sheetQuestion').classList.remove('visible');
+  document.getElementById('sheetBtn').style.display = 'inline-block';
+  document.getElementById('sheetReset').style.display = 'none';
+  document.getElementById('sheetFeedback').className = 'doc-feedback-banner';
+  document.querySelector('#sheetFrame [style*="overflow"]').classList.remove('exercise-active');
+  document.querySelectorAll('#sheetFrame .clickable-cell').forEach(el => {
+    el.classList.remove('correct-pick','wrong-pick','highlighted');
+    delete el.dataset.active;
+  });
+}
+</script>
+</body>
+</html>
