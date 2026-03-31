@@ -1,0 +1,174 @@
+/* ================================================================
+   EMAIL APP MODAL
+   ================================================================ */
+
+.email-app-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+}
+.email-app-overlay.open { display: flex; }
+
+.email-app {
+  width: 900px;
+  max-width: calc(100vw - 40px);
+  height: 620px;
+  max-height: calc(100vh - 60px);
+  background: var(--surface);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.email-app-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.email-app-bar-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.email-app-close {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.email-app-close:hover { border-color: var(--red); color: var(--red); }
+
+.email-app-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* LEFT: email list */
+.email-app-list {
+  width: 280px;
+  min-width: 280px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  background: var(--surface2);
+}
+
+.email-list-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.email-list-item:hover   { background: var(--teal-glow); }
+.email-list-item.selected { background: var(--teal-glow); border-left: 3px solid var(--teal); padding-left: 13px; }
+
+.email-list-from {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.email-list-subject {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.email-list-preview {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.4;
+}
+.email-list-date {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--amber);
+}
+
+/* RIGHT: email detail */
+.email-app-detail {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  background: var(--bg);
+}
+.email-app-empty {
+  color: var(--text-dim);
+  font-size: 13px;
+  font-style: italic;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+/* Fixed top-right email button */
+.email-app-btn {
+  position: fixed;
+  top: 16px;
+  right: 24px;
+  z-index: 350;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 28px;
+  height: 60px;
+  padding: 0 22px;
+  border-radius: 30px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.email-app-btn-hidden { opacity: 0; pointer-events: none; }
+.email-app-btn:hover {
+  border-color: var(--teal);
+  color: var(--teal);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.email-app-count {
+  background: var(--red);
+  color: #fff;
+  border-radius: 10px;
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+html[data-theme="light"] .email-app-detail { background: #f5f6fa; }
+

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Story Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,600;1,300&family=IBM+Plex+Mono:wght@400;600&family=Kalam:wght@400;700&family=Merriweather:wght@400;700&family=Shadows+Into+Light&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg:#f5f6f8; --surface:#ffffff; --surface2:#f0f1f4; --border:#d8dbe5;
@@ -146,6 +147,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13
 .rte-btn{background:none;border:1px solid transparent;color:var(--dim);padding:2px 7px;border-radius:3px;cursor:pointer;font-size:12px;font-family:var(--mono);line-height:1.4;}
 .rte-btn:hover{background:var(--border);color:var(--text);}
 .rte-btn.sep{border-left:1px solid var(--border);margin-left:3px;padding-left:8px;}
+.rte-font-sel{background:none;border:1px solid transparent;border-left:1px solid var(--border);color:var(--dim);padding:2px 4px;border-radius:0 3px 3px 0;cursor:pointer;font-size:11px;font-family:var(--mono);line-height:1.4;margin-left:3px;}
+.rte-font-sel:hover{background:var(--border);color:var(--text);}
 .rte-content{padding:5px 8px;font-size:12px;font-family:var(--sans);min-height:70px;outline:none;line-height:1.5;color:var(--text);}
 .rte-content:empty::before{content:attr(data-ph);color:var(--border);pointer-events:none;}
 .rte-content h3{font-size:13px;font-weight:700;margin:2px 0;}
@@ -467,16 +470,35 @@ function sel(field, opts) {
   return `<select data-field="${field}">${opts.map(([v,l])=>`<option value="${v}">${l||v}</option>`).join('')}</select>`;
 }
 
+const RTE_FONTS = [
+  ['',                  '— font —'],
+  ['IBM Plex Sans',     'Sans'],
+  ['Merriweather',      'Serif'],
+  ['IBM Plex Mono',     'Mono'],
+  ['Kalam',             'Hand (neat)'],
+  ['Shadows Into Light', 'Hand (casual)'],
+];
+
 function rte(field, ph='') {
   const b = (cmd,html,title,sep='') =>
     `<button class="rte-btn${sep?' sep':''}" onmousedown="event.preventDefault()" onclick="rteCmd(this,'${cmd}')" title="${title}">${html}</button>`;
+  const fontSel = `<select class="rte-font-sel" title="Font family"
+    onmousedown="this._savedRange=(()=>{const s=window.getSelection();return s.rangeCount?s.getRangeAt(0).cloneRange():null})()"
+    onchange="rteFont(this)">
+    ${RTE_FONTS.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+  </select>`;
+  const sz = (delta, html, title) =>
+    `<button class="rte-btn" onmousedown="event.preventDefault()" onclick="rteFontSize(${delta})" title="${title}">${html}</button>`;
   const btns =
     b('bold',    '<b>B</b>',  'Bold') +
     b('italic',  '<i>I</i>',  'Italic') +
     b('insertUnorderedList', '• list', 'Bullet list', true) +
     b('insertOrderedList',   '1. list','Numbered list') +
     b('h3', 'H3', 'Heading', true) +
-    b('p',  '¶',  'Normal paragraph');
+    b('p',  '¶',  'Normal paragraph') +
+    sz( 1, 'A+', 'Increase font size') +
+    sz(-1, 'A−', 'Decrease font size') +
+    fontSel;
   return `<div class="rte-wrap"><div class="rte-toolbar">${btns}</div><div class="rte-content" contenteditable="true" data-field="${field}" data-ph="${esc(ph)}"></div></div>`;
 }
 
@@ -490,6 +512,35 @@ function rteCmd(btn, cmd) {
   if (ed) ed.focus();
   if (cmd === 'h3' || cmd === 'p') document.execCommand('formatBlock', false, cmd);
   else document.execCommand(cmd, false, null);
+}
+
+function rteFont(sel) {
+  const font = sel.value;
+  sel.value = '';
+  if (!font) return;
+  const saved = sel._savedRange;
+  if (!saved) return;
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(saved);
+  if (selection.isCollapsed) return;
+  const range = selection.getRangeAt(0);
+  const span = document.createElement('span');
+  span.style.fontFamily = `'${font}', sans-serif`;
+  span.appendChild(range.extractContents());
+  range.insertNode(span);
+  selection.removeAllRanges();
+}
+
+function rteFontSize(delta) {
+  const selection = window.getSelection();
+  if (!selection.rangeCount || selection.isCollapsed) return;
+  const range = selection.getRangeAt(0);
+  const span = document.createElement('span');
+  span.style.fontSize = delta > 0 ? '1.25em' : '0.8em';
+  span.appendChild(range.extractContents());
+  range.insertNode(span);
+  selection.removeAllRanges();
 }
 
 function buildSceneForm(type) {
@@ -603,7 +654,11 @@ function buildSceneForm(type) {
         frow('Tabs', `<div>
           <div class="rows-list" data-list="tabs">${binderTab()}</div>
           <button class="add-row-btn" onclick="addRow(this,'tabs',binderTab)">+ Add Tab</button>
-        </div>`);
+        </div>`) +
+        fsec('Appearance') +
+        frow('Hide rings', `<input type="checkbox" data-field="noRings">`) +
+        frow('Hide tabs',  `<input type="checkbox" data-field="noTabs">`) +
+        frow('Grid paper', `<input type="checkbox" data-field="grid">`);
 
     case 'quiz':
       return fsec('Questions') +
@@ -1313,17 +1368,28 @@ function clickDocTogglePreview(btn) {
 }
 
 // ── READ SCENE ──────────────────────────────────────────────────
+function sanitizeRteHtml(el) {
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('[style]').forEach(n => {
+    n.style.removeProperty('text-wrap-mode');
+    n.style.removeProperty('text-wrap');
+    n.style.removeProperty('white-space');
+    if (!n.getAttribute('style').trim()) n.removeAttribute('style');
+  });
+  return clone.innerHTML.trim();
+}
+
 function getField(card, key) {
   const el = card.querySelector(`[data-field="${key}"]`);
   if (!el) return '';
-  if (el.contentEditable === 'true') return el.innerHTML.trim();
+  if (el.contentEditable === 'true') return sanitizeRteHtml(el);
   return el.value?.trim() ?? '';
 }
 function getSubfield(row, key) {
   const el = row.querySelector(`[data-subfield="${key}"]`);
   if (!el) return '';
   if (el.type === 'checkbox') return el.checked;
-  if (el.contentEditable === 'true') return el.innerHTML.trim();
+  if (el.contentEditable === 'true') return sanitizeRteHtml(el);
   if (el.tagName === 'BUTTON' && el.dataset.subfield === key) return el.textContent.trim();
   return el.value?.trim() ?? '';
 }
@@ -1531,6 +1597,9 @@ function readScene(card) {
         label: getSubfield(r,'label'),
         page:  Number(getSubfield(r,'page') || 0),
       })).filter(t => t.label);
+      { const el = card.querySelector('[data-field="noRings"]'); if (el?.checked) scene.noRings = true; }
+      { const el = card.querySelector('[data-field="noTabs"]');  if (el?.checked) scene.noTabs  = true; }
+      { const el = card.querySelector('[data-field="grid"]');    if (el?.checked) scene.grid    = true; }
       break;
   }
 
@@ -1912,6 +1981,9 @@ function populateCard(card, scene) {
         right_pageNum: p.right?.pageNum,
       })), binderPageRow);
       fillList('tabs', scene.tabs||[], binderTab);
+      { const el = card.querySelector('[data-field="noRings"]'); if (el) el.checked = !!scene.noRings; }
+      { const el = card.querySelector('[data-field="noTabs"]');  if (el) el.checked = !!scene.noTabs;  }
+      { const el = card.querySelector('[data-field="grid"]');    if (el) el.checked = !!scene.grid;    }
       break;
   }
 }

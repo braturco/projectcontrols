@@ -490,23 +490,35 @@ function _binderPageInner(p) {
 }
 
 function renderBinder(scene) {
-  const pages = scene.pages || [];
-  const tabs  = scene.tabs  || [];
-  const bid   = 'binder-' + (++_binderSeq);
-  const multi = pages.length > 1;
+  const pages   = scene.pages   || [];
+  const tabs    = scene.tabs    || [];
+  const bid     = 'binder-' + (++_binderSeq);
+  const multi   = pages.length > 1;
+  const noRings = !!scene.noRings;
+  const noTabs  = !!scene.noTabs;
+  const grid    = !!scene.grid;
+
+  const pageExtra = grid ? ' grid' : '';
 
   const spreadsHtml = pages.map((p, i) =>
     `<div class="binder-spread${i === 0 ? ' active' : ''}">
-      <div class="binder-page left${multi ? ' binder-clickable' : ''}" ${multi ? `onclick="binderStep('${bid}',-1)"` : ''}>${_binderPageInner(p.left)}</div>
-      <div class="binder-page right${multi ? ' binder-clickable' : ''}" ${multi ? `onclick="binderStep('${bid}',1)"` : ''}>${_binderPageInner(p.right)}</div>
+      <div class="binder-page left${pageExtra}${multi ? ' binder-clickable' : ''}" ${multi ? `onclick="binderStep('${bid}',-1)"` : ''}>${_binderPageInner(p.left)}</div>
+      <div class="binder-page right${pageExtra}${multi ? ' binder-clickable' : ''}" ${multi ? `onclick="binderStep('${bid}',1)"` : ''}>${_binderPageInner(p.right)}</div>
     </div>`
   ).join('');
 
-  const tabsHtml = tabs.length
+  const tabsHtml = (!noTabs && tabs.length)
     ? `<div class="binder-tabs">${tabs.map(t =>
         `<div class="binder-tab${t.page === 0 ? ' active' : ''}" data-page="${t.page}" onclick="binderGoto('${bid}',${t.page})">${t.label}</div>`
       ).join('')}</div>`
     : '';
+
+  const ringsHtml = noRings ? '' : `
+    <div class="binder-rings">
+      <div class="binder-ring"></div>
+      <div class="binder-ring"></div>
+      <div class="binder-ring"></div>
+    </div>`;
 
   const wrapper = document.createElement('div');
   wrapper.className = 'binder-wrap';
@@ -523,12 +535,7 @@ function renderBinder(scene) {
   d.id = bid;
   if (multi) d.classList.add('binder-at-start');
   if (pages.length <= 1) d.classList.add('binder-at-end');
-  d.innerHTML = `${spreadsHtml}${tabsHtml}
-    <div class="binder-rings">
-      <div class="binder-ring"></div>
-      <div class="binder-ring"></div>
-      <div class="binder-ring"></div>
-    </div>`;
+  d.innerHTML = `${spreadsHtml}${tabsHtml}${ringsHtml}`;
   wrapper.appendChild(d);
   return wrapper;
 }
@@ -942,6 +949,7 @@ function initDocModals() {
 function _unlockEmail(id) {
   if (!id || _unlockedEmailIds.includes(id)) return;
   _unlockedEmailIds.push(id);
+  document.getElementById('email-app-fab')?.classList.remove('email-app-btn-hidden');
   _updateEmailBadge();
 }
 
@@ -1076,7 +1084,7 @@ function initStory() {
   if (!document.getElementById('email-app-fab')) {
     const fab = document.createElement('button');
     fab.id = 'email-app-fab';
-    fab.className = 'email-app-btn';
+    fab.className = 'email-app-btn email-app-btn-hidden';
     fab.title = 'Open email inbox';
     fab.onclick = openEmailApp;
     fab.innerHTML = '📧 <span class="email-app-count" id="email-app-count" style="display:none">0</span>';

@@ -130,10 +130,13 @@
 /* PAGES */
 .binder-page {
   flex: 1;
+  min-width: 0;
   padding: 32px 36px;
   background: #fdfcf7;
   box-shadow: inset 0 0 6px rgba(0,0,0,0.12);
   position: relative;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .binder-page.left {
@@ -144,6 +147,15 @@
 .binder-page.right {
   border-left: 1px solid #d0cfc6;
   padding-left: 52px;
+}
+
+/* GRID PAPER — field-book style */
+.binder-page.grid {
+  background-color: #f0f4f0;
+  background-image:
+    linear-gradient(rgba(100,130,100,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,130,100,0.18) 1px, transparent 1px);
+  background-size: 20px 20px;
 }
 
 /* FLIP ARROWS — shown when clickable and not at boundary */
@@ -181,6 +193,16 @@
   background: #f5f4ef;
 }
 
+/* Grid pages: preserve the grid image on hover, just darken the base color */
+.binder-realistic:not(.binder-at-start) .binder-page.left.binder-clickable.grid:hover,
+.binder-realistic:not(.binder-at-end)   .binder-page.right.binder-clickable.grid:hover {
+  background-color: #e8ede8;
+  background-image:
+    linear-gradient(rgba(100,130,100,0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100,130,100,0.18) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
 /* PAGE TYPOGRAPHY */
 .page-label {
   font-size: 11px;
@@ -201,6 +223,13 @@
   font-size: 15px;
   line-height: 1.6;
   color: #2a2e3e;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.page-body * {
+  white-space: normal !important;
+  text-wrap-mode: wrap !important;
 }
 
 .page-body ul {

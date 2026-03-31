@@ -1,0 +1,354 @@
+
+  /* ── DOCUMENT VIEWER MODALS ── */
+  .doc-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1000;align-items:flex-start;justify-content:center;padding:32px 20px;overflow-y:auto;}
+  .doc-overlay.open{display:flex;}
+  .doc-window{background:#fff;border-radius:4px;width:100%;max-width:760px;box-shadow:0 12px 50px rgba(0,0,0,0.6);font-family:-apple-system,'Segoe UI',Arial,sans-serif;color:#1a1a1a;position:relative;margin:auto;}
+  .doc-topbar{background:#e8e8e8;border-bottom:1px solid #ccc;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .doc-topbar-dots{display:flex;gap:6px;}
+  .doc-topbar-dot{width:11px;height:11px;border-radius:50%;}
+  .doc-topbar-dot.r{background:#ff5f56;}.doc-topbar-dot.y{background:#ffbd2e;}.doc-topbar-dot.g{background:#27c93f;}
+  .doc-topbar-name{font-size:12px;color:#555;font-weight:500;}
+  .doc-close-btn{background:none;border:none;font-size:18px;cursor:pointer;color:#666;padding:0 4px;line-height:1;}.doc-close-btn:hover{color:#111;}
+  .doc-content{padding:30px 34px 36px;}
+  .doc-letterhead{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid #1a2744;}
+  .doc-logo-name{font-size:14px;font-weight:700;color:#1a2744;}
+  .doc-logo-sub{font-size:11px;color:#888;margin-top:2px;}
+  .doc-ref-block{text-align:right;font-size:11px;color:#666;line-height:1.7;}
+  .doc-h1{font-size:17px;font-weight:700;color:#1a2744;margin-bottom:4px;}
+  .doc-h2{font-size:11px;font-weight:700;color:#1a2744;margin:18px 0 7px;text-transform:uppercase;letter-spacing:0.1em;border-bottom:1px solid #e0e0e0;padding-bottom:4px;}
+  .doc-p{font-size:13px;line-height:1.75;color:#333;margin-bottom:10px;}
+  .doc-clause-box{background:#f7f8fa;border-left:3px solid #1a2744;padding:10px 14px;margin:6px 0 10px;border-radius:0 3px 3px 0;}
+  .doc-clause-box .clause-num{font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#3eb8b8;margin-bottom:4px;}
+  .doc-clause-box .clause-text{font-size:13px;line-height:1.72;color:#333;}
+  .doc-clause-box .clause-text strong{color:#1a2744;}
+  .doc-highlight-box{background:#fff8e6;border:1px solid #f0c040;border-radius:3px;padding:8px 12px;margin:10px 0;font-size:12.5px;color:#7a5800;line-height:1.6;}
+  .doc-tbl{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0 12px;}
+  .doc-tbl th{background:#1a2744;color:#fff;padding:7px 11px;text-align:left;font-size:10px;letter-spacing:0.07em;text-transform:uppercase;}
+  .doc-tbl td{padding:7px 11px;border-bottom:1px solid #eee;color:#333;vertical-align:top;}
+  .doc-tbl tr.total-row td{background:#f0f4fa;font-weight:700;color:#1a2744;border-top:2px solid #1a2744;border-bottom:none;}
+  .doc-tbl tr.sub-row td{color:#999;font-size:11.5px;padding-top:3px;padding-bottom:3px;}
+  .doc-tbl .amt{text-align:right;font-family:monospace;}
+  .doc-tbl .hl-red{color:#c0392b;font-weight:600;}
+  .doc-sig{margin-top:24px;padding-top:16px;border-top:1px solid #e0e0e0;display:flex;gap:40px;}
+  .doc-sig-block{flex:1;}
+  .doc-sig-line{border-bottom:1px solid #333;height:32px;margin-bottom:4px;}
+  .doc-sig-name{font-size:11px;color:#666;}
+  /* Gantt */
+  .gantt-wrap{margin:10px 0 16px;}
+  .gantt-months-row{display:flex;margin-left:148px;margin-bottom:3px;}
+  .gantt-month-lbl{flex:1;font-size:9px;text-align:center;color:#aaa;letter-spacing:0.04em;text-transform:uppercase;}
+  .gantt-row{display:flex;align-items:center;margin-bottom:5px;}
+  .gantt-lbl{width:148px;min-width:148px;font-size:11.5px;color:#444;padding-right:8px;line-height:1.3;}
+  .gantt-track{flex:1;height:18px;background:#f0f0f0;border-radius:2px;position:relative;}
+  .gantt-bar{position:absolute;height:100%;border-radius:2px;}
+  .gantt-bar-label{position:absolute;inset:0;display:flex;align-items:center;padding:0 6px;font-size:9px;color:rgba(255,255,255,0.92);white-space:nowrap;overflow:hidden;}
+  .gantt-constraint-line{position:absolute;top:-5px;bottom:-5px;width:2px;background:#e05a4e;z-index:2;}
+  .gantt-constraint-label{position:absolute;top:-17px;left:50%;transform:translateX(-50%);font-size:8px;color:#e05a4e;white-space:nowrap;font-weight:700;letter-spacing:0.04em;}
+  .gantt-milestone-dot{position:absolute;top:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:#e05a4e;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #e05a4e;z-index:3;}
+  .email-attachment{cursor:pointer;transition:background 0.12s,border-color 0.12s;}
+  .email-attachment:hover{background:#e8eef8;border-color:#99aacc;}
+  /* Pre-project setup checklist */
+  .setup-checklist{background:var(--surface2);border:1px solid var(--border);border-top:2px solid var(--teal);border-radius:0 0 4px 4px;padding:20px 24px 28px;margin:28px 0;}
+  .setup-checklist-intro{font-size:12px;color:var(--text-dim);margin-bottom:20px;font-style:italic;}
+  .setup-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;padding:6px 8px 10px;}
+  .setup-group{border-radius:2px;padding:14px 16px 18px;position:relative;box-shadow:4px 5px 16px rgba(0,0,0,0.35),0 1px 3px rgba(0,0,0,0.2);}
+  .setup-group::before{content:'';position:absolute;top:0;left:0;right:0;height:26px;background:rgba(0,0,0,0.07);border-radius:2px 2px 0 0;}
+  .setup-group:nth-child(1){background:#fef9c3;transform:rotate(-1.4deg);}
+  .setup-group:nth-child(2){background:#dcfce7;transform:rotate(0.8deg);}
+  .setup-group:nth-child(3){background:#dbeafe;transform:rotate(-0.6deg);}
+  .setup-group-title{font-family:'Kalam',cursive;font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:10px;padding-top:14px;}
+  .setup-item{display:flex;gap:7px;align-items:flex-start;margin-bottom:5px;font-size:11.5px;color:#333;line-height:1.45;font-family:var(--sans);}
+  .setup-item:last-child{margin-bottom:0;}
+  .setup-check{width:14px;height:14px;min-width:14px;border:1.5px solid #2a9d8f;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#2a9d8f;background:rgba(42,157,143,0.12);margin-top:1px;flex-shrink:0;}
+  /* Excel-style estimate */
+  .xls-titlebar{background:#217346;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .xls-titlebar-left{display:flex;align-items:center;gap:8px;}
+  .xls-filename{color:#fff;font-size:12.5px;font-weight:600;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .xls-close-btn{background:none;border:none;color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}.xls-close-btn:hover{color:#fff;}
+  .xls-ribbon{background:#f3f2f1;border-bottom:1px solid #c8c6c4;padding:2px 12px;display:flex;gap:4px;}
+  .xls-ribbon-item{font-size:11px;color:#605e5c;padding:4px 10px;border-radius:2px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;cursor:default;}
+  .xls-ribbon-item.active{background:#edebe9;color:#201f1e;}
+  .xls-namebar{background:#fff;border-bottom:1px solid #c8c6c4;display:flex;align-items:stretch;}
+  .xls-namebox{width:72px;border-right:1px solid #c8c6c4;padding:3px 8px;font-size:12px;font-family:'Calibri',Arial,sans-serif;color:#333;flex-shrink:0;display:flex;align-items:center;}
+  .xls-fx{padding:3px 10px;font-size:12px;font-family:'Calibri',Arial,sans-serif;color:#333;flex:1;display:flex;align-items:center;gap:8px;}
+  .xls-fx-icon{color:#217346;font-weight:700;font-size:14px;flex-shrink:0;}
+  .xls-body{overflow-x:auto;border-bottom:1px solid #c8c6c4;}
+  .xls-tbl{border-collapse:collapse;font-family:'Calibri',Arial,sans-serif;font-size:13px;white-space:nowrap;}
+  .xls-tbl .col-hdr{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;font-weight:400;padding:2px 12px;}
+  .xls-tbl .row-num{background:#f2f2f2;border:1px solid #d0d0d0;text-align:center;font-size:11px;color:#666;padding:2px 10px;min-width:32px;}
+  .xls-tbl td.xc{border:1px solid #d0d0d0;padding:2px 10px;background:#fff;color:#222;}
+  .xls-tbl td.xc.hdr{background:#217346;color:#fff;font-weight:700;}
+  .xls-tbl td.xc.total{background:#e2efda;font-weight:700;border-top:2px solid #375623;}
+  .xls-tbl td.xc.ctg{color:#888;font-style:italic;background:#fafafa;}
+  .xls-tbl td.xc.grand{background:#c6efce;font-weight:700;color:#375623;border-top:2px solid #375623;}
+  .xls-tbl td.xc.sub{background:#fafafa;color:#999;font-size:11.5px;}
+  .xls-tbl td.xc.drill{background:#fde8e6;color:#c0392b;font-weight:600;}
+  .xls-tbl td.xc.r{text-align:right;}
+  .xls-tbl td.xc.sel{background:#d9e8fb;}
+  .xls-tabs{background:#f2f2f2;border-top:1px solid #c8c6c4;padding:4px 10px 0;display:flex;align-items:flex-end;}
+  .xls-tab{padding:3px 16px;font-size:11px;font-family:'Calibri',Arial,sans-serif;border:1px solid #c8c6c4;border-bottom:none;border-radius:3px 3px 0 0;cursor:default;margin-right:2px;}
+  .xls-tab.on{background:#fff;color:#217346;font-weight:700;}
+  .xls-tab.off{background:#e0e0e0;color:#999;}
+  .xls-notes{padding:14px 18px 4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  /* Word-style brief */
+  .word-titlebar{background:#2b579a;padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-radius:4px 4px 0 0;}
+  .word-titlebar-left{display:flex;align-items:center;gap:8px;}
+  .word-filename{color:#fff;font-size:12.5px;font-weight:600;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-close-btn{background:none;border:none;color:rgba(255,255,255,0.8);font-size:16px;cursor:pointer;padding:0 4px;line-height:1;}.word-close-btn:hover{color:#fff;}
+  .word-ribbon{background:#2b579a;border-bottom:3px solid #185abd;padding:0 12px;display:flex;gap:2px;align-items:flex-end;}
+  .word-ribbon-tab{font-size:11px;color:rgba(255,255,255,0.75);padding:6px 12px;border-radius:3px 3px 0 0;font-family:-apple-system,'Segoe UI',Arial,sans-serif;cursor:default;}
+  .word-ribbon-tab.active{background:#fff;color:#2b579a;font-weight:600;}
+  .word-ribbon-tools{background:#f3f3f3;border-bottom:1px solid #d0d0d0;padding:4px 14px;display:flex;gap:14px;align-items:center;}
+  .word-tool{font-size:11px;color:#444;font-family:-apple-system,'Segoe UI',Arial,sans-serif;display:flex;flex-direction:column;align-items:center;gap:1px;cursor:default;padding:2px 6px;border-radius:2px;}
+  .word-tool:hover{background:#e8e8e8;}
+  .word-tool-icon{font-size:14px;}
+  .word-tool-label{font-size:9px;color:#666;}
+  .word-tool-sep{width:1px;height:32px;background:#d0d0d0;margin:0 4px;}
+  .word-page-area{background:#c8c8c8;padding:20px 24px;min-height:100px;}
+  .word-page{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.25);padding:36px 48px 40px;font-family:'Calibri',Georgia,serif;color:#1a1a1a;position:relative;}
+  .word-page-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #2b579a;}
+  .word-org{font-size:11px;color:#2b579a;text-transform:uppercase;letter-spacing:0.1em;font-family:-apple-system,'Segoe UI',Arial,sans-serif;font-weight:700;}
+  .word-doc-type{font-size:10px;color:#888;font-family:-apple-system,'Segoe UI',Arial,sans-serif;margin-top:2px;}
+  .word-ref{text-align:right;font-size:10.5px;color:#666;font-family:-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.7;}
+  .word-title{font-size:22px;font-weight:700;color:#2b579a;margin-bottom:3px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-subtitle{font-size:12px;color:#888;font-family:-apple-system,'Segoe UI',Arial,sans-serif;margin-bottom:18px;}
+  .word-h2{font-size:13px;font-weight:700;color:#2b579a;margin:16px 0 6px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;border-bottom:1px solid #c5d8f0;padding-bottom:3px;}
+  .word-p{font-size:13px;line-height:1.75;color:#222;margin-bottom:8px;font-family:'Calibri',Arial,sans-serif;}
+  .word-tbl{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0 12px;font-family:'Calibri',Arial,sans-serif;}
+  .word-tbl th{background:#2b579a;color:#fff;padding:6px 10px;text-align:left;font-size:11px;font-weight:600;}
+  .word-tbl td{padding:6px 10px;border-bottom:1px solid #dce6f1;color:#333;vertical-align:top;}
+  .word-tbl tr:nth-child(even) td{background:#f0f6ff;}
+  .word-risk-box{background:#fff4f4;border-left:3px solid #c0392b;padding:8px 12px;margin:6px 0 10px;border-radius:0 3px 3px 0;}
+  .word-risk-box.amber{background:#fffbf0;border-left-color:#e8a04a;}
+  .word-risk-title{font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#c0392b;margin-bottom:4px;font-family:-apple-system,'Segoe UI',Arial,sans-serif;}
+  .word-risk-box.amber .word-risk-title{color:#b8860b;}
+  .word-risk-text{font-size:12.5px;line-height:1.7;color:#333;font-family:'Calibri',Arial,sans-serif;}
+  .word-footer{margin-top:20px;padding-top:10px;border-top:1px solid #dce6f1;font-size:10.5px;color:#999;font-family:-apple-system,'Segoe UI',Arial,sans-serif;display:flex;justify-content:space-between;}
+  .word-statusbar{background:#2b579a;padding:3px 14px;display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.7);font-family:-apple-system,'Segoe UI',Arial,sans-serif;border-radius:0 0 4px 4px;}
+  /* Landscape schedule */
+  .doc-window.landscape{max-width:960px;}
+  .doc-window.landscape .gantt-lbl{width:180px;min-width:180px;}
+  .doc-window.landscape .gantt-months-row{margin-left:180px;}
+  .doc-window.landscape .gantt-track{height:22px;}
+  .doc-window.landscape .gantt-bar-label{font-size:10.5px;}
+  .doc-window.landscape .gantt-row{margin-bottom:6px;}
+
+
+/* ————————————————————————————————
+   PHONE FRAME (outer shell)
+   ———————————————————————————————— */
+
+.phone-frame {
+  width: 380px;
+  margin: 40px auto;
+  position: relative;
+
+  border-radius: 32px;
+  border: 2px solid rgba(255,255,255,0.85);
+
+  /* allow button to stick out */
+  overflow: visible;
+
+  /* this frame NO LONGER has the gradient */
+  background: transparent;
+  padding: 0;
+  z-index: 10;
+}
+
+/* ————————————————————————————————
+   PHONE BODY (foreground gradient layer)
+   ———————————————————————————————— */
+
+.phone-body {
+  position: relative;
+  border-radius: 32px;
+
+  /* your gradient lives HERE now */
+  background: linear-gradient(
+    145deg,
+    #8989a5 0%,
+    #01002b 40%,
+    #010016 100%
+  );
+
+  /* spacing inside the body */
+  padding: 20px 10px 10px;
+
+  /* sits ABOVE the button */
+  z-index: 20;
+}
+
+/* ————————————————————————————————
+   CAMERA DOT
+   ———————————————————————————————— */
+
+.camera-dot {
+  width: 12px;
+  height: 12px;
+  background: #111;
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0,0,0,0.6);
+
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  z-index: 30; /* above body */
+}
+
+/* ————————————————————————————————
+   SCREEN (inside phone body)
+   ———————————————————————————————— */
+
+.phone-screen {
+  background: #e5e5e5;
+  border-radius: 22px;
+  height: 600px;
+
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+
+  margin-top: 12px;
+
+  position: relative;
+  z-index: 30; /* above body */
+}
+
+/* SMS card layout */
+.phone-screen .sms-card {
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* scrollable messages */
+.phone-screen .sms-messages {
+  flex: 1;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  padding: 18px 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* input bar */
+.sms-input-bar {
+  padding: 10px 14px;
+  background: #f0f0f0;
+  border-top: 1px solid #d0d0d0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sms-input-field {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #d8d8d8;
+  border-radius: 18px;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #888;
+}
+
+.sms-input-icons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+}
+
+.sms-mic { opacity: 0.6; }
+
+/* Interactive send button */
+.sms-send-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: default;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.3;
+  transition: opacity 0.15s, transform 0.15s;
+  pointer-events: none;
+}
+.sms-send-btn.ready {
+  opacity: 1;
+  cursor: pointer;
+  pointer-events: all;
+}
+.sms-send-btn.ready:hover  { transform: scale(1.15); }
+.sms-send-btn.ready:active { transform: scale(0.9);  }
+
+/* Messages hidden until revealed */
+.sms-row.sms-hidden { display: none; }
+
+/* ————————————————————————————————
+   RIGHT-SIDE BUTTON (behind the body)
+   ———————————————————————————————— */
+
+.phone-frame::after {
+  content: "";
+  position: absolute;
+
+  width: 6px;
+  height: 60px;
+
+  /* same gradient as body */
+  background: linear-gradient(
+    145deg,
+    #8989a5 0%,
+    #01002b 40%,
+    #010016 100%
+  );
+
+  border-radius: 4px;
+  border: 2px solid rgba(255,255,255,0.85);
+
+  /* position it so half is under the body */
+  right: 0px;
+  transform: translateX(70%);
+
+  top: 140px;
+
+  /* BELOW the phone body */
+  z-index: 5;
+}
+
+.phone-screen .sms-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.phone-screen .sms-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.phone-screen .sms-messages::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.25);
+  border-radius: 3px;
+}
+
+
+
+
+.binder-page ul {
+  padding-left: 24px !important;   /* forces indent */
+  margin-left: 0 !important;       /* removes browser margin */
+  list-style-position: outside;    /* ensures bullet sits outside text block */
+}
+
+.binder-page li {
+  margin-bottom: 6px;              /* optional spacing */
+}
+
+

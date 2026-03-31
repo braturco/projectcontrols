@@ -1,0 +1,69 @@
+/* ================================================================
+   LIGHT THEME
+   Applied when <html data-theme="light">
+   ================================================================ */
+
+html[data-theme="light"] {
+  --bg:      #f0f2f7;
+  --surface: #ffffff;
+  --surface2:#e8eaf0;
+  --border:  #cdd1e0;
+  --text:         #1e2235;
+  --text-dim:     #6b7494;
+  --text-bright:  #0d1117;
+  --amber-glow:  rgba(240,165,0,0.10);
+  --teal-glow:   rgba(62,184,184,0.09);
+  --purple-glow: rgba(123,104,238,0.09);
+}
+
+/* hide noise grain on light bg */
+html[data-theme="light"] body::before { opacity: 0; }
+
+/* hero gradient */
+html[data-theme="light"] .hero {
+  background: linear-gradient(160deg, #dbe4f0 0%, var(--bg) 55%);
+}
+html[data-theme="light"] .hero::after { color: rgba(62,184,184,0.05); }
+
+/* thought bubble: keep visible against light page */
+html[data-theme="light"] .inner-voice {
+  background: #fef3c0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+}
+html[data-theme="light"] .inner-voice::after {
+  border-top-color: #fef3c0;
+}
+
+/* scene dimming overlay: slightly lighter on light pages */
+html[data-theme="light"] .scene-block.scene-past::before {
+  background: rgba(240,242,247,0.78);
+}
+
+/* theme toggle button in sidebar footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 16px;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s;
+}
+.theme-toggle:hover {
+  border-color: var(--amber);
+  color: var(--amber);
+}
+

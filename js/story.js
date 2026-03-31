@@ -71,52 +71,176 @@ window.STORY = {
       context: 'With their Senior Project Controller tied up on a major project, your wish to try your hand at Project Controls is about to come true, but are you ready?',
       scenes: [
         {
-          type: 'branch',
-          slides: [
+          type: 'realbinder',
+          id: 'scene-training-notes',
+          folderUnlock: 'training-notes',
+          pages: [
             {
-              id: 'start',
-              avatar: 'JO',
-              avatarClass: 'branch-av-jamie',
-              speaker: 'Jamie Okafor',
-              loc: 'Month 5 · Site Office',
-              text: 'The PM wants to know why costs are up. What do you say?',
-              situation: 'Cost variance is ($18,400) — you need to explain it.',
-              choices: [
-                {
-                  text: 'Blame the scope increase',
-                  next: 'bad',
-                  outcome: 'bad',
-                },
-                {
-                  text: 'Present the EVM data transparently',
-                  next: 'good',
-                  outcome: 'good',
-                },
-              ],
+              left: {
+                label: 'Module 01 — Introduction',
+                title: 'What is Project Controls?',
+                body: '<p style="font-size:13px;margin-bottom:9px;">Project controls is the discipline of tracking, measuring, and guiding a project so it finishes on time, on budget, and within scope.</p><p style="font-size:13px;margin-bottom:9px;">Every project has three competing constraints: <b>scope</b> (what you\'re building), <b>schedule</b> (when it\'s done), and <b>cost</b> (what it costs). Project controls keeps all three in balance.</p><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">Why It Matters</b><p style="margin-top:4px;">Projects without formal controls run over budget at twice the rate of those with basic tracking. The earlier you catch a variance, the cheaper it is to fix.</p></div>',
+                pageNum: 1,
+              },
+              right: {
+                label: 'Module 01 — Introduction',
+                title: 'What a Project Controller Does',
+                body: '<div style="font-size:13px;"><div style="margin-bottom:9px;"><b>1. Establish a Baseline</b><br><span style="font-size:12px;color:#666;">Agree on the approved scope, schedule, and budget before work starts. This is your measuring stick.</span></div><div style="margin-bottom:9px;"><b>2. Collect Progress Data</b><br><span style="font-size:12px;color:#666;">Gather weekly updates: hours spent, percent complete, costs incurred.</span></div><div style="margin-bottom:9px;"><b>3. Compare to the Baseline</b><br><span style="font-size:12px;color:#666;">Calculate variances — where are we ahead, on track, or behind?</span></div><div style="margin-bottom:9px;"><b>4. Forecast the Outcome</b><br><span style="font-size:12px;color:#666;">Predict the final cost and finish date based on current performance.</span></div><div><b>5. Report and Recommend</b><br><span style="font-size:12px;color:#666;">Communicate findings and propose corrective actions where needed.</span></div></div>',
+                pageNum: 2,
+              },
             },
             {
-              id: 'good',
-              avatar: 'JO',
-              avatarClass: 'branch-av-jamie',
-              speaker: 'Jamie Okafor',
-              loc: 'Month 5 · Site Office',
-              text: 'You walk through SV and CV with data. The PM nods.',
-              outcome: 'good',
-              outcomeLabel: 'GOOD CALL',
-              debrief: 'Presenting numbers even when they\\\'re bad builds credibility.',
+              left: {
+                label: 'Module 02 — Scope',
+                title: 'Scope Management',
+                body: '<p style="font-size:13px;margin-bottom:9px;">Scope is the boundary of your project. Manage it poorly and you\'ll do extra work for free — a phenomenon called <b>scope creep</b>.</p><p style="font-size:13px;margin-bottom:9px;">Scope is defined in a <b>Statement of Work (SOW)</b>. This document describes what the project will deliver and — critically — what is <em>excluded</em>.</p><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">The Golden Rule</b><p style="margin-top:4px;">If it\'s not in the scope document, it\'s not in the project. Any new request outside agreed scope must go through a formal change order — never silently absorbed.</p></div>',
+                pageNum: 3,
+              },
+              right: {
+                label: 'Module 02 — Scope',
+                title: 'WBS & Scope Creep',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:6px;">A <b>Work Breakdown Structure (WBS)</b> breaks scope into trackable work packages:</p><table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;"><tbody><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:3px 6px;color:#555;">Level</th><th style="text-align:left;padding:3px 6px;color:#555;">Example</th></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">1 — Project</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Bridge Rehabilitation</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">2 — Phase</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Design / Construction</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">3 — Deliverable</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Foundation, Deck</td></tr><tr><td style="padding:3px 6px;">4 — Work Package</td><td style="padding:3px 6px;color:#555;">Pour Deck Concrete</td></tr></tbody></table><p style="font-size:12px;color:#555;"><b>Managing Scope Creep:</b> Recognize it → Log it → Evaluate the impact → Formalize via change order. Never absorb extra work without client signature.</p>',
+                pageNum: 4,
+              },
             },
             {
-              id: 'bad',
-              avatar: 'JO',
-              avatarClass: 'branch-av-jamie',
-              speaker: 'Jamie Okafor',
-              loc: 'Month 5 · Site Office',
-              text: 'The PM pushes back — scope doesn\\\'t explain the cost growth.',
-              outcome: 'bad',
-              outcomeLabel: 'POOR APPROACH',
-              debrief: 'Without data, blame-shifting erodes trust with the PM.',
+              left: {
+                label: 'Module 03 — Schedule',
+                title: 'Schedule Basics',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">A schedule translates scope into a timeline — assigning durations, sequencing tasks, and identifying when deliverables are due.</p><div style="font-size:13px;"><div style="margin-bottom:9px;"><b>Milestone</b><br><span style="font-size:12px;color:#666;">A zero-duration marker for a significant event — a deadline, approval, or handoff.</span></div><div style="margin-bottom:9px;"><b>Activity / Task</b><br><span style="font-size:12px;color:#666;">A specific piece of work with a start date, finish date, and duration.</span></div><div style="margin-bottom:9px;"><b>Predecessor</b><br><span style="font-size:12px;color:#666;">A task that must finish (or start) before another task can begin.</span></div><div><b>Float / Slack</b><br><span style="font-size:12px;color:#666;">How much a task can slip without delaying the overall project end date.</span></div></div>',
+                pageNum: 5,
+              },
+              right: {
+                label: 'Module 03 — Schedule',
+                title: 'Critical Path',
+                body: '<p style="font-size:13px;margin-bottom:9px;">The <b>Critical Path</b> is the longest sequence of dependent tasks through the project. Any delay on the critical path delays the entire project. Critical tasks have zero float.</p><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;margin-bottom:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">Practical Tip</b><p style="margin-top:4px;">Focus monitoring effort on critical path tasks. Non-critical tasks have float — they can slip a little. Critical tasks cannot slip at all without pushing the finish date.</p></div><p style="font-size:12px;color:#555;">At any point, compare <em>where you planned to be</em> with <em>where you actually are</em>. A task running behind plan has a <b>negative schedule variance</b>.</p>',
+                pageNum: 6,
+              },
+            },
+            {
+              left: {
+                label: 'Module 04 — Cost',
+                title: 'Cost Control',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">Cost control is about tracking spending against the approved budget and forecasting where you\'ll land at completion.</p><div style="font-size:13px;"><div style="margin-bottom:9px;"><b>Original Budget (OB)</b><br><span style="font-size:12px;color:#666;">The approved budget at project start, before any approved changes.</span></div><div style="margin-bottom:9px;"><b>Current Budget (CB)</b><br><span style="font-size:12px;color:#666;">Original budget plus all approved change orders to date.</span></div><div style="margin-bottom:9px;"><b>Actual Cost (AC)</b><br><span style="font-size:12px;color:#666;">Money actually spent on the project (invoices paid, time charged).</span></div><div><b>Estimate to Complete (ETC)</b><br><span style="font-size:12px;color:#666;">How much more money is needed to finish the remaining work.</span></div></div>',
+                pageNum: 7,
+              },
+              right: {
+                label: 'Module 04 — Cost',
+                title: 'Cost Formulas',
+                body: '<div style="background:#f5f5f0;border:1px solid #ddd;padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:13px;"><span style="font-size:10px;color:#888;display:block;margin-bottom:2px;">Cost Variance</span><b>CV = Earned Value − Actual Cost</b><br><span style="font-size:12px;color:#666;">Positive = under budget. Negative = over budget.</span></div><div style="background:#f5f5f0;border:1px solid #ddd;padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:13px;"><span style="font-size:10px;color:#888;display:block;margin-bottom:2px;">Estimate at Completion</span><b>EAC = Actual Cost + Estimate to Complete</b><br><span style="font-size:12px;color:#666;">Compare EAC to CB. If EAC &gt; CB, you have a cost overrun — report early.</span></div><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">Common Mistake</b><p style="margin-top:4px;">Spending 60% of budget does not mean 60% of work is done. Measure physical progress and cost data separately.</p></div>',
+                pageNum: 8,
+              },
+            },
+            {
+              left: {
+                label: 'Module 05 — Earned Value',
+                title: 'EVM Core Values',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">EVM integrates scope, schedule, and cost into one measurement system — giving you a single picture of project health.</p><div style="font-size:13px;"><div style="margin-bottom:9px;"><b>Planned Value (PV)</b><br><span style="font-size:12px;color:#666;">Budget authorized for work <em>scheduled</em> to be done by today. (BCWS)</span></div><div style="margin-bottom:9px;"><b>Earned Value (EV)</b><br><span style="font-size:12px;color:#666;">Budget authorized for work <em>actually completed</em> by today. (BCWP)</span></div><div style="margin-bottom:9px;"><b>Actual Cost (AC)</b><br><span style="font-size:12px;color:#666;">Real cost incurred for work performed by today. (ACWP)</span></div><div><b>Budget at Completion (BAC)</b><br><span style="font-size:12px;color:#666;">Total approved budget for the entire project.</span></div></div>',
+                pageNum: 9,
+              },
+              right: {
+                label: 'Module 05 — Earned Value',
+                title: 'EVM Formulas',
+                body: '<div style="background:#f5f5f0;border:1px solid #ddd;padding:6px 12px;margin-bottom:6px;border-radius:4px;font-size:12px;"><b>SV = EV − PV</b> &nbsp;<span style="color:#888;">(negative = behind schedule)</span></div><div style="background:#f5f5f0;border:1px solid #ddd;padding:6px 12px;margin-bottom:6px;border-radius:4px;font-size:12px;"><b>CV = EV − AC</b> &nbsp;<span style="color:#888;">(negative = over budget)</span></div><div style="background:#f5f5f0;border:1px solid #ddd;padding:6px 12px;margin-bottom:6px;border-radius:4px;font-size:12px;"><b>SPI = EV / PV</b> &nbsp;<span style="color:#888;">(&lt;1.0 = behind schedule)</span></div><div style="background:#f5f5f0;border:1px solid #ddd;padding:6px 12px;margin-bottom:10px;border-radius:4px;font-size:12px;"><b>CPI = EV / AC</b> &nbsp;<span style="color:#888;">(&lt;1.0 = over budget)</span></div><table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:3px 6px;color:#555;">Index</th><th style="text-align:left;padding:3px 6px;color:#555;">Meaning</th></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">CPI = 0.85</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">$1.00 spent earns only $0.85 of work</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">CPI = 1.0</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">On budget exactly</td></tr><tr><td style="padding:3px 6px;">SPI = 0.90</td><td style="padding:3px 6px;color:#555;">Progressing at 90% of planned rate</td></tr></tbody></table>',
+                pageNum: 10,
+              },
+            },
+            {
+              left: {
+                label: 'Module 06 — Risk',
+                title: 'Risk Management',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">Every identified risk goes in a <b>risk register</b> — a living log tracked through the project lifecycle.</p><table style="width:100%;border-collapse:collapse;font-size:12px;"><tbody><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:3px 6px;color:#555;">Field</th><th style="text-align:left;padding:3px 6px;color:#555;">Description</th></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Risk ID</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Unique identifier</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Description</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Clear statement of the risk event</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Probability</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Low / Medium / High</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Impact</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Effect on scope, schedule, or cost</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Risk Score</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Probability × Impact</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Response</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Avoid / Mitigate / Transfer / Accept</td></tr><tr><td style="padding:3px 6px;">Owner</td><td style="padding:3px 6px;color:#555;">Person responsible for monitoring</td></tr></tbody></table>',
+                pageNum: 11,
+              },
+              right: {
+                label: 'Module 06 — Risk',
+                title: 'Response Strategies',
+                body: '<div style="font-size:13px;"><div style="margin-bottom:8px;"><b>Avoid</b><br><span style="font-size:12px;color:#666;">Change the plan to eliminate the risk entirely (e.g., change a construction method).</span></div><div style="margin-bottom:8px;"><b>Mitigate</b><br><span style="font-size:12px;color:#666;">Reduce the probability or impact (e.g., add schedule buffer).</span></div><div style="margin-bottom:8px;"><b>Transfer</b><br><span style="font-size:12px;color:#666;">Shift the risk to another party (e.g., insurance, subcontract the risky work).</span></div><div style="margin-bottom:10px;"><b>Accept</b><br><span style="font-size:12px;color:#666;">Acknowledge the risk and plan a contingency if it occurs.</span></div></div><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">Contingency vs Management Reserve</b><p style="margin-top:4px;"><b>Contingency</b> covers known risks in your register. <b>Management Reserve</b> covers unknown unknowns. Both are legitimate — controlled differently, never mixed.</p></div>',
+                pageNum: 12,
+              },
+            },
+            {
+              left: {
+                label: 'Module 07 — Reporting',
+                title: 'Project Status Report',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">A good report tells a clear story: where we are, how we got here, and what happens next. Keep each section concise — executives want the headline.</p><div style="font-size:13px;"><div style="margin-bottom:8px;"><b>1. Overall Status (RAG)</b><br><span style="font-size:12px;color:#666;">Red / Amber / Green for scope, schedule, and cost. One sentence of context each.</span></div><div style="margin-bottom:8px;"><b>2. Accomplishments</b><br><span style="font-size:12px;color:#666;">What was completed since the last report? Tie back to milestones.</span></div><div style="margin-bottom:8px;"><b>3. Upcoming Work</b><br><span style="font-size:12px;color:#666;">Key activities and milestones for the next period. Flag anything at risk.</span></div><div style="margin-bottom:8px;"><b>4. Issues &amp; Risks</b><br><span style="font-size:12px;color:#666;">Open issues needing a decision, and top risks with current status.</span></div><div><b>5. Forecast</b><br><span style="font-size:12px;color:#666;">Updated EAC and projected completion date. Variance from baseline with explanation.</span></div></div>',
+                pageNum: 13,
+              },
+              right: {
+                label: 'Module 07 — Reporting',
+                title: 'RAG Status',
+                body: '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:12px;"><tbody><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:3px 6px;color:#555;">Colour</th><th style="text-align:left;padding:3px 6px;color:#555;">Meaning</th><th style="text-align:left;padding:3px 6px;color:#555;">Action</th></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#2e7d32;font-weight:600;">Green</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">On track</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Continue monitoring</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#e65100;font-weight:600;">Amber</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">At risk — recoverable</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Mitigation in progress</td></tr><tr><td style="padding:3px 6px;color:#c62828;font-weight:600;">Red</td><td style="padding:3px 6px;color:#555;">Off track — uncertain recovery</td><td style="padding:3px 6px;color:#555;">Escalate; corrective action</td></tr></tbody></table><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">Reporting Discipline</b><p style="margin-top:4px;">Never hide a red status hoping it resolves itself. Reporting red early gives the team time to act. Reporting red late destroys trust.</p></div>',
+                pageNum: 14,
+              },
+            },
+            {
+              left: {
+                label: 'Module 08 — Changes',
+                title: 'Change Management',
+                body: '<p style="font-size:12px;color:#555;margin-bottom:8px;">Changes are inevitable. The goal is to control them so every change is properly evaluated, approved, and reflected in the baseline.</p><div style="font-size:13px;"><div style="margin-bottom:8px;"><b>1. Identify</b><br><span style="font-size:12px;color:#666;">Recognize a change is needed. Log it immediately in the change register.</span></div><div style="margin-bottom:8px;"><b>2. Evaluate</b><br><span style="font-size:12px;color:#666;">Assess impact on scope, schedule, cost, and risk. Changes rarely affect just one dimension.</span></div><div style="margin-bottom:8px;"><b>3. Submit</b><br><span style="font-size:12px;color:#666;">Prepare a formal Change Order (CO) with the full impact assessment.</span></div><div style="margin-bottom:8px;"><b>4. Approve / Reject</b><br><span style="font-size:12px;color:#666;">The appropriate authority reviews and decides. Never proceed without approval.</span></div><div><b>5. Implement</b><br><span style="font-size:12px;color:#666;">Update schedule, budget, and scope documents to reflect the approved change.</span></div></div>',
+                pageNum: 15,
+              },
+              right: {
+                label: 'Module 08 — Changes',
+                title: 'What Goes in a Change Order?',
+                body: '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px;"><tbody><tr style="border-bottom:1px solid #ddd;"><th style="text-align:left;padding:3px 6px;color:#555;">Element</th><th style="text-align:left;padding:3px 6px;color:#555;">Description</th></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">CO Number</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Unique sequential identifier</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Description</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">What is changing and why</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Scope Impact</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Additional or removed work</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Schedule Impact</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Days added or removed</td></tr><tr><td style="padding:3px 6px;border-bottom:1px solid #eee;">Cost Impact</td><td style="padding:3px 6px;border-bottom:1px solid #eee;color:#555;">Dollar value of the change</td></tr><tr><td style="padding:3px 6px;">Signatures</td><td style="padding:3px 6px;color:#555;">Client and contractor sign-off</td></tr></tbody></table><div style="background:#fff8e6;border-left:3px solid #c89530;padding:8px 12px;border-radius:0 4px 4px 0;font-size:12px;"><b style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#c89530;">The Bottom Line</b><p style="margin-top:4px;">A well-managed change register protects both contractor and client — and is your first line of defence in any dispute.</p></div>',
+                pageNum: 16,
+              },
             },
           ],
+          tabs: [
+            {
+              label: 'Overview',
+              page: 0,
+            },
+            {
+              label: 'Scope',
+              page: 1,
+            },
+            {
+              label: 'Schedule',
+              page: 2,
+            },
+            {
+              label: 'Cost',
+              page: 3,
+            },
+            {
+              label: 'EVM',
+              page: 4,
+            },
+            {
+              label: 'Risk',
+              page: 5,
+            },
+            {
+              label: 'Reporting',
+              page: 6,
+            },
+            {
+              label: 'Changes',
+              page: 7,
+            },
+          ],
+        },
+        {
+          type: 'realbinder',
+          pages: [
+            {
+              left: {
+                label: 'Field Notes                             2026/1/20',
+                body: '<p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p><span style="font-size: 0.8em;"><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p><span style="font-size: 0.8em;"><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p><span style="font-size: 0.8em;"><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"><span style="font-size: 0.8em;">BH-01A complete</span></span></span></p><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"><span style="font-size: 0.8em;">BH-02 complete</span></span></span></p><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"><span style="font-size: 0.8em;">BH-03 delay mobing to site due to access road</span></span></span></p><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"><span style="font-size: 0.8em;">BH-04 mobbed to site</span></span></span></p><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"><span style="font-size: 0.8em;">BH-05 complete</span></span></span></p></span><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p></span><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p></span><p style="font-size: 14px; line-height: 1.6;"><span style="color: rgb(227, 227, 227); font-family: &quot;gf_Shadows_Into_Light variant0&quot;, Tofu; font-size: 40px; text-wrap-mode: nowrap; background-color: rgb(19, 19, 20);"><span style="font-family: &quot;Shadows Into Light&quot;, sans-serif;"></span></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><span style="color: rgb(0, 0, 255); font-family: &quot;Comic Sans MS&quot;;"></span></p><p style="font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif; color: rgb(65, 65, 65); font-size: 14px; line-height: 1.6;"><br></p>',
+                pageNum: 1,
+              },
+              right: {
+                label: 'Field Notes                          2026/1/21',
+                pageNum: 2,
+              },
+            },
+          ],
+          noRings: true,
+          noTabs: true,
+          grid: true,
         },
       ],
     },
